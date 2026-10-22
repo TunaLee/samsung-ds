@@ -1,5 +1,6 @@
 """1교시 · AI Agent란? · Agent 구조와 Context Window (원본: 노션 교안 1교시)."""
 import agentfig as af
+import embedfig as ef
 import fig
 from kit import (ba, big, cards, cover, flow, ill, img, lab, note, page, pane, prompt, section, steps, table, two, ul)
 
@@ -181,10 +182,15 @@ def block_rag():
             "질문: 반도체 패키지의 박리\n문서: package delamination\n\n→ 글자가 달라 연결하기 어려움",
             "의미를 비교할 수 있는 형태로 미리 바꿔 두기\n\n→ 표현이 달라도 관련 자료를 찾음",
             "글자 일치 비교", "의미 비교"), kick="임베딩"),
-        page("문장을 숫자 배열로: 임베딩", af.embed()
-             + note("임베딩", "글을 벡터(순서가 있는 숫자 배열)로 표현 · 숫자는 설명용", "red"), kick="임베딩"),
-        page("의미가 가까우면 가까이", two(af.space(),
-             ul(["식각 · 증착 레시피: <b>반도체 공정</b>이라는 문맥 공유 → 가까움", "김치찌개 레시피: 같은 단어, 다른 문맥 → 멀리", "가깝다 ≠ 정답 · 모든 조건 충족은 별도 확인"]), "w"), kick="임베딩"),
+        page("문장을 숫자 배열로: 임베딩", ef.embed2()
+             + note("임베딩", "글을 벡터(순서가 있는 숫자 배열)로 표현 · 색 띠는 설명용", "red"), kick="임베딩"),
+        page("축 하나 = 특징 하나", two(ef.line1d(), '<div class="ef-key"><div><b style="background:#E8002D">S1</b>웨이퍼 식각 레시피</div><div><b style="background:#FF7A93">S2</b>박막 증착 레시피</div><div><b style="background:#26262B">S3</b>김치찌개 레시피</div></div>' + ul(["숫자 하나 = 문장이 그 특징을 얼마나 가졌는지", "<b>반도체 관련도</b>만 보면 S1 · S2가 겹침"]), "w"), kick="임베딩"),
+        page("특징이 둘이면 평면", two(ef.plane2d(), '<div class="ef-key"><div><b style="background:#E8002D">S1</b>웨이퍼 식각 레시피</div><div><b style="background:#FF7A93">S2</b>박막 증착 레시피</div><div><b style="background:#26262B">S3</b>김치찌개 레시피</div></div>' + ul(["<b>요리 관련도</b> 축 추가 → S3가 떨어짐", "S1 · S2는 아직 가까움"]), "w"), kick="임베딩"),
+        page("특징이 셋이면 공간", two(ef.space3d(), '<div class="ef-key"><div><b style="background:#E8002D">S1</b>웨이퍼 식각 레시피</div><div><b style="background:#FF7A93">S2</b>박막 증착 레시피</div><div><b style="background:#26262B">S3</b>김치찌개 레시피</div></div>' + ul(["<b>식각 ↔ 증착</b> 축 추가 → S1 · S2도 구분", "축(특징)이 늘수록 더 세밀하게 구분"]), "w"), kick="임베딩"),
+        page("특징이 많을수록 표현이 정교", ef.dims()
+             + note("실제 임베딩", "축이 수백 ~ 수천 개 · 사람이 이름 붙인 특징이 아니라 <b>학습으로 정해진 특징</b> · 숫자 하나에 「반도체」 같은 뜻이 붙어 있지는 않음", "red"), kick="임베딩"),
+        page("의미가 가까우면 방향도 비슷", two(ef.space2(),
+             ul(["식각 · 증착 레시피: <b>반도체 공정</b> 문맥 공유 → 화살표 방향이 비슷", "김치찌개 레시피: 같은 「레시피」, 다른 문맥 → 방향이 크게 다름", "가깝다 ≠ 정답 · 모든 조건 충족은 별도 확인"]), "w"), kick="임베딩"),
         page("벡터와 차원", cards([
             ("벡터", "순서가 있는 숫자 배열 · 2개면 평면, 3개면 공간 좌표", "1"),
             ("차원", "숫자의 개수 · 실제 임베딩은 수백 ~ 수천", "2"),

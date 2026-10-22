@@ -642,6 +642,31 @@
   code{font-family:var(--mono); font-size:.92em; background:var(--wash); padding:1px 5px; border-radius:4px;}
   .code pre code{background:none; padding:0; border-radius:0; font-size:inherit;} .code.prompt code{font-size:16.5px;}
 
+  /* ===== 임베딩 시각화 (embedfig) ===== */
+  .ef{width:100%; height:auto; max-height:420px;}
+  .ef .ef-l{font:900 18px var(--serif);} .ef .ef-a{font:600 14px var(--mono); fill:#6B6B73;}
+  .ef .ef-ax{font:800 16px var(--serif); fill:#26262B;} .ef .ef-s{font:800 14px var(--serif);}
+  .ef-key{display:flex; flex-direction:column; gap:10px;}
+  .ef-key div{display:flex; align-items:center; gap:10px; font-size:16px;} .ef-key b{width:26px; height:26px; border-radius:50%; color:#fff; font-size:12px; display:grid; place-items:center;}
+  .ef-ds{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+  .ef-d{border:1px solid var(--line); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:6px;}
+  .ef-d.on{border:2px solid var(--violet); background:#FFF5F7;}
+  .ef-d b{font-size:34px; font-weight:900;} .ef-d b small{font-size:14px; color:var(--mut); margin-left:4px;}
+  .ef-d span{font-size:16px; font-weight:700;} .ef-d em{font-style:normal; font-size:14px; color:var(--violet); font-weight:700;}
+  .ef-bars{display:flex; align-items:flex-end; gap:3px; height:54px;} .ef-bars i{flex:1; background:#26262B; border-radius:2px; max-width:14px;}
+  .ef-d.on .ef-bars i{background:var(--violet);}
+  .ef-emb{display:flex; flex-direction:column; gap:12px;}
+  .ef-hd{display:grid; grid-template-columns:360px 40px 1fr; font-size:13px; font-weight:800; color:var(--mut);}
+  .ef-row{display:grid; grid-template-columns:44px 316px 40px 1fr; align-items:center; gap:0; border:1px solid var(--line); border-radius:12px; padding:12px 14px;}
+  .ef-row > b{width:32px; height:32px; border-radius:50%; background:#E8002D; color:#fff; font-size:12px; display:grid; place-items:center;}
+  .ef-row > b.far{background:#26262B;} .ef-row > span{font-size:15.5px;}
+  .ef-arr{color:var(--violet); font-weight:900; font-size:22px; text-align:center;}
+  .ef-strip{display:flex; align-items:center; gap:3px;} .ef-strip i{width:20px; height:28px; border-radius:4px;}
+  .ef-strip span{margin-left:8px; font-size:13px; color:var(--mut); font-weight:700;}
+  .ef-leg{font-size:14px; color:var(--ink-soft); display:flex; align-items:center; gap:6px;}
+  .ef-leg i{width:16px; height:16px; border-radius:3px; display:inline-block;} .ef-leg i.p{background:#E8002D;} .ef-leg i.n{background:#26262B; margin-left:8px;}
+  .ef-key{margin-bottom:18px;}
+
   /* ===== 과정 소개 전용 (s0-) ===== */
   .s0-roles{display:block; width:100%; height:auto; max-height:450px;}
   .s0-roles text{font-family:inherit; letter-spacing:-.02em;}
