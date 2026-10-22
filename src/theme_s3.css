@@ -98,3 +98,14 @@
   .x3br{font:800 14px var(--mono); color:var(--violet); margin-bottom:6px;}
   .ctable.x3sm{font-size:15px;} .ctable.x3sm th,.ctable.x3sm td{padding:8px 12px;} .ctable.x3sm td:first-child{width:130px;}
   .ctable.x3rec td:last-child{color:var(--mut); font-family:var(--mono);}
+  /* 지식 그래프 소개 */
+  .kg-in{display:grid; grid-template-columns:1fr 34px 1fr 34px 1.15fr; align-items:stretch; gap:10px;}
+  .kg-col{border:1px solid var(--line); border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:10px; justify-content:center;}
+  .kg-h{font-size:14px; font-weight:900; color:var(--violet);}
+  .kg-sent{font-size:19px; line-height:1.7;} .kg-sent mark{background:#FFE3E9; padding:1px 4px; border-radius:4px; font-weight:800;}
+  .kg-tr{display:flex; align-items:center; gap:6px; font-size:15px; background:#F6F6F8; border-radius:8px; padding:8px 10px;}
+  .kg-tr i{font-style:normal; color:var(--mut); font-size:13px; font-weight:800; white-space:nowrap;}
+  .kg-arr{display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:900; color:var(--mut);}
+  .kg-svg{width:100%; height:auto;}
+  .kg-def{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:16px;}
+  .kg-def span{border-top:3px solid var(--ink); padding-top:8px; font-size:15px; color:var(--mut);} .kg-def b{display:block; color:var(--ink); font-size:17px; margin-bottom:2px;}

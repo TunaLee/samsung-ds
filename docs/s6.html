@@ -941,6 +941,17 @@
   .x3br{font:800 14px var(--mono); color:var(--violet); margin-bottom:6px;}
   .ctable.x3sm{font-size:15px;} .ctable.x3sm th,.ctable.x3sm td{padding:8px 12px;} .ctable.x3sm td:first-child{width:130px;}
   .ctable.x3rec td:last-child{color:var(--mut); font-family:var(--mono);}
+  /* 지식 그래프 소개 */
+  .kg-in{display:grid; grid-template-columns:1fr 34px 1fr 34px 1.15fr; align-items:stretch; gap:10px;}
+  .kg-col{border:1px solid var(--line); border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:10px; justify-content:center;}
+  .kg-h{font-size:14px; font-weight:900; color:var(--violet);}
+  .kg-sent{font-size:19px; line-height:1.7;} .kg-sent mark{background:#FFE3E9; padding:1px 4px; border-radius:4px; font-weight:800;}
+  .kg-tr{display:flex; align-items:center; gap:6px; font-size:15px; background:#F6F6F8; border-radius:8px; padding:8px 10px;}
+  .kg-tr i{font-style:normal; color:var(--mut); font-size:13px; font-weight:800; white-space:nowrap;}
+  .kg-arr{display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:900; color:var(--mut);}
+  .kg-svg{width:100%; height:auto;}
+  .kg-def{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:16px;}
+  .kg-def span{border-top:3px solid var(--ink); padding-top:8px; font-size:15px; color:var(--mut);} .kg-def b{display:block; color:var(--ink); font-size:17px; margin-bottom:2px;}
 
   /* ===== 4교시 도해 ===== */
   .s4seq{display:block; margin:0 auto; width:100%; height:auto; max-height:370px;}
@@ -1355,6 +1366,9 @@
   .s8-full .code.prompt code{font-size:14px; line-height:1.5;}
   .s8-lanes .nr-f b{font-size:16px;}
 
+  .s8-verb.s8-scroll .code.prompt pre{max-height:440px; overflow:auto;}
+  .s8-verb.s8-scroll .code.prompt code{column-count:1; font-size:14px; line-height:1.55;}
+
   /* ===== 부록 · 명령어 모음 (s9-) ===== */
   .s9-row{display:flex; align-items:stretch; gap:14px;}
   .s9-row .ftile{flex:1;}
@@ -1425,8 +1439,6 @@
 </defs></svg><section class="slide cover active" data-title="표지"><div class="wrap"><div class="ckick"><span class="bar"></span>B Track · AI Agent 아키텍트 과정 · 6교시</div><h1>Multi-Agent<br><em>Decisions</em>와 조사 Agent</h1><p class="lead">자주 하는 판정과 비용이 큰 조사를 나누고, 판단과 실행을 잇는 기본 흐름을 만듭니다</p><div class="meta"><div class="it"><span class="k">교시</span><span class="v">6교시</span></div><div class="it"><span class="k">실습</span><span class="v">line-sim · agent-sim [decisions] 탭</span></div><div class="it"><span class="k">API</span><span class="v">OpenAI Decisions · Responses</span></div></div></div></section>
 
 <section class="slide" data-title="학습 목표"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><h2 class="s-title">학습 목표</h2><div class="rule"></div><div class="body"><div class="cards c4"><div class="card"><span class="n">01</span><h3>연결 방식</h3><p>순차 · 병렬과 집계 · 계층형</p></div><div class="card"><span class="n">02</span><h3>운영 방식</h3><p>도구 공유 · 사람 개입</p></div><div class="card"><span class="n">03</span><h3>Decisions API</h3><p>predicate 판정 · 확률 · 기준값</p></div><div class="card"><span class="n">04</span><h3>판정 → 조사</h3><p>기준값을 넘은 이벤트만 조사 Agent로</p></div></div></div></section>
-
-<section class="slide" data-title="과정 전체 흐름"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><h2 class="s-title">과정 전체 흐름</h2><div class="rule"></div><div class="body"><div class="cmap"><div class="cm"><b>1교시</b><span>AI Agent 구조 · Context Window · 첫 RAG</span></div><div class="cm"><b>2교시</b><span>청크 크기와 검색 방식</span></div><div class="cm"><b>3교시</b><span>Advanced RAG · 검색 성능 개선</span></div><div class="cm"><b>4교시</b><span>Tool Calling과 Context의 실행 흐름</span></div><div class="cm"><b>5교시</b><span>MCP로 RAG와 외부 도구 연결</span></div><div class="cm on"><b>6교시</b><span>Multi-Agent · 판정과 조사</span></div><div class="cm"><b>7교시</b><span>캡스톤 1 · 기획과 제작</span></div><div class="cm"><b>8교시</b><span>캡스톤 2 · 완성과 제출</span></div></div><div class="note red"><span class="nk">이어지는 질문</span><span class="nt">도구를 연결한 Agent 하나 → 역할을 나눈 여러 Agent는 어떻게 연결하고 통제할까</span></div></div></section>
 
 <section class="slide" data-title="오늘의 실습 구성"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">실습 안내</div><h2 class="s-title">오늘의 실습 구성</h2><div class="rule"></div><div class="body"><div class="twocol w"><div><div class="biglist"><div class="li"><span class="num">1</span><div class="tx"><h4>모의 생산라인 켜기</h4><p>line-sim 서버 · 고정된 합성 데이터</p></div></div><div class="li"><span class="num">2</span><div class="tx"><h4>[decisions] 탭 만들기</h4><p>완성형 Prompt 그대로 복사 · 감시 · 판정 화면</p></div></div><div class="li"><span class="num">3</span><div class="tx"><h4>조사 Agent 연결</h4><p>가이드라인에 따라 요청 직접 작성</p></div></div></div></div><div><ul class='ul'><li>입력 위치 구분: <b>[Claude Code]</b> · <b>[PowerShell]</b> · <b>[브라우저]</b> · <b>[앱 화면]</b></li><li>rag-sim · MCP 서버는 이번 실습에서 사용하지 않음 · 꺼도 됨</li></ul></div></div></div></section>
 

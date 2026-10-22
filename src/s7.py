@@ -2,7 +2,6 @@
 import fig
 import s7_fig as sf
 from kit import (ba, big, cards, cover, flow, img, note, page, pane, prompt, section, steps, table, three, two, ul)
-from s1 import course_map
 
 TITLE = "캡스톤 1 · 기획과 제작"
 IMG = "img/s7/"
@@ -19,8 +18,6 @@ def opening():
             ("목표 정의", "입력 · 결과물 · 완료 조건까지 정하기", "03"),
             ("단계별 구현", "단계마다 요청하고 화면에서 결과 확인", "04"),
         ], 4)),
-        page("과정 전체 흐름", course_map("7")
-             + note("오늘", "주제를 정하고 핵심 기능부터 구현 → 8교시에 실제 실행 결과를 정리해 제출", "red")),
     ]
 
 
@@ -330,146 +327,12 @@ def block_graph():
              + prompt("RAM의 소프트 에러를 검출하고 완화하는 방법과 각 방법의 제약은 무엇인가요?", "B. 소프트 에러 대응")
              + prompt("트레이와 테이프·릴의 ESD 보호 특성을 확인할 때 어떤 시험과 재료 정보를 함께 봐야 하나요?", "C. ESD 포장")
              + "</div>", kick="참고 · GraphRAG"),
-        page("1단계 · 문서를 올리면 검색까지", two(
-            sf.vchain([("PDF 업로드 + 청킹 전략 선택", "수강생이 고르는 것은 청킹 전략 하나"), ("파싱 → 청킹 → 임베딩 → 저장", "자동"), ("질문 → 검색 → 답변", "")], hl=(0,)),
-            ul(["2 · 3교시에서 단계별로 열어 본 과정을 <b>한 번에</b>", "문서를 올리면 준비가 자동으로 끝나고 바로 질문", "나머지는 앱이 알아서 진행"]), "w"), kick="참고 · GraphRAG 5-1"),
-        page("1단계 요청문 (1/2)", prompt(
-            "선택한 PDF 로 질문에 답하는 RAG 실습 프로젝트를 만들어 줘.\n\n"
-            "화면 구성\n- PDF 파일을 올리는 자리\n- 청킹 전략 선택(고정 길이 · 구조 경계 · 문단) 과 청크 크기 입력\n- [문서 준비] 버튼 하나\n- 질문 입력창과 답변 영역\n\n"
-            "[문서 준비] 를 누르면 파싱 · 청킹 · 임베딩 · 저장을 한 번에 진행해 줘.\n단계마다 사용자가 버튼을 누르지 않게 해 줘.\n"
-            "진행 상황과 끝난 뒤 결과만 화면에 보여 줘.\n- 페이지 수와 페이지별로 추출된 글자 수\n- 만들어진 청크 수, 가장 긴 청크와 가장 짧은 청크\n- 텍스트가 거의 추출되지 않은 페이지가 있으면 표시",
-            "Claude Code · 앞부분", sm=True) + note("이어서", "다음 장의 뒷부분까지 한 요청문으로 입력"), kick="참고 · GraphRAG 5-1"),
-        page("1단계 요청문 (2/2)", prompt(
-            "임베딩은 OpenAI text-embedding-3-small 을 쓰고,\n지금 사용 중인 임베딩 모델 이름과 차원을 화면에 항상 표시해 줘.\n\n"
-            "질문을 입력하면 관련 청크를 검색해 상위 5개를 보여 주고,\n그 청크만 근거로 gpt-5.6-luna 가 답하게 해 줘.\n"
-            "각 청크는 청크 ID · 페이지 · 본문을 확인할 수 있게 하고,\n답변에는 사용한 페이지를 표시해 줘.\n검색된 근거로 답할 수 없으면 모른다고 답하게 해 줘.\n\n"
-            ".env 의 OPENAI_API_KEY 를 사용해 줘.",
-            "Claude Code · 뒷부분", sm=True), kick="참고 · GraphRAG 5-1"),
-        page("준비가 끝나면 화면에서 확인", two(
-            pane("준비 결과", ul(["페이지별 추출 글자 수가 0에 가까우면 원본 PDF의 그 페이지 열기 · 도판이나 표만 있는 페이지일 수 있음",
-                                "청크 서너 개 펼쳐 읽기 · 문장 끊김 · 다른 주제 섞임",
-                                "청킹 전략을 바꿔 청크 수와 내용 비교 · 문서 생김새에 따라 맞는 전략이 다름",
-                                "임베딩 모델 이름 확인 · 질문과 문서가 같은 모델이어야 점수 해석 가능"]), "good"),
-            pane("질문", ul(["답이 분명히 있는 질문: 상위 청크의 관련성 · 필요한 내용의 순위 · 표시된 페이지를 원문과 대조",
-                            "답이 없는 질문: 그럴듯한 답을 만드는지 · <b>모른다고 답해야 정상</b>"]), "good"))
-             + note("이상하면", "답변 쪽을 고치기 전에 앞 단계부터 · 청크에 그 내용이 있는지 → 추출된 텍스트에 있는지", "red")
-             + note("기본 RAG", "3교시 검색 개선(Metadata Filter · Query Rewriting · Reranking)은 지금 붙여도 됨 · 트랙의 목표는 그다음"), kick="참고 · GraphRAG 5-1"),
-        page("2단계 · 한 번의 검색으로 어려운 질문", sf.chain(["RAM", "Soft Error", "검출 방법", "완화 방법", "제약"], cls="sm")
-             + two(ul(["단순한 정의 검색에서 벗어나기", "<b>여러 대상과 조건을 연결해야</b> 답할 수 있는 질문", "아직 Graph를 만들지 않고 지금 RAG의 결과 관찰"]),
-                   pane("관찰할 것", ul(["필요한 정보가 한 Chunk에 모두 있는가 · 여러 페이지에 흩어져 있는가", "Vector Search가 필요한 Chunk를 모두 찾았는가", "일부만 검색되어 답변이 빠지지 않았는가", "순위가 낮아 근거가 LLM에 전달되지 않은 것은 없는가"]), "good"), "w2"),
-             kick="참고 · GraphRAG 5-2"),
-        page("질문 예시 · A. 패키지 수분 민감도", _qs([
-            ("Under what conditions does die paddle delamination in a flange-mounted package lead to actual reliability issues, and how do the placement of down-bond wires and temperature cycling affect that risk?",
-             "Flange-mounted package에서 die paddle delamination이 발생했을 때, 어떤 조건에서 실제 신뢰성 문제로 이어지며 down-bond wire의 위치와 temperature cycle이 그 위험에 어떤 영향을 주나요?"),
-            ("Which failure mechanisms are targeted by the mitigation methods TI proposed to reduce die paddle delamination or alleviate its impact, and what are the functional differences among reinforcing stitch bonds, improving mold adhesion, and adjusting MSL?",
-             "Die paddle delamination을 줄이거나 그 영향을 완화하기 위해 TI가 제시한 방법들은 각각 어떤 failure mechanism을 대상으로 하며, stitch bond 강화·mold adhesion 개선·MSL 조정은 어떤 차이가 있나요?"),
-            ("Why is electrical testing alone insufficient for evaluating the MSL of flange-mounted packages, and what is the rationale for conducting CSAM, temperature cycling, decapsulation, and stitch-bond inspection together?",
-             "Flange-mounted package의 MSL 평가에서 electrical test만으로는 왜 충분하지 않으며, CSAM·temperature cycle·decap·stitch-bond inspection을 함께 수행해야 하는 이유는 무엇인가요?"),
-        ]), kick="참고 · TI SLZA002"),
-        page("질문 예시 · B. 소프트 에러 대응", _qs([
-            ("What distinct roles do parity, scrubbing, and backup copies play in detecting and recovering from soft errors in STM32 SRAM, and how do they work together to prevent accumulated bit errors?",
-             "STM32의 SRAM에서 발생하는 soft error를 탐지하고 복구하기 위해 parity, scrubbing, backup copy가 각각 어떤 역할을 하며, 이들이 함께 사용될 때 누적 bit error를 어떻게 방지하나요?"),
-            ("Why is it difficult to address transient soft errors and latch-up soft errors using the same approach, and what specific hardware/software detection and compensation mechanisms correspond to each?",
-             "Transient soft error와 latch-up soft error는 왜 동일한 방식으로 대응하기 어렵고, 각각 어떤 hardware/software detection 및 compensation 방식과 연결되나요?"),
-            ("Which types of memory errors are targeted by ECC, parity, and the Walkpath test in STM32, and how do they differ in terms of detection-only capability versus error correction?",
-             "STM32에서 ECC, parity, Walkpath test는 각각 어떤 종류의 메모리 오류를 대상으로 하며, detection-only와 correction 관점에서 어떤 차이가 있나요?"),
-        ]), kick="참고 · ST AN4750"),
-        page("질문 예시 · C. ESD 포장", _qs([
-            ("When packaging moisture-sensitive devices using stick magazines, trays, or tape-and-reel formats, what supplementary ESD shielding elements are introduced in each method, and how do they differ from one another?",
-             "수분 민감 소자를 Stick Magazine, Tray, Tape-and-Reel 방식으로 포장할 때, 각 방식에서 추가되는 ESD 차폐 요소는 무엇이며 서로 어떻게 다른가요?"),
-            ("In tape-and-reel packaging, how do the material properties of the carrier tape, cover tape, and reel combine with the leader/trailer design to shield devices from external electrostatic fields, and what test results did TI use to validate this effectiveness?",
-             "Tape-and-Reel 포장에서 carrier tape, cover tape, reel의 재료 특성과 leader/trailer 구조가 어떻게 결합되어 외부 정전기장으로부터 소자를 보호하며, TI는 그 효과를 어떤 시험 결과로 확인했나요?"),
-            ("How do the ESD protection requirements of JESD625-A and EIA-541 translate into TI's packaging material selection and testing standards, and why did TI conclude that actual shielding effectiveness is more critical than simple surface resistance values?",
-             "JESD625-A와 EIA-541의 ESD 보호 요구사항은 TI의 포장재 선택과 시험 기준에 어떻게 연결되며, 왜 TI는 단순한 표면저항 값보다 실제 shielding effectiveness가 더 중요하다고 결론 내렸나요?"),
-        ]), kick="참고 · TI SZZA027A"),
-        page("검색 결과만으로 보이지 않는 연결", '<div class="quote">검색 결과에 여러 개의 사실이 나와도<br><span class="hl">어떤 정보와 어떤 정보가 연결되는지</span>는<br>검색 결과만으로 알기 어려움</div>'
-             + note("여기서부터", "GraphRAG 추가", "red"), kick="참고 · 생각해 볼 것"),
-        page("3단계 · 문서 안의 관계를 Graph로", sf.triples()
+        page("문서 안의 관계를 Graph로", sf.triples()
              + note("함께 저장", "관계마다 <b>문서명 · 페이지 · Chunk ID · 근거가 된 원문 문장</b>", "red")
-             + note("이유", "필요한 사실이 여러 페이지에 흩어져 있고, 어떻게 이어지는지는 유사도 검색 결과만으로 드러나지 않음"), kick="참고 · GraphRAG 5-3"),
-        page("실습 환경과 진행 방향", two(
-            ul(["보통은 전용 추출 모델 · Graph DB 인프라 활용", "이번 실습: 한정된 시간 · <b>OpenAI API만</b> 사용", "→ LLM의 문맥 추론으로 텍스트에서 직접 관계 도출", "완성된 프롬프트 복사 대신 직접 작성 · 테스트 · 개선"]),
-            steps([("스키마 정하기", "노드 · 관계 유형"), ("프롬프트 조립", "4개 블록"), ("단일 청크 테스트", "LLM 창에서"),
-                   ("검증 · 수정", "반복"), ("추출 자동화", "Claude Code")])), kick="참고 · GraphRAG 5-3"),
-        page("① 스키마 먼저 정하기", two(
-            pane("메모장에 두 줄", ul(["<b>노드 유형</b>: 반복해서 등장하는 대상 · 부품 · 현상 · 방법 · 조건 · 시험처럼 성격으로 묶기",
-                                     "<b>관계 유형</b>: 대상을 잇는 동사 · 방향 있음 · <code>A detected_by B</code>와 <code>B detects A</code>는 같은 사실 → 하나만",
-                                     "각각 네다섯 개면 충분 · 늘수록 추출이 흔들리고 검증할 양만 증가"]), "good"),
-            table(["문서", "노드 / 관계 (시작 예)"], [
-                ["<b>A</b>", "패키지 · 손상 유형 · 시험 · 조건 · 관리 방법<br><code>causes · detected_by · mitigated_by · has_condition</code>"],
-                ["<b>B</b>", "메모리 영역 · 오류 유형 · 검출 방식 · 완화 방법 · 제약<br><code>has_error · detected_by · mitigated_by · has_limitation</code>"],
-                ["<b>C</b>", "포장 형태 · 재료 · 보호 특성 · 시험 방법 · 표준<br><code>made_of · provides · verified_by · complies_with</code>"]], "s7-tt"), "w2")
-             + note("그대로 쓰지 않기", "문서를 직접 읽으며 고치기", "red"), kick="참고 · GraphRAG 5-3"),
-        page("② 프롬프트 4개 블록", cards([
-            ("스키마 강제 · Constraints", "가장 중요 · 규칙을 강하게 걸어야 엉뚱한 데이터를 만들지 않음", "1"),
-            ("추출 · 근거 규칙", "할루시네이션 방지 · 본문에 없는 관계를 추론해 만들지 않게", "2"),
-            ("입력 데이터 명시", "문서명 · 페이지 · Chunk ID · 텍스트 원문이 들어갈 빈칸", "3"),
-            ("출력 형식", "앞뒤 설명 문장 없이 JSON만 · 마크다운 코드 블록도 쓰지 않게", "4"),
-        ], 2) + note("핵심", "「너는 ~한 전문가다」 같은 역할 부여보다 <b>명확한 제약 사항과 스키마 규칙</b>", "red"), kick="참고 · GraphRAG 5-3"),
-        page("블록 1 · 2 예시 문장", prompt(
-            "노드 유형은 반드시 [부품, 현상, 방법, 조건] 중 하나만 사용해야 한다. 관계 유형은 [causes, detected_by, mitigated_by] 중 하나만 사용하며, 이 목록에 없는 대상이나 관계가 도출되면 해당 데이터는 과감히 버린다.",
-            "블록 1 · 스키마 강제")
-             + prompt("관계 하나마다 그 근거가 되는 원문 문장을 그대로 옮겨 담는다. 부정(하지 않는다)과 조건(다만 ~인 경우)을 빼먹지 말고, 부정이면 관계를 만들지 말고 무시한다.",
-                      "블록 2 · 추출 및 근거 규칙")
-             + note("블록 3 · 4", "입력 빈칸과 JSON 출력 형식은 직접 작성"), kick="참고 · GraphRAG 5-3"),
-        page("③ 단일 청크로 테스트", two(
-            steps([("청크 하나 복사", "앞 단계에서 잘라 둔 텍스트 중 단 하나"), ("LLM 창 열기", "ChatGPT 웹 화면 또는 Claude 등"),
-                   ("붙여 넣고 실행", "추출 프롬프트 아래에 청크 1개")]),
-            pane("하나씩 넣는 이유", ul(["한 번에 넣으면 입력이 길어져 뒷부분 추출이 성글어짐", "결과가 이상할 때 어느 청크, 프롬프트의 어느 줄 때문인지 바로 찾아 수정"]), "good"))
-             + note("주의", "코드를 짜고 문서 전체를 한 번에 API로 돌리는 것은 위험", "red"), kick="참고 · GraphRAG 5-3"),
-        page("④ 결과 검증 · 프롬프트 수정", table(["증상", "수정"], [
-            ["<b>관계가 거의 안 나옴</b>", "스키마가 문서 표현과 맞지 않음 · 청크를 직접 읽고 실제 쓰인 동사로 관계 유형 변경"],
-            ["<b>문서에 없는 말이 섞임</b>", "근거 문장을 원문 그대로 옮기게 하고, 옮길 문장이 없으면 관계를 버리라고 블록 2에 명시"],
-            ["<b>JSON 형식이 깨짐</b>", "출력 형식 앞에 「부연 설명 없이 JSON만 출력할 것」 · 예시 JSON 포맷을 더 꼼꼼하게"],
-            ["<b>같은 대상이 다른 이름으로</b>", "스키마 영역에 「목록에 있는 대표 이름(대소문자 통일)으로 통일한다」 추가"],
-        ]) + note("반복", "프롬프트 수정 → 다시 테스트", "red"), kick="참고 · GraphRAG 5-3"),
-        page("⑤ 추출 자동화 · Claude Code 요청 조건", table(["조건", "요청할 내용"], [
-            ["<b>핵심 동작</b>", "<code>prompt_extract.txt</code>의 프롬프트로 저장된 청크를 OpenAI API에 보내 관계 추출"],
-            ["<b>속도 최적화</b>", "<code>asyncio</code> 등으로 비동기 병렬 호출"],
-            ["<b>예외 처리</b>", "JSON 파싱 실패 청크는 1회만 재시도 · 그래도 실패하면 <code>failed_chunks.json</code>에 기록"],
-            ["<b>데이터 병합</b>", "대소문자 · 앞뒤 공백을 맞춰 합치기 · 같은 관계의 근거 문장은 모두 보존 · <code>graph.json</code>"],
-            ["<b>화면 출력</b>", "터미널에 총 노드 수 · 관계 수 · 총 API 호출 횟수"],
-            ["<b>검증용 표</b>", "그래프 그림 대신 <code>[출발 노드 / 관계 / 도착 노드 / 페이지 / 근거 문장]</code> 표"],
-        ], "s7-tt") + note("시작 조건", "청크에서 원하는 관계와 근거를 정확히 뽑는다는 확신 → 프롬프트를 파일로 저장 · 청크 수백 개는 순차 처리하면 너무 오래 걸림", "red"),
-             kick="참고 · GraphRAG 5-3"),
-        page("4단계 · Graph 검색 흐름", sf.chain([("사용자 질문", ""), ("시작 Node 찾기", "질문에서"), ("1~2 hop 관계 탐색", "RAM → Soft Error → Detection Method"),
+             + note("이유", "필요한 사실이 여러 페이지에 흩어져 있고, 어떻게 이어지는지는 유사도 검색 결과만으로 드러나지 않음"), kick="참고 · GraphRAG"),
+        page("Graph 검색 흐름", sf.chain([("사용자 질문", ""), ("시작 Node 찾기", "질문에서"), ("1~2 hop 관계 탐색", "RAM → Soft Error → Detection Method"),
                                                 ("원문 근거 수집", "탐색된 관계"), ("LLM에 전달", ""), ("업무 결과물 + 출처", "")], hl=(2,))
-             + note("차이", "관련 Chunk를 찾는 데서 끝나지 않고, 핵심 대상에서 출발해 관계망을 따라가며(Hop) 답변의 단서 수집", "red"), kick="참고 · GraphRAG 5-4"),
-        page("① 최종 개발 프롬프트 설계", three(
-            pane("검색 전략", ul(["질문에서 시작 Node를 어떻게 찾을까", "보조로 Vector Search를 쓸까", "몇 hop까지 따라갈까"]), "good"),
-            pane("근거 처리", ul(["관계의 문서명 · 페이지 표시", "원문을 쉽게 확인하는 방법", "연결된 정보가 없을 때 대처"]), "good"),
-            pane("결과물 형태", ul(["A: 보관 · 취급 검토표", "B: 검출 · 완화 · 제약 비교서", "C: 포장 · 재료 · 시험 · 보호 특성 체크리스트"]), "good"))
-             + note("작성 방식", "앞의 내용을 복사해 합치지 말고, 위 질문의 답을 고민하며 직접 작성", "red"), kick="참고 · GraphRAG 5-4"),
-        page("② 화면 출력 흐름", flow([("시작 Node", "예: RAM"), ("탐색 경로", "RAM → Soft Error → Detection Method"),
-                                    ("사용한 근거", "페이지 · Chunk ID · 원문"), ("최종 업무 결과물", "비교서 · 체크리스트")], hl=1)
-             + note("요청", "최종 답변만 내놓지 않게 · 실제로 Graph를 탐색했는지 추적할 수 있도록 답변 전에 순서대로 출력", "red"), kick="참고 · GraphRAG 5-4"),
-        page("③ GraphRAG 검증 테스트", table(["질문 유형", "확인할 것"], [
-            ["<b>단일 근거</b>", "하나의 문서 · 페이지로 답할 수 있는 질문 · 기본 RAG로도 쉽게 해결되는지"],
-            ["<b>다중 관계 탐색</b> (핵심)", "여러 노드와 관계를 넘어가야 완성 · 실행 로그에서 실제로 1~2 hop 따라갔는지"],
-            ["<b>문서에 없는 질문</b>", "관계나 답을 지어내지 않고 「연결된 근거가 없습니다」라고 반응하는지"],
-        ]) + note("가장 중요한 것", "그럴듯한 결과보다 <b>어떤 관계와 원문을 따라 도달했는지</b> 투명하게 확인", "red"), kick="참고 · GraphRAG 5-4"),
-        page("성능 테스트 질문 예시", three(
-            '<div class="s7-pqh">A. 패키지 수분 민감도<small>TI SLZA002</small></div><div class="s7-pq">'
-            + "".join(f"<div><code>{q}</code><span>{p}</span></div>" for q, p in [
-                ("what causes delamination?", "6·7쪽"), ("delamination mitigation techniques", "9·13쪽"),
-                ("MSL testing procedure", "8쪽"), ("mold compound and die paddle", "6·7쪽"),
-                ("down bond wire failure", "7·10쪽"), ("how to improve stitch bond strength?", "9쪽")]) + "</div>",
-            '<div class="s7-pqh">B. 소프트 에러 대응<small>ST AN4750</small></div><div class="s7-pq">'
-            + "".join(f"<div><code>{q}</code><span>{p}</span></div>" for q, p in [
-                ("what causes soft errors in SRAM?", "8쪽"), ("parity vs ECC for SRAM protection", "14·18쪽"),
-                ("scrubbing and backup copy for parity error recovery", "16·17쪽"), ("structural, functional, temporal and informational redundancy", "11쪽"),
-                ("diagnostic coverage and safe failure fraction", "7쪽"), ("Class B IEC 60335 methods supported by STM32 hardware", "13·14쪽")]) + "</div>",
-            '<div class="s7-pqh">C. ESD 포장<small>TI SZZA027A</small></div><div class="s7-pq">'
-            + "".join(f"<div><code>{q}</code><span>{p}</span></div>" for q, p in [
-                ("stick magazine, tray, and tape-and-reel ESD configurations", "5~9쪽"), ("Faraday shield formed by the intermediate container", "6·7쪽"),
-                ("surface resistivity requirements for carrier tape and reel", "10~13쪽"), ("triboelectric charging and antistatic cover tape tests", "11·12쪽"),
-                ("20 kV charged plate test on loaded tape and reel", "9·10쪽"), ("JESD625-A and EIA-541 requirements for ESD protective packing", "3·4쪽")]) + "</div>"),
-            kick="참고 · GraphRAG 5-4"),
-        page("성능 테스트 질문 · 확인할 내용", table(["문서", "질문별로 확인할 내용"], [
-            ["<b>A</b>", "박리의 원인 인자 · 완화 기법 전반 · bake → soak → reflow → CSAM 절차 · 몰드 컴파운드와 다이 패들의 계면 · 다운본드 와이어 파단 · BSB / SSB / RSSB"],
-            ["<b>B</b>", "알파 · 중성자 플럭스, EMI, 130 nm 이하 미세화 · 검출만 되는 방식과 정정까지 되는 방식 · 백그라운드 스크러빙과 복원 절차 · 중복성 4분류 · DC · SFF 정의와 계산식 · 규격 항목과 하드웨어 기능 대응"],
-            ["<b>C</b>", "세 방식의 구성 차이 · 중간 용기의 차폐 형성 방식 · 10⁴~10¹¹ Ω/□ 규격과 실측값 · 필링 · 언롤링 시험, 180 V 한계 · ±20 kV 6방향 노출, 차폐 효율 95% · 인용 규격과 적용 범위"],
-        ], "s7-tt"), kick="참고 · GraphRAG 5-4"),
+             + note("차이", "관련 Chunk를 찾는 데서 끝나지 않고, 핵심 대상에서 출발해 관계망을 따라가며(Hop) 답변의 단서 수집", "red"), kick="참고 · GraphRAG"),
         page("GraphRAG 실행 예", img(IMG + "graphrag_run.png", "what causes delamination? · 시작 노드 5 · 탐색된 노드 40 · 관계 57", light=True), kick="참고 · GraphRAG"),
     ]
 

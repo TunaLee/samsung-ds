@@ -214,3 +214,170 @@ def index_query():
 
     s = f'<g {lane_op("top")}>{top}</g><g {lane_op("bot")}>{bot}</g>{db}{card}{mv}'
     return d.svg(1160, 400, s)
+
+
+# ── 지식 그래프 (3교시 GraphRAG) ─────────────────────────────────────
+# 설명용 예시: 소프트 에러 문서의 세 청크. 페이지 · 문장은 설명용.
+KG_NODES = {
+    "알파 입자": (90, 70), "중성자": (90, 190), "소프트 에러": (300, 130), "RAM": (520, 60),
+    "패리티": (150, 300), "ECC": (330, 300), "스크러빙": (510, 250),
+    "추가 메모리 비트": (330, 395), "주기적 읽기 부하": (520, 360),
+}
+KG_EDGES = [  # (출발, 도착, 관계, 청크 번호)
+    ("알파 입자", "소프트 에러", "일으킨다", 0), ("중성자", "소프트 에러", "일으킨다", 0), ("소프트 에러", "RAM", "발생 위치", 0),
+    ("패리티", "소프트 에러", "검출만", 1), ("ECC", "소프트 에러", "검출 · 정정", 1), ("ECC", "추가 메모리 비트", "필요", 1),
+    ("스크러빙", "소프트 에러", "완화", 2), ("스크러빙", "주기적 읽기 부하", "발생", 2),
+]
+KG_CHUNKS = [("p.3", "소프트 에러는 알파 입자나 중성자가", "RAM 셀의 값을 뒤집는 현상이다."),
+             ("p.7", "패리티는 오류를 검출만 한다. ECC는 검출 · 정정", "하지만 추가 메모리 비트가 필요하다."),
+             ("p.9", "스크러빙은 메모리를 주기적으로 읽어", "오류를 정정 · 완화하며 읽기 부하가 생긴다.")]
+
+
+def _kg_w(name):
+    return sum(9 if c.isascii() else 16 for c in name) + 30
+
+
+def _kg_clip(a, b, dx=0):
+    """a 중심에서 b 중심으로 가는 선을 두 상자 테두리에서 자른다."""
+    (x1, y1), (x2, y2) = KG_NODES[a], KG_NODES[b]
+    x1, x2 = x1 + dx, x2 + dx
+
+    def edge(cx, cy, w, ux, uy):
+        hw, hh = w / 2 + 4, 24
+        t = min(hw / abs(ux) if ux else 1e9, hh / abs(uy) if uy else 1e9)
+        return cx + ux * t, cy + uy * t
+    L = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** .5
+    ux, uy = (x2 - x1) / L, (y2 - y1) / L
+    sx, sy = edge(x1, y1, _kg_w(a), ux, uy)
+    ex, ey = edge(x2, y2, _kg_w(b), -ux, -uy)
+    return sx, sy, ex, ey
+
+
+def _kg_node(d, name, dx, fill_stops=None, text_stops=None, op_stops=None):
+    x, y = KG_NODES[name]
+    x += dx
+    w = _kg_w(name)
+    fa = f' {d.a(fill_stops)}' if fill_stops else ""
+    ta = f' {d.a(text_stops)}' if text_stops else ""
+    g = f'<g {d.a(op_stops)}>' if op_stops else "<g>"
+    return (g + f'<rect x="{x - w / 2:g}" y="{y - 20}" width="{w}" height="40" rx="20" fill="{W}" stroke="{N}" stroke-width="2.5"{fa}/>'
+            + f'<text x="{x:g}" y="{y + 1}" text-anchor="middle" class="tn"{ta}>{name}</text></g>')
+
+
+def _kg_edge(d, a, b, rel, dx, line_stops=None, op_stops=None, marker="ah"):
+    sx, sy, ex, ey = _kg_clip(a, b, dx)
+    la = f' {d.a(line_stops)}' if line_stops else ""
+    g = f'<g {d.a(op_stops)}>' if op_stops else "<g>"
+    mx, my = (sx + ex) / 2, (sy + ey) / 2
+    return (g + f'<line x1="{sx:.1f}" y1="{sy:.1f}" x2="{ex:.1f}" y2="{ey:.1f}" stroke="{S}" stroke-width="2.5" '
+            f'marker-end="url(#{d.id(marker)})"{la}/>'
+            + f'<rect x="{mx - len(rel) * 7 - 8:.1f}" y="{my - 11:.1f}" width="{len(rel) * 14 + 16}" height="22" rx="6" fill="{W}"/>'
+            + f'<text x="{mx:.1f}" y="{my + 1:.1f}" text-anchor="middle" class="tk">{rel}</text></g>')
+
+
+_KG_CSS = "& .tk{font-size:13px;font-weight:700;fill:#55555C}& .tx{font-size:14px;fill:#26262B}& .th{font-size:13px;font-weight:800;fill:#E8002D}"
+
+
+def kg_build():
+    """청크 → LLM 추출 → 세 묶음 → 그래프에 노드 · 연결이 하나씩 생긴다 (같은 대상은 하나로)."""
+    d = _D("kb", 15)
+    DX = 560
+    starts = [4, 32, 60]
+    s = ""
+    # 왼쪽: 청크 세 개
+    for i, (pg, l1, l2) in enumerate(KG_CHUNKS):
+        y = 20 + i * 132
+        t0 = starts[i]
+        s += (f'<rect x="10" y="{y}" width="330" height="104" rx="12" fill="{W}" stroke="{G}" stroke-width="2.5" '
+              + d.a([(0, f"stroke:{G}"), (t0, f"stroke:{G}"), (t0 + 1, f"stroke:{O}"), (t0 + 20, f"stroke:{O}"), (t0 + 21, f"stroke:{G}"), (100, f"stroke:{G}")]) + "/>")
+        s += _t(28, y + 24, f"청크 {i + 1} · {pg}", "th", "start")
+        s += _t(28, y + 54, l1, "tx", "start") + _t(28, y + 78, l2, "tx", "start")
+    # 가운데: LLM 추출
+    s += f'<rect x="372" y="150" width="150" height="64" rx="14" fill="{N}" ' + d.a(
+        [(0, f"fill:{N}")] + sum([[(t + 9, f"fill:{N}"), (t + 10, f"fill:{O}"), (t + 13, f"fill:{O}"), (t + 14, f"fill:{N}")] for t in starts], []) + [(100, f"fill:{N}")]) + "/>"
+    s += _t(447, 172, "LLM 추출", "tw") + _t(447, 196, "대상 · 관계", "tw", extra='style="font-size:13px;font-weight:600"')
+    s += _t(447, 250, "(대상, 관계, 대상)", "tk") + _t(447, 272, "세 묶음으로 저장", "tk")
+    s += _t(447, 300, "+ 근거 청크 · 페이지", "th")
+    for i, t0 in enumerate(starts):
+        cy = 72 + i * 132
+        s += _move(d, [(0, 340, cy, 0), (t0 + 2, 340, cy, 0), (t0 + 3, 340, cy, 1), (t0 + 9, 372, 182, 1), (t0 + 10, 372, 182, 0), (100, 372, 182, 0)])
+        s += _move(d, [(0, 522, 182, 0), (t0 + 13, 522, 182, 0), (t0 + 14, 522, 182, 1), (t0 + 19, 600, 182, 1), (t0 + 20, 600, 182, 0), (100, 600, 182, 0)])
+    # 오른쪽: 그래프가 자란다
+    first = {}
+    for a, b, _, c in KG_EDGES:
+        for n in (a, b):
+            first.setdefault(n, c)
+    for a, b, rel, c in KG_EDGES:
+        t = starts[c] + 15
+        s += _kg_edge(d, a, b, rel, DX, op_stops=[(0, "opacity:0"), (t, "opacity:0"), (t + 3, "opacity:1"), (96, "opacity:1"), (100, "opacity:0")])
+    for n, c in first.items():
+        t = starts[c] + 14
+        s += _kg_node(d, n, DX, op_stops=[(0, "opacity:0"), (t, "opacity:0"), (t + 2, "opacity:1"), (96, "opacity:1"), (100, "opacity:0")])
+    # 같은 대상은 하나로: 청크 2 · 3에서 「소프트 에러」가 다시 나오면 기존 노드에 연결
+    x, y = KG_NODES["소프트 에러"]
+    for t0 in starts[1:]:
+        t = t0 + 15
+        s += (f'<rect x="{x + DX - 70}" y="{y - 26}" width="140" height="52" rx="26" fill="none" stroke="{O}" stroke-width="3" '
+              + d.a([(0, "opacity:0"), (t, "opacity:0"), (t + 1, "opacity:1"), (t + 8, "opacity:1"), (t + 9, "opacity:0"), (100, "opacity:0")]) + "/>")
+    s += (f'<g {d.a([(0, "opacity:0"), (46, "opacity:0"), (47, "opacity:1"), (82, "opacity:1"), (83, "opacity:0"), (100, "opacity:0")])}>'
+          + _t(x + DX, y - 44, "같은 대상 → 기존 노드에 연결", "th") + "</g>")
+    return d.svg(1160, 430, s, _KG_CSS)
+
+
+def kg_answer():
+    """질문 → 시작 노드 → 1 hop → 2 hop → 관계 + 원문을 LLM 입력에 → 출처가 붙은 답."""
+    d = _D("ka", 15)
+    DX = 0
+    on_nodes = {"RAM": 10, "소프트 에러": 10, "패리티": 24, "ECC": 24, "스크러빙": 24, "추가 메모리 비트": 40, "주기적 읽기 부하": 40}
+    on_edges = {("소프트 에러", "RAM"): 18, ("패리티", "소프트 에러"): 24, ("ECC", "소프트 에러"): 24, ("스크러빙", "소프트 에러"): 24,
+                ("ECC", "추가 메모리 비트"): 40, ("스크러빙", "주기적 읽기 부하"): 40}
+    s = ""
+    for a, b, rel, _ in KG_EDGES:
+        t = on_edges.get((a, b))
+        if t:
+            s += _kg_edge(d, a, b, rel, DX, line_stops=[(0, f"stroke:{S}"), (t, f"stroke:{S}"), (t + 2, f"stroke:{O}"), (95, f"stroke:{O}"), (99, f"stroke:{S}")])
+        else:
+            s += _kg_edge(d, a, b, rel, DX, op_stops=[(0, "opacity:1"), (8, "opacity:1"), (10, "opacity:.25"), (95, "opacity:.25"), (99, "opacity:1")])
+    for n in KG_NODES:
+        t = on_nodes.get(n)
+        if t is None:
+            s += _kg_node(d, n, DX, op_stops=[(0, "opacity:1"), (8, "opacity:1"), (10, "opacity:.3"), (95, "opacity:.3"), (99, "opacity:1")])
+        elif t == 10:
+            s += _kg_node(d, n, DX, fill_stops=[(0, f"fill:{W};stroke:{N}"), (t, f"fill:{W};stroke:{N}"), (t + 2, f"fill:{O};stroke:{O}"), (95, f"fill:{O};stroke:{O}"), (99, f"fill:{W};stroke:{N}")],
+                          text_stops=[(0, f"fill:{N}"), (t, f"fill:{N}"), (t + 2, f"fill:{W}"), (95, f"fill:{W}"), (99, f"fill:{N}")])
+        else:
+            s += _kg_node(d, n, DX, fill_stops=[(0, f"fill:{W};stroke:{N}"), (t, f"fill:{W};stroke:{N}"), (t + 2, f"fill:#FFF0F3;stroke:{O}"), (95, f"fill:#FFF0F3;stroke:{O}"), (99, f"fill:{W};stroke:{N}")])
+    # 단계 표시 (그래프 아래)
+    for i, (txt, t) in enumerate([("① 질문에서 시작 노드 찾기", 10), ("② 1 hop · 방법 찾기", 24), ("③ 2 hop · 제약 찾기", 40)]):
+        s += (f'<g {d.a([(0, "opacity:.25"), (t, "opacity:.25"), (t + 2, "opacity:1"), (95, "opacity:1"), (99, "opacity:.25")])}>'
+              + _t(40 + i * 200, 440, txt, "th", "start") + "</g>")
+    # 오른쪽: 질문 → LLM 입력 → LLM → 답
+    X = 690
+    s += f'<rect x="{X}" y="8" width="460" height="62" rx="14" fill="{G}" fill-opacity=".45"/>'
+    s += _t(X + 18, 28, "질문", "th", "start") + _t(X + 18, 52, "RAM 소프트 에러를 검출 · 완화하는 방법과 제약은?", "tx", "start")
+    s += f'<rect x="{X}" y="92" width="460" height="150" rx="14" fill="{W}" stroke="{N}" stroke-width="2.5"/>'
+    s += _t(X + 18, 114, "LLM 입력 = 질문 + 그래프에서 모은 근거", "tn", "start")
+    rows = [("관계 경로", "패리티 · ECC · 스크러빙 → 소프트 에러", 56), ("관계 경로", "ECC → 추가 비트 · 스크러빙 → 읽기 부하", 60),
+            ("원문 근거", "청크 2 (p.7) · 청크 3 (p.9) 원문", 64), ("지침", "근거에 있는 내용만 · 출처 표시", 66)]
+    for i, (k, v, t) in enumerate(rows):
+        y = 144 + i * 26
+        s += (f'<g {d.a([(0, "opacity:0"), (t, "opacity:0"), (t + 2, "opacity:1"), (96, "opacity:1"), (99, "opacity:0")])}>'
+              + _t(X + 18, y, k, "th", "start") + _t(X + 100, y, v, "tx", "start") + "</g>")
+    s += _move(d, [(0, 520, 250, 0), (54, 520, 250, 0), (55, 520, 250, 1), (62, X, 170, 1), (63, X, 170, 0), (100, X, 170, 0)])
+    s += _move(d, [(0, 330, 300, 0), (56, 330, 300, 0), (57, 330, 300, 1), (64, X, 200, 1), (65, X, 200, 0), (100, X, 200, 0)])
+    s += f'<line x1="{X + 230}" y1="244" x2="{X + 230}" y2="262" stroke="{N}" stroke-width="2.5" marker-end="url(#{d.id("ah")})"/>'
+    s += (f'<rect x="{X + 170}" y="266" width="120" height="38" rx="19" fill="{N}" '
+          + d.a([(0, f"fill:{N}"), (70, f"fill:{N}"), (71, f"fill:{O}"), (78, f"fill:{O}"), (79, f"fill:{N}"), (100, f"fill:{N}")]) + "/>")
+    s += _t(X + 230, 286, "LLM", "tw")
+    s += f'<line x1="{X + 230}" y1="306" x2="{X + 230}" y2="322" stroke="{N}" stroke-width="2.5" marker-end="url(#{d.id("ah")})"/>'
+    s += f'<rect x="{X}" y="326" width="460" height="124" rx="14" fill="#FFF0F3" stroke="{O}" stroke-width="2.5" ' + d.a(
+        [(0, "opacity:0"), (79, "opacity:0"), (81, "opacity:1"), (96, "opacity:1"), (99, "opacity:0")]) + "/>"
+    ans = [("검출", "패리티 · 정정은 불가 (p.7)", 81), ("검출 + 정정", "ECC · 추가 메모리 비트 필요 (p.7)", 84),
+           ("완화", "스크러빙 · 주기적 읽기 부하 (p.9)", 87)]
+    s += (f'<g {d.a([(0, "opacity:0"), (79, "opacity:0"), (81, "opacity:1"), (96, "opacity:1"), (99, "opacity:0")])}>'
+          + _t(X + 18, 348, "답 · 관계를 따라 모은 근거로", "th", "start") + "</g>")
+    for i, (k, v, t) in enumerate(ans):
+        y = 376 + i * 26
+        s += (f'<g {d.a([(0, "opacity:0"), (t, "opacity:0"), (t + 2, "opacity:1"), (96, "opacity:1"), (99, "opacity:0")])}>'
+              + _t(X + 18, y, k, "tn", "start") + _t(X + 128, y, v, "tx", "start") + "</g>")
+    return d.svg(1160, 456, s, _KG_CSS)

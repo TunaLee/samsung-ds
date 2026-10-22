@@ -2,7 +2,6 @@
 import s2_fig as f2
 import fig
 from kit import (ba, cards, cover, flow, ill, img, lab, note, page, pane, prompt, section, steps, table, two, ul)
-from s1 import course_map
 
 TITLE = "naive RAG 완성 — 청크 크기와 검색 방식"
 IMG = "img/s2/"
@@ -35,8 +34,6 @@ def opening():
             ("청크 크기 · 검색 단위", "근거의 범위 · 입력량에 미치는 영향", "02"),
             ("검색 방식 비교", "의미 검색 · BM25 · 하이브리드에서 질문에 맞는 근거가 선택됐는지 확인", "03"),
         ])),
-        page("과정 전체 흐름", course_map("2")
-             + note("2교시", "1교시의 첫 RAG를 이어서 · 근거의 단위와 검색 방법 고르기", "red")),
         page("근거의 단위와 검색 방법", two(
             pane("문서 쪽 · 어떻게 나눌까", ul(["정의 · 시험 조건 · 적용 대상 · 예외가 <b>서로 다른 위치</b>에", "작은 청크: 찾기 쉬움 · 조건이 떨어져 나갈 수 있음", "큰 청크: 주변 설명까지 · 입력량 증가"]), "good"),
             pane("질문 쪽 · 어떻게 찾을까", ul(["문장으로 묻는 질문", "정확한 문서 번호로 묻는 질문", "같은 청크라도 <b>필요한 검색 방식</b>이 다름"]), "good"))

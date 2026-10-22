@@ -941,6 +941,17 @@
   .x3br{font:800 14px var(--mono); color:var(--violet); margin-bottom:6px;}
   .ctable.x3sm{font-size:15px;} .ctable.x3sm th,.ctable.x3sm td{padding:8px 12px;} .ctable.x3sm td:first-child{width:130px;}
   .ctable.x3rec td:last-child{color:var(--mut); font-family:var(--mono);}
+  /* 지식 그래프 소개 */
+  .kg-in{display:grid; grid-template-columns:1fr 34px 1fr 34px 1.15fr; align-items:stretch; gap:10px;}
+  .kg-col{border:1px solid var(--line); border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:10px; justify-content:center;}
+  .kg-h{font-size:14px; font-weight:900; color:var(--violet);}
+  .kg-sent{font-size:19px; line-height:1.7;} .kg-sent mark{background:#FFE3E9; padding:1px 4px; border-radius:4px; font-weight:800;}
+  .kg-tr{display:flex; align-items:center; gap:6px; font-size:15px; background:#F6F6F8; border-radius:8px; padding:8px 10px;}
+  .kg-tr i{font-style:normal; color:var(--mut); font-size:13px; font-weight:800; white-space:nowrap;}
+  .kg-arr{display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:900; color:var(--mut);}
+  .kg-svg{width:100%; height:auto;}
+  .kg-def{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:16px;}
+  .kg-def span{border-top:3px solid var(--ink); padding-top:8px; font-size:15px; color:var(--mut);} .kg-def b{display:block; color:var(--ink); font-size:17px; margin-bottom:2px;}
 
   /* ===== 4교시 도해 ===== */
   .s4seq{display:block; margin:0 auto; width:100%; height:auto; max-height:370px;}
@@ -1355,6 +1366,9 @@
   .s8-full .code.prompt code{font-size:14px; line-height:1.5;}
   .s8-lanes .nr-f b{font-size:16px;}
 
+  .s8-verb.s8-scroll .code.prompt pre{max-height:440px; overflow:auto;}
+  .s8-verb.s8-scroll .code.prompt code{column-count:1; font-size:14px; line-height:1.55;}
+
   /* ===== 부록 · 명령어 모음 (s9-) ===== */
   .s9-row{display:flex; align-items:stretch; gap:14px;}
   .s9-row .ftile{flex:1;}
@@ -1425,8 +1439,6 @@
 </defs></svg><section class="slide cover active" data-title="표지"><div class="wrap"><div class="ckick"><span class="bar"></span>B Track · AI Agent 아키텍트 과정 · 2교시</div><h1>naive RAG 완성<br><em>청크 크기</em>와 검색 방식</h1><p class="lead">근거가 될 원문의 단위와 검색 방법을 직접 고르고, 비교 결과로 판단합니다</p><div class="meta"><div class="it"><span class="k">교시</span><span class="v">2교시</span></div><div class="it"><span class="k">실습</span><span class="v">rag-sim · Claude Code</span></div><div class="it"><span class="k">문서</span><span class="v">AN4750 · Samsung 품질 핸드북 · TI MSL</span></div></div></div></section>
 
 <section class="slide" data-title="학습 목표"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><h2 class="s-title">학습 목표</h2><div class="rule"></div><div class="body"><div class="cards c3"><div class="card"><span class="n">01</span><h3>벡터와 원문</h3><p>임베딩 벡터와 답변에 전달되는 원문의 역할 구분</p></div><div class="card"><span class="n">02</span><h3>청크 크기 · 검색 단위</h3><p>근거의 범위 · 입력량에 미치는 영향</p></div><div class="card"><span class="n">03</span><h3>검색 방식 비교</h3><p>의미 검색 · BM25 · 하이브리드에서 질문에 맞는 근거가 선택됐는지 확인</p></div></div></div></section>
-
-<section class="slide" data-title="과정 전체 흐름"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><h2 class="s-title">과정 전체 흐름</h2><div class="rule"></div><div class="body"><div class="cmap"><div class="cm"><b>1교시</b><span>AI Agent 구조 · Context Window · 첫 RAG</span></div><div class="cm on"><b>2교시</b><span>청크 크기와 검색 방식</span></div><div class="cm"><b>3교시</b><span>Advanced RAG · 검색 성능 개선</span></div><div class="cm"><b>4교시</b><span>Tool Calling과 Context의 실행 흐름</span></div><div class="cm"><b>5교시</b><span>MCP로 RAG와 외부 도구 연결</span></div><div class="cm"><b>6교시</b><span>Multi-Agent · 판정과 조사</span></div><div class="cm"><b>7교시</b><span>캡스톤 1 · 기획과 제작</span></div><div class="cm"><b>8교시</b><span>캡스톤 2 · 완성과 제출</span></div></div><div class="note red"><span class="nk">2교시</span><span class="nt">1교시의 첫 RAG를 이어서 · 근거의 단위와 검색 방법 고르기</span></div></div></section>
 
 <section class="slide" data-title="근거의 단위와 검색 방법"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">도입</div><h2 class="s-title">근거의 단위와 검색 방법</h2><div class="rule"></div><div class="body"><div class="twocol "><div><div class="pane good"><h4>문서 쪽 · 어떻게 나눌까</h4><ul class='ul'><li>정의 · 시험 조건 · 적용 대상 · 예외가 <b>서로 다른 위치</b>에</li><li>작은 청크: 찾기 쉬움 · 조건이 떨어져 나갈 수 있음</li><li>큰 청크: 주변 설명까지 · 입력량 증가</li></ul></div></div><div><div class="pane good"><h4>질문 쪽 · 어떻게 찾을까</h4><ul class='ul'><li>문장으로 묻는 질문</li><li>정확한 문서 번호로 묻는 질문</li><li>같은 청크라도 <b>필요한 검색 방식</b>이 다름</li></ul></div></div></div><div class="note red"><span class="nk">근거 공급 기능</span><span class="nt">이 교시의 검색 기능 = 이후 Agent가 사용할 근거 공급 기능 · 관련성과 원문 범위 설계 = Context 구성</span></div><div class="note "><span class="nk">판단 기준</span><span class="nt">검색 점수 · 최종 답변을 함께 보되 <b>실제 근거 문장</b>이 기준</span></div></div></section>
 

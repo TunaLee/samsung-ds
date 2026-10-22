@@ -4,43 +4,10 @@ from pathlib import Path
 import fig
 import s8_fig as f8
 from kit import (ba, big, cards, cover, flow, img, lab, note, page, pane, prompt, section, steps, table, two, ul)
-from s1 import course_map
 
 TITLE = "캡스톤 2 · 완성과 제출"
 IMG = "img/s8/"
 PROMPT = (Path(__file__).with_name("s8_prompt.txt")).read_text(encoding="utf-8").rstrip("\n")
-
-
-def _chunks(text, budget=86):
-    """요청문을 원문 그대로 나눈다. 빈 줄 연속만 한 줄로 줄이고, 구분선 앞에서 자르기를 우선한다."""
-    lines, prev_blank = [], False
-    for ln in text.split("\n"):
-        blank = not ln.strip()
-        if blank and prev_blank:
-            continue
-        lines.append(ln)
-        prev_blank = blank
-    w = lambda s: 1 + len(s) // 30  # 세 단 폭 기준 줄바꿈 추정
-    out, cur, size = [], [], 0
-    for i, ln in enumerate(lines):
-        if size + w(ln) > budget:
-            cut = len(cur)
-            for j in range(len(cur) - 1, max(len(cur) - 12, 0), -1):  # 구분선 바로 위에서 자르기
-                if cur[j].startswith("────") and j > 0 and not cur[j - 1].startswith("────") and cur[j - 1].strip() == "":
-                    cut = j
-                    break
-            else:
-                for j in range(len(cur) - 1, max(len(cur) - 8, 0), -1):
-                    if not cur[j].strip():
-                        cut = j + 1
-                        break
-            out.append(cur[:cut])
-            cur = cur[cut:]
-            size = sum(w(x) for x in cur)
-        cur.append(ln)
-        size += w(ln)
-    out.append(cur)
-    return ["\n".join(c).strip("\n") for c in out if "".join(c).strip()]
 
 
 def opening():
@@ -54,8 +21,6 @@ def opening():
             ("하나의 Agent 구조", "1 ~ 7교시 개념을 판단 · 행동 흐름으로 연결", "03"),
             ("업무 적용", "입력 자료 · 기준 · 권한 · 검토 담당자", "04"),
         ], 4)),
-        page("과정 전체 흐름", course_map("8")
-             + note("오늘", "완성한 프로젝트를 발표 페이지로 정리 · 제출 · 과정 전체를 하나의 구조로 정리", "red")),
     ]
 
 
@@ -215,11 +180,8 @@ def block_layout():
 
 
 def block_verbatim():
-    parts = _chunks(PROMPT)
-    n = len(parts)
-    out = [page(f"요청문 전문 {i + 1} / {n}", '<div class="s8-verb">' + prompt(t, f"요청문 · {i + 1} / {n}") + "</div>", top=True)
-           for i, t in enumerate(parts)]
-    return out
+    return [page("요청문 전문", '<div class="s8-verb s8-scroll">' + prompt(PROMPT, "요청문 전문 · 스크롤", file="발표페이지_요청문.txt") + "</div>"
+                 + note("사용", "[복사]로 전문을 그대로 붙여 넣기 · [파일로 저장] 후 수정해도 됨", "red"), top=True)]
 
 
 def block_check():
@@ -268,41 +230,6 @@ def block_recap():
             [("판단", "현재 Context로"), ("Tool 선택", "필요할 때 · 도구와 인자"), ("앱이 실행", "결과를 돌려줌"), ("다음 결정", "다음 행동이나 종료")])
              + note("Recap", "이 흐름 안에서 1 ~ 6교시의 개념을 다시 연결", "red"), kick="Recap"),
         page("과정 전체를 하나의 구조로", f8.recap_map(), kick="Recap"),
-        page("판단하고 행동하는 구조", table(["요소", "하는 일"], [
-            ["<b>AI Agent</b>", "목표 · 지침 · 현재 정보로 행동 선택 → 실행 결과를 받아 다음 판단"],
-            ["<b>LLM</b>", "답변 생성 · 도구와 인자 선택 · 실제 함수 · API 실행은 <b>앱</b>"],
-            ["<b>Instructions · Guardrails</b>", "역할 · 목표 · 허용 행동 · 중단 조건"],
-            ["<b>Tools</b>", "파일 읽기 · 계산 · 조회 · name · description · 입력 규격이 선택을 도움 · 결과는 다음 판단의 Context"],
-            ["<b>Tools via MCP Server</b>", "도구 목록 · 호출 · 결과를 공통 규격으로 연결 · 목표를 정하거나 판단하지 않음"],
-        ]) + note("통제", "지침만으로 통제를 보장하지 않음 → 입력 검증 · 도구 권한 · 실행 한도 같은 앱의 통제를 함께", "red"), kick="Recap · 판단과 행동"),
-        page("판단에 쓸 정보: Context Window와 RAG", two(
-            pane("Context Window", ul(["Instructions · 도구 명세 · 대화 이력 · 검색 근거 · 도구 결과가 들어가는 <b>제한된 입력 공간</b>",
-                                       "5교시 이력 · 상태 표시로 무엇이 쌓이는지 확인", "필요한 정보의 선택 · 요약 · 보존 범위 설계"]), "good"),
-            pane("RAG", ul(["외부 자료를 검색해 답변의 근거로 전달", "Naive RAG (Vector RAG)의 과제: 엄청나게 많은 자료에서 필요한 근거를 <b>저렴하고 빠르게</b> LLM에 전달"]), "good")),
-             kick="Recap · 정보 준비"),
-        page("문서 준비와 검색 방식", f8.lanes([
-            ("문서 준비", [("파싱", ""), ("청킹", "검색 단위"), ("임베딩", ""), ("적재", "")], 1),
-            ("질문", [("질문 임베딩", ""), ("가까운 후보 검색", "")], 1)])
-             + '<div class="s8-gap"></div>'
-             + table(["구분", "기준"], [
-                 ["<b>청킹</b>", "고정 길이 · 문장 · 의미 기반 → 나누는 기준이 다름"],
-                 ["<b>키워드 (BM25) · 벡터</b>", "용어 일치 · 의미 유사성"],
-                 ["<b>Hybrid · RRF</b>", "두 결과 결합 · 서로 다른 점수 대신 <b>순위</b>로 합침"]])
-             + note("청크를 바꾸면", "검색할 단위와 전달할 맥락이 함께 달라짐", "red"), kick="Recap · 정보 준비"),
-        page("질문과 자료에 맞는 검색", cards([
-            ("Metadata Filter", "문서 · 조건의 범위를 좁힘", "01"), ("GraphRAG", "대상 사이의 관계를 따라감", "02"), ("Text-to-SQL", "구조화된 표를 질의", "03")], 3)
-             + note("정리할 때", "3교시의 설명 · 시연 범위와 직접 구현한 실습을 구분", "red"), kick="Recap · 정보 준비"),
-        page("Advanced RAG · Parent–Child RAG", table(["기법", "하는 일"], [
-            ["<b>Query Rewriting</b>", "질의를 다듬기"], ["<b>Query Expansion</b>", "여러 검색식으로 넓히기"], ["<b>HyDE</b>", "가상 답변을 검색에 사용"],
-            ["<b>Reranking</b>", "찾은 후보의 관련성 재평가 · 후보에 없는 근거는 만들 수 없음 · 원문에서 확인"],
-            ["<b>Parent–Child</b>", "작은 Child로 검색 → 연결된 Parent로 앞뒤 맥락 전달 · Parent 중복 · 입력량 관리"]])
-             + note("구분", "Parent–Child = 검색 · 문서 구성 방식 / <b>NVIDIA Nemotron 3</b> = 근거를 읽고 답하거나 행동을 판단할 모델 선택 · 같은 기술 이름으로 묶지 않음")
-             + note("모델 참고", "NVIDIA RAG Blueprint의 Nemotron 3 Super", "red"), kick="Recap · 정보 준비"),
-        page("역할을 나누고 필요할 때 호출", f8.decisions()
-             + '<div class="s8-gap"></div>'
-             + two(ul(["<b>Multi-Agent</b>: 순차 · 병렬 · 계층형으로 역할과 전달 정보 분리", "Context를 분리하는 이론적 이유 ≠ 역할별 실제 호출 비용"]),
-                   ul(["<b>6교시 구현</b>: Decisions가 반복 판정 · 앱이 기준값 이상 이벤트를 조사 Agent에 · 조사 Agent가 조회 Tool로 근거 확인"]))
-             + note("구분", "판정기와 Agent의 역할 분담 · Decisions 자체가 자율 Agent라는 뜻은 아님", "red"), kick="Recap · 역할 분리"),
         page("확장: Multi-modal RAG", f8.lanes([
             ("검색", [("질문 · 페이지 이미지", ""), ("EmbeddingGemma 2", "같은 공간에 임베딩"), ("이미지 검색", "")], 1),
             ("답변", [("찾은 이미지", ""), ("답변 모델", "이미지를 읽고 답변"), ("답", "")], 1)])

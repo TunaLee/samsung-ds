@@ -2,7 +2,6 @@
 import fig
 import s6_fig as sf
 from kit import (big, cards, cover, esc, flow, ill, lab, note, page, pane, prompt, section, steps, table, two, ul)
-from s1 import course_map
 
 TITLE = "Multi-Agent · Decisions와 조사 Agent"
 DOC = "https://developers.openai.com/api/docs/guides/decisions"
@@ -180,8 +179,6 @@ def opening():
             ("Decisions API", "predicate 판정 · 확률 · 기준값", "03"),
             ("판정 → 조사", "기준값을 넘은 이벤트만 조사 Agent로", "04"),
         ], 4)),
-        page("과정 전체 흐름", course_map("6")
-             + note("이어지는 질문", "도구를 연결한 Agent 하나 → 역할을 나눈 여러 Agent는 어떻게 연결하고 통제할까", "red")),
         page("오늘의 실습 구성", two(
             steps([("모의 생산라인 켜기", "line-sim 서버 · 고정된 합성 데이터"),
                    ("[decisions] 탭 만들기", "완성형 Prompt 그대로 복사 · 감시 · 판정 화면"),

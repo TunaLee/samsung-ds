@@ -2,7 +2,6 @@
 import fig
 import s5_fig as f5
 from kit import (big, cards, cover, flow, img, lab, note, page, pane, prompt, section, steps, table, two, ul)
-from s1 import course_map
 
 TITLE = "AI Agent · MCP로 RAG와 외부 도구 연결"
 IMG = "img/s5/"
@@ -21,8 +20,6 @@ def opening():
             ("Context 관계", "도구 정의와 반환된 근거가 Agent의 Context에 포함되는 관계", "03"),
             ("구조 비교", "고정 검색 흐름 vs Agent의 도구 선택 · 업무 조건에 따라", "04"),
         ], 4)),
-        page("과정 전체 흐름", course_map("5")
-             + note("5교시", "2~3교시의 문서 검색 + 4교시의 도구 선택 → <b>두 기능을 연결</b>", "red")),
         page("검색 기능을 Agent의 도구로", f5.chain([
             ("search", "2~3교시 · RAG", "문서에서 근거를 찾는 방법 개선", False),
             ("tool", "4교시 · Tool Calling", "모델이 도구 선택 · 결과로 다음 판단", False),
@@ -323,13 +320,6 @@ def block_design():
              + ul(["Claude Code 실행 → <code>/mcp</code>로 연결 상태 → 반도체 질문",
                    "서버 코드를 한 줄도 바꾸지 않고 다른 AI 앱에 도구가 붙음 = <b>「규격」의 의미</b>",
                    "agent-sim 클라이언트에 맞춰 만든 서버라 연결이 안 될 수도 있음 → 오류 메시지를 Claude Code에 보여 주고 규격에 맞게 수정 요청"]), kick="더 해보기"),
-        page("도구가 늘면 입력도 증가", two(
-            ul(["4교시: 도구 선언은 <b>매 요청마다 입력으로</b>",
-                "[도구] 탭 하단 <b>API 호출 내역</b>의 tools에서 도구 수 확인",
-                "같은 역할 지시문 · 질문으로 MCP 연결 <b>전후 비교</b>",
-                "최상단 Context Window의 Tools 비중은 <b>추정값</b> · 실제는 API 호출 내역의 tools"]),
-            '<div class="rec5">MCP 연결 전 tools 도구 수 <u></u><br>연결 후 <u></u><br>입력 토큰 변화 <u></u></div>')
-             + note("필요한 도구만", "서버를 붙일 때마다 도구 설명문이 입력에 추가 · 입력 증가 · 비슷한 도구 사이에서 헷갈릴 가능성 증가", "red"), kick="Context"),
         page("연결할 도구와 반환할 정보", two(
             ul(["MCP로 연결해도 1교시의 입력 구성은 그대로: 이름 · 설명 · 입력 규격 전달 → 실행 결과를 다음 입력에",
                 "서버가 따로 실행돼도 도구 정의 · 결과는 <b>Context Window 안</b>에서 처리",
@@ -343,8 +333,6 @@ def block_design():
             ("구별", "설명이 비슷한 도구를 구별할 수 있는지"),
             ("근거 보존", "반환한 근거에서 문서명 · 페이지 · 조건이 유지되는지"),
         ]) + note("기준", "도구 수 · 추정 토큰만 줄이기보다 <b>필요한 기능과 판단 근거</b>가 남아 있는지"), kick="Context"),
-        page("정리 · 연결한 흐름", f5.arch(["4-3 · 4-4", "4-1 · 4-2", "3-2", "기존"])
-             + note("한 줄", "rag-sim 기존 검색 → GET 검색 API(8780) → rag_search Tool → MCP 서버(8790) → agent-sim (4-3 · 4-4)", "red"), kick="정리"),
         page("정리", steps([
             ("API를 감싼 Tool → MCP", "API는 코드가, Tool은 AI가 부름 · API를 감싼 Tool을 MCP 규격으로 제공"),
             ("다른 앱의 도구가 된 RAG", "규격이 같아 이 서버는 agent-sim 전용이 아님"),
@@ -375,13 +363,6 @@ def block_more():
             ['<code>{"command":"python","args":["server.py"]}</code>', "로컬 Python 서버 실행", "내 PC"]])
              + note("명령 방식", "내 PC에서 서버 프로그램 실행 · 표준 입력 · 출력(stdio)으로 통신 · npx · uv는 준비 · 실행 도구 · npm은 JavaScript 패키지 관리 도구 (MCP의 다른 이름 아님)")
              + note("주의", "npx 항목은 형식 설명용 · 실제 패키지명 · 인자 · 환경변수는 각 서버 안내 · 로컬 서버도 HTTP면 localhost URL · <b>URL 여부 ≠ 서버 위치</b>", "red"), kick="참고"),
-        page("MCP와 API 다시 구분", table(["구분", "API", "MCP"], [
-            ["<b>목적</b>", "프로그램이 외부 기능 · 데이터를 요청", "AI 앱과 Tool 서버가 Tool을 공통 방식으로 연결"],
-            ["<b>기능 확인</b>", "API 문서를 개발자가 확인", "<code>tools/list</code>로 Tool 정보 확인"],
-            ["<b>호출 주체</b>", "일반 프로그램 코드", "MCP Client"],
-            ["<b>LLM Tool 연결</b>", "개발자가 별도로 구현", "MCP Tool 정보를 LLM Tool로 전달 가능"],
-            ["<b>이번 실습</b>", "Frankfurter · Open-Meteo · rag-sim <code>/api/search</code>", "Microsoft Learn · rag_search MCP"]])
-             + note("함께 사용", "어느 것이 더 좋은지가 아니라 <b>LLM · API · MCP · 일반 코드가 함께</b>", "red"), kick="정리"),
         page("1~5교시를 이은 구조", '<div class="quote" style="font-size:24px;margin-bottom:22px">LLM만으로 해결하기 어려운 문제를 발견하고, 필요한 외부 기능을<br>MCP와 API로 하나씩 연결하면서 AI Agent를 확장</div><div class="parts">'
              + fig._tile("search", "RAG", "근거를 찾는 방법")
              + '<div class="plus">+</div>'

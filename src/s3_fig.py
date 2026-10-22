@@ -167,9 +167,9 @@ def rerank_order():
         return "".join(f'<div class="x3li{" on" if k == hl else ""}"><b>{i + 1}</b><span><em>문서 {k}</em>{d[k]}</span></div>' for i, k in enumerate(order))
     sc = "".join(f'<div class="x3sc{" on" if k == 2 else ""}"><span>문서 {k}</span><i>→</i><b>{v}</b></div>' for k, v in [(1, "0.42"), (2, "0.95"), (3, "0.30")])
     return ('<div class="x3ro">'
-            f'<div class="x3col"><div class="x3sh">Bi-encoder 검색 · Similarity</div>{lst([1, 2, 3], 0)}</div>'
+            f'<div class="x3col"><div class="x3sh">1차 검색 · 비슷한 순</div>{lst([1, 2, 3], 0)}</div>'
             f'{a()}<div class="x3col mid"><div class="x3sh">Cross-encoder 재평가</div>{sc}<div class="x3cap">예시 점수 · 질문에 도움이 되는 정도</div></div>{a()}'
-            f'<div class="x3col"><div class="x3sh r">재정렬 결과 · Relevance</div>{lst([2, 1, 3], 2)}</div></div>')
+            f'<div class="x3col"><div class="x3sh r">재정렬 · 답에 쓸모 있는 순</div>{lst([2, 1, 3], 2)}</div></div>')
 
 
 # ── 4. 정리 ──────────────────────────────────────────
@@ -213,3 +213,37 @@ def graph_path():
             + row(n("근거 원문 모으기", "C12: EQ-A → PR-1<br>C41: PR-1 → P-7", icon="doc"), a(),
                   n("LLM에 전달", "원래 질문 + 관계 경로 + 근거 원문", "r", icon="model"), a(),
                   n("답변과 출처", "시작 노드 · 실제 탐색 경로 · 관계별 원문 · 연결되지 않은 정보", "k"), cls="mt"))
+
+
+def kg_intro():
+    """문장 하나 → 세 묶음(트리플) → 그래프. 설명용 예시."""
+    sent = ('소프트 에러는 <mark>알파 입자</mark>나 <mark>중성자</mark>가 <mark>RAM</mark> 셀의 값을 뒤집는 현상이다.')
+    trip = [("알파 입자", "일으킨다", "소프트 에러"), ("중성자", "일으킨다", "소프트 에러"), ("소프트 에러", "발생 위치", "RAM")]
+    rows = "".join(f'<div class="kg-tr"><b>{a}</b><i>— {r} →</i><b>{c}</b></div>' for a, r, c in trip)
+    R, K, M = "#E8002D", "#26262B", "#55555C"
+    nodes = {"알파 입자": (60, 40), "중성자": (60, 150), "소프트 에러": (200, 95), "RAM": (330, 95)}
+
+    def nd(n):
+        x, y = nodes[n]
+        w = sum(9 if ch.isascii() else 15 for ch in n) + 24
+        fill = R if n == "소프트 에러" else "#fff"
+        tc = "#fff" if n == "소프트 에러" else K
+        return (f'<rect x="{x - w / 2}" y="{y - 17}" width="{w}" height="34" rx="17" fill="{fill}" stroke="{R if n == "소프트 에러" else K}" stroke-width="2"/>'
+                f'<text x="{x}" y="{y + 5}" text-anchor="middle" font-size="14" font-weight="700" fill="{tc}">{n}</text>')
+    svg = (f'<svg viewBox="0 0 380 190" class="kg-svg"><defs><marker id="kgm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">'
+           f'<path d="M0 0 L10 5 L0 10 Z" fill="{M}"/></marker></defs>'
+           f'<line x1="104" y1="50" x2="150" y2="80" stroke="{M}" stroke-width="2" marker-end="url(#kgm)"/>'
+           f'<line x1="95" y1="140" x2="150" y2="110" stroke="{M}" stroke-width="2" marker-end="url(#kgm)"/>'
+           f'<line x1="250" y1="95" x2="306" y2="95" stroke="{M}" stroke-width="2" marker-end="url(#kgm)"/>'
+           f'<text x="140" y="52" font-size="12" fill="{M}" font-weight="700">일으킨다</text>'
+           f'<text x="128" y="148" font-size="12" fill="{M}" font-weight="700">일으킨다</text>'
+           f'<text x="278" y="84" text-anchor="middle" font-size="12" fill="{M}" font-weight="700">발생 위치</text>'
+           + "".join(nd(n) for n in nodes) + "</svg>")
+    return (f'<div class="kg-in">'
+            f'<div class="kg-col"><div class="kg-h">① 문장 · 청크 1 · p.3</div><div class="kg-sent">{sent}</div></div>'
+            f'<div class="kg-arr">→</div>'
+            f'<div class="kg-col"><div class="kg-h">② 세 묶음 (대상, 관계, 대상)</div>{rows}</div>'
+            f'<div class="kg-arr">→</div>'
+            f'<div class="kg-col"><div class="kg-h">③ 지식 그래프</div>{svg}</div></div>'
+            f'<div class="kg-def"><span><b>노드</b>대상 · 부품 · 현상 · 방법</span><span><b>연결</b>관계 · 방향이 있음</span>'
+            f'<span><b>같은 대상</b>문서 여러 곳에 나와도 노드 하나</span><span><b>근거</b>연결마다 청크 ID · 페이지</span></div>')
