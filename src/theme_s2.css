@@ -139,3 +139,22 @@
   .p2-exd b{font-size:13px; color:var(--mut);}
   .p2-exd.on .p2-exb i{background:var(--violet); opacity:1;} .p2-exd.on b{color:var(--violet);}
   .p2-exc{padding:0 12px 0 144px;} .p2-exc .p2-exd{height:20px;}
+  /* 식별자 · 오타 채팅 예시 */
+  .p2-ccs2{display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+  .p2-cc{border:1px solid var(--line); border-radius:14px; padding:14px 16px; display:flex; flex-direction:column; gap:10px;}
+  .p2-cch{font-size:15px; font-weight:900; color:var(--violet);}
+  .p2-ccu{align-self:flex-end; max-width:92%; background:#26262B; color:#fff; border-radius:14px 14px 4px 14px; padding:10px 14px;}
+  .p2-ccu span,.p2-cca span{font-size:12px; font-weight:900; opacity:.7;} .p2-ccu p,.p2-cca p{margin:2px 0 0; font-size:17px; line-height:1.45;}
+  .p2-ccu small{display:block; margin-top:4px; font-size:13px; color:#FF9AAE;}
+  .p2-ccs{background:#F6F6F8; border-radius:10px; padding:8px 12px;}
+  .p2-ccl{font-size:12px; font-weight:900; color:var(--mut); margin-bottom:4px;}
+  .p2-ccs ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px;}
+  .p2-ccs li{display:grid; grid-template-columns:18px 78px 1fr 40px 62px; align-items:center; gap:6px; font-size:14px;}
+  .p2-ccs li i{font-style:normal; font-weight:900; color:var(--mut);} .p2-ccs li code{font-weight:800; background:none; padding:0;}
+  .p2-ccs li b{font-weight:800; color:var(--mut); text-align:right;}
+  .p2-ccs li em{font-style:normal; font-size:12px; font-weight:900; text-align:center; border-radius:6px; padding:2px 0;}
+  .p2-ccs li.ng code{color:var(--violet);} .p2-ccs li.ng em{background:#FFE3E9; color:var(--violet);}
+  .p2-ccs li.ok em{background:#E4F4EA; color:#1E7A43;}
+  .p2-cca{max-width:92%; background:#fff; border:1px solid var(--line); border-radius:14px 14px 14px 4px; padding:10px 14px;}
+  .p2-cca small{display:block; margin-top:4px; font-size:13px; color:var(--violet); font-weight:700;}
+  .p2-ccv{border-top:2px solid var(--violet); padding-top:8px; font-size:15px; font-weight:800; color:var(--violet);}

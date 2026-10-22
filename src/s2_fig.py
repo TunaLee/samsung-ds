@@ -185,3 +185,29 @@ def three_cols():
         out += (f'<div class="p2-3c{" on" if ok else ""}"><div class="p2-3h"><b>{h}</b><span>{s}</span></div>{li}'
                 f'<div class="p2-3a">… 상위 5개 · 생성된 답변</div><div class="p2-3r{" ok" if ok else ""}">{"✓" if ok else "×"} {res}</div></div>')
     return f'<div class="p2-3q"><span>질의</span>연차 휴가 이월 규정</div><div class="p2-3w">{out}</div>'
+
+
+def _case(tag, q, note_q, rows, ans, src, verdict):
+    li = "".join(
+        f'<li class="{"ok" if ok else "ng"}"><i>{k + 1}</i><code>{rid}</code><span>{t}</span><b>{sc}</b><em>{"맞음" if ok else "다른 장비"}</em></li>'
+        for k, (rid, t, sc, ok) in enumerate(rows))
+    return (f'<div class="p2-cc"><div class="p2-cch">{tag}</div>'
+            f'<div class="p2-ccu"><span>질문</span><p>{q}</p>{f"<small>{note_q}</small>" if note_q else ""}</div>'
+            f'<div class="p2-ccs"><div class="p2-ccl">의미 검색 상위 3개 · 점수</div><ol>{li}</ol></div>'
+            f'<div class="p2-cca"><span>AI 답변</span><p>{ans}</p><small>근거: {src}</small></div>'
+            f'<div class="p2-ccv">{verdict}</div></div>')
+
+
+def id_chat():
+    """식별자 · 오타 질문에서 의미 검색이 엉뚱한 근거를 가져오는 채팅 예시 (설명용)."""
+    a = _case("정확한 ID로 물었는데", "EQ-1023 장비에서 박리 불량이 난 원인 알려 줘", "",
+              [("EQ-1032", "정비 기록 · 챔버 압력 이상", "0.91", False), ("EQ-1203", "점검 메모 · 진공 펌프 교체", "0.89", False),
+               ("EQ-1023", "공정 로그 · 히터 온도 편차", "0.88", True)],
+              "EQ-1023의 박리 원인은 <b>챔버 압력 이상</b>으로 보입니다.", "EQ-1032 정비 기록",
+              "다른 장비의 기록으로 답함 · 정답 기록은 3위")
+    b = _case("ID에 오타를 냈는데", "EQ-1O23 지난주 알람 기록 보여 줘", "숫자 0 대신 영문 O · 저장소에 없는 ID",
+              [("EQ-1032", "알람 · 냉각수 유량 저하 3건", "0.86", False), ("EQ-1230", "알람 · 도어 인터록 1건", "0.85", False),
+               ("EQ-1023", "알람 · 히터 과열 2건", "0.85", True)],
+              "지난주 알람은 <b>냉각수 유량 저하 3건</b>입니다.", "EQ-1032 알람 기록",
+              "「그런 장비 없음」 대신 가장 가까운 기록으로 그럴듯하게 답함")
+    return f'<div class="p2-ccs2">{a}{b}</div>'

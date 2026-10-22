@@ -840,6 +840,25 @@
   .p2-exd b{font-size:13px; color:var(--mut);}
   .p2-exd.on .p2-exb i{background:var(--violet); opacity:1;} .p2-exd.on b{color:var(--violet);}
   .p2-exc{padding:0 12px 0 144px;} .p2-exc .p2-exd{height:20px;}
+  /* 식별자 · 오타 채팅 예시 */
+  .p2-ccs2{display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+  .p2-cc{border:1px solid var(--line); border-radius:14px; padding:14px 16px; display:flex; flex-direction:column; gap:10px;}
+  .p2-cch{font-size:15px; font-weight:900; color:var(--violet);}
+  .p2-ccu{align-self:flex-end; max-width:92%; background:#26262B; color:#fff; border-radius:14px 14px 4px 14px; padding:10px 14px;}
+  .p2-ccu span,.p2-cca span{font-size:12px; font-weight:900; opacity:.7;} .p2-ccu p,.p2-cca p{margin:2px 0 0; font-size:17px; line-height:1.45;}
+  .p2-ccu small{display:block; margin-top:4px; font-size:13px; color:#FF9AAE;}
+  .p2-ccs{background:#F6F6F8; border-radius:10px; padding:8px 12px;}
+  .p2-ccl{font-size:12px; font-weight:900; color:var(--mut); margin-bottom:4px;}
+  .p2-ccs ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px;}
+  .p2-ccs li{display:grid; grid-template-columns:18px 78px 1fr 40px 62px; align-items:center; gap:6px; font-size:14px;}
+  .p2-ccs li i{font-style:normal; font-weight:900; color:var(--mut);} .p2-ccs li code{font-weight:800; background:none; padding:0;}
+  .p2-ccs li b{font-weight:800; color:var(--mut); text-align:right;}
+  .p2-ccs li em{font-style:normal; font-size:12px; font-weight:900; text-align:center; border-radius:6px; padding:2px 0;}
+  .p2-ccs li.ng code{color:var(--violet);} .p2-ccs li.ng em{background:#FFE3E9; color:var(--violet);}
+  .p2-ccs li.ok em{background:#E4F4EA; color:#1E7A43;}
+  .p2-cca{max-width:92%; background:#fff; border:1px solid var(--line); border-radius:14px 14px 14px 4px; padding:10px 14px;}
+  .p2-cca small{display:block; margin-top:4px; font-size:13px; color:var(--violet); font-weight:700;}
+  .p2-ccv{border-top:2px solid var(--violet); padding-top:8px; font-size:15px; font-weight:800; color:var(--violet);}
 
   /* ===== 3교시 도해 (x3-) ===== */
   .x3row{display:flex; align-items:stretch; gap:8px;}
@@ -1508,6 +1527,8 @@
 <div class="p2-idr"><div class="p2-idc"><code>EQ-1023</code><code class="r">EQ-1032</code></div>
 <div class="p2-idt">글자 하나 차이 · <b>전혀 다른 장비</b></div>
 <ul class="ul"><li>임베딩 모델에게 식별자는 뜻이 거의 없는 문자열</li><li>필요한 것: <b>글자가 정확히 일치하는지</b> 보는 검색</li></ul></div></div></div></section>
+
+<section class="slide" data-title="엉뚱한 장비를 가져온 검색"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">Retrieval</div><h2 class="s-title">엉뚱한 장비를 가져온 검색</h2><div class="rule"></div><div class="body"><div class="p2-ccs2"><div class="p2-cc"><div class="p2-cch">정확한 ID로 물었는데</div><div class="p2-ccu"><span>질문</span><p>EQ-1023 장비에서 박리 불량이 난 원인 알려 줘</p></div><div class="p2-ccs"><div class="p2-ccl">의미 검색 상위 3개 · 점수</div><ol><li class="ng"><i>1</i><code>EQ-1032</code><span>정비 기록 · 챔버 압력 이상</span><b>0.91</b><em>다른 장비</em></li><li class="ng"><i>2</i><code>EQ-1203</code><span>점검 메모 · 진공 펌프 교체</span><b>0.89</b><em>다른 장비</em></li><li class="ok"><i>3</i><code>EQ-1023</code><span>공정 로그 · 히터 온도 편차</span><b>0.88</b><em>맞음</em></li></ol></div><div class="p2-cca"><span>AI 답변</span><p>EQ-1023의 박리 원인은 <b>챔버 압력 이상</b>으로 보입니다.</p><small>근거: EQ-1032 정비 기록</small></div><div class="p2-ccv">다른 장비의 기록으로 답함 · 정답 기록은 3위</div></div><div class="p2-cc"><div class="p2-cch">ID에 오타를 냈는데</div><div class="p2-ccu"><span>질문</span><p>EQ-1O23 지난주 알람 기록 보여 줘</p><small>숫자 0 대신 영문 O · 저장소에 없는 ID</small></div><div class="p2-ccs"><div class="p2-ccl">의미 검색 상위 3개 · 점수</div><ol><li class="ng"><i>1</i><code>EQ-1032</code><span>알람 · 냉각수 유량 저하 3건</span><b>0.86</b><em>다른 장비</em></li><li class="ng"><i>2</i><code>EQ-1230</code><span>알람 · 도어 인터록 1건</span><b>0.85</b><em>다른 장비</em></li><li class="ok"><i>3</i><code>EQ-1023</code><span>알람 · 히터 과열 2건</span><b>0.85</b><em>맞음</em></li></ol></div><div class="p2-cca"><span>AI 답변</span><p>지난주 알람은 <b>냉각수 유량 저하 3건</b>입니다.</p><small>근거: EQ-1032 알람 기록</small></div><div class="p2-ccv">「그런 장비 없음」 대신 가장 가까운 기록으로 그럴듯하게 답함</div></div></div><div class="note red"><span class="nk">점수만 보면 1위가 가장 그럴듯</span><span class="nt">근거 본문의 ID가 질문과 같은지 확인해야 · 의미 검색은 「정확히 같은 글자」를 보장하지 않음 · 설명용 예시</span></div></div></section>
 
 <section class="slide labcover" data-title="[실습 3] 단어로 물어보기"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="labwrap"><div class="labl"><div class="lflag">실습 3</div><h2>단어로 물어보기</h2><p class="goal">같은 저장소에 단어 · 번호 검색어를 넣고 1위 조각에 그 단어가 실제로 있는지 확인</p><div class="lout"><span>산출물</span>찾은 것 · 못 찾은 것 기록 (4-2에서 다시 사용)</div></div><div class="labr"><div class="lh">순서</div><ol><li>검색어 다섯 개를 하나씩 입력</li><li>질의마다 1위 조각 펼치기</li><li>그 단어가 실제로 들어 있는지 확인</li><li>찾은 것 · 못 찾은 것 기록</li><li>문장으로 물었을 때와 비교</li></ol></div></div></section>
 
