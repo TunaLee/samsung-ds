@@ -211,3 +211,37 @@ def id_chat():
               "지난주 알람은 <b>냉각수 유량 저하 3건</b>입니다.", "EQ-1032 알람 기록",
               "「그런 장비 없음」 대신 가장 가까운 기록으로 그럴듯하게 답함")
     return f'<div class="p2-ccs2">{a}{b}</div>'
+
+
+RRF_CHUNKS = {  # id: (제목, 정답 여부)
+    "A": ("EQ-1023 공정 로그 · 히터 온도 편차 뒤 박리 발생", True),
+    "B": ("EQ-1032 정비 기록 · 박리 불량 · 챔버 압력", False),
+    "C": ("패키지 박리의 일반 원인 · 수분 흡습", False),
+    "D": ("EQ-1023 일일 점검표 · 이상 없음", False),
+    "E": ("EQ-1023 알람 · 히터 과열", False),
+}
+
+
+def rrf_example(k=60):
+    """같은 질문 · 의미 검색 순위 + BM25 순위 → RRF 최종 순위 (설명용)."""
+    sem = ["C", "B", "A", "E", "D"]
+    bm = ["A", "D", "E", "B", "C"]
+    score = {c: 1 / (k + sem.index(c) + 1) + 1 / (k + bm.index(c) + 1) for c in sem}
+    fin = sorted(score, key=lambda c: -score[c])
+
+    def col(title, sub, order, extra=None):
+        li = ""
+        for i, c in enumerate(order):
+            t, ok = RRF_CHUNKS[c]
+            x = extra(c) if extra else ""
+            li += f'<li class="{"on" if ok else ""}"><i>{i + 1}</i><div><b>{c}</b> {t}{x}</div></li>'
+        return f'<div class="p2-rc"><div class="p2-rch">{title}<small>{sub}</small></div><ol>{li}</ol></div>'
+
+    calc = lambda c: f'<em>1/{k + sem.index(c) + 1} + 1/{k + bm.index(c) + 1} = {score[c]:.5f}</em>'
+    q = ('<div class="p2-rq"><span>질문</span> <mark class="id">EQ-1023</mark> 장비에서 발생한 <mark class="mn">박리</mark> 불량의 원인'
+         '<small><b class="id">EQ-1023</b> 글자가 정확히 같아야 · <b class="mn">박리</b> delamination 같은 다른 표현도 찾아야</small></div>')
+    return (q + '<div class="p2-rcs">'
+            + col("의미 검색 순위", "「박리」 의미는 잘 잡음 · 장비는 섞임", sem)
+            + col("BM25 순위", "「EQ-1023」 글자는 잘 잡음 · 박리와 무관한 것도", bm)
+            + col("RRF 최종 순위", f"두 등수의 역수를 더함 · k = {k}", fin, calc)
+            + "</div>")
