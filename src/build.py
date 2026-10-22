@@ -20,14 +20,18 @@ def render(title, parts):
 def main():
     out = ROOT / "docs"
     out.mkdir(exist_ok=True)
-    rows = []
+    rows, everything = [], []
     for name in DECKS:
         mod = importlib.import_module(name)
         parts = mod.slides()
+        everything += parts
         (out / f"{name}.html").write_text(render(mod.TITLE, parts), encoding="utf-8")
         label = {'s0': '과정 소개', 's9': '부록'}.get(name, f'{name[1:]}교시')
         rows.append(f'<a class="row" href="{name}.html"><b>{label} · {mod.TITLE}</b><span>{len(parts)}장 →</span></a>')
         print(name, len(parts), "장")
+    (out / "all.html").write_text(render("AI Agent 아키텍트 과정 · 전체", everything), encoding="utf-8")
+    print("all", len(everything), "장")
+    rows.insert(0, f'<a class="row" href="all.html"><b>전체 이어 보기 · 과정 소개부터 부록까지</b><span>{len(everything)}장 →</span></a>')
     (out / "index.html").write_text(INDEX.replace("{{ROWS}}", "\n".join(rows)), encoding="utf-8")
 
 
