@@ -191,8 +191,6 @@ def opening():
 def block_patterns():
     return [
         section("01", "멀티에이전트의 구성 방식과 설계 요소", "Agent 사이의 연결 → 도구와 사람 개입의 통제"),
-        ill("scenes_ch4", "domino", "top20", "Agent 하나에 모든 일을 맡길 때",
-            ["사용하는 Context와 Tool이 늘어남", "한 단계의 잘못된 판단이 이후 작업으로 이어짐"]),
         page("역할을 여러 Agent로 나눌 때", two(
             pane("Agent 하나", ul(["모든 일을 한 Agent가", "Context · Tool이 계속 늘어남", "잘못된 판단이 다음 단계로 전달"]), "bad"),
             pane("역할별 Agent", ul(["Agent마다 맡는 <b>범위를 좁힘</b>", "필요한 <b>Context와 Tool을 구분</b>", "역할마다 다른 구성"]), "good"))
@@ -202,29 +200,17 @@ def block_patterns():
         page("계층형 · Hierarchical", sf.hierarchical()
              + note("상위 Agent", "작업을 나눠 맡기고 결과를 받아 정리 · 요청에 따라 <b>필요한 하위 Agent만 선택</b> 가능 · 하위마다 역할 · Context · Tool을 다르게", "red"),
              kick="1-1 · 연결 방식"),
-        page("세 가지 연결 방식 비교", table(["방식", "연결", "특징"], [
-            ["<b>순차 실행</b>", "앞 단계 결과 → 다음 단계 입력", "순서 변경 · 동시 실행 불가"],
-            ["<b>병렬 실행과 집계</b>", "독립적인 일을 동시에 → 마지막에 하나로", "다른 Agent의 결과를 모른 채 작업"],
-            ["<b>계층형</b>", "상위 Agent가 나눠 맡기고 결과 정리", "하위마다 역할 · Context · Tool 구분 · 필요한 Agent만 선택"],
-        ]), kick="1-1 · 연결 방식"),
         page("도구 공유 · Shared Tools", sf.shared_tools()
              + note("핵심", "모든 Agent에게 모든 Tool이 아니라 <b>각 역할에 필요한 Tool만 허용</b> · 5교시 MCP 서버가 같은 규격의 도구 제공", "red"),
              kick="1-2 · 운영 방식"),
         page("사람 개입 · Human-in-the-loop", sf.hitl()
              + note("같은 구조", "Claude Code가 실행 전에 권한을 묻는 것 · 조회는 바로 · 삭제 · 전송은 승인 뒤", "red"), kick="1-2 · 운영 방식"),
-        page("이번 실습의 출발점", '<div class="parts">'
-             + fig._tile("bolt", "판정", "반복적으로 발생하는<br>이벤트 판정", "core")
-             + '<div class="plus">+</div>'
-             + fig._tile("search", "조사", "필요한 자료를<br>찾아 조사")
-             + "</div>" + note("이번 실습", "처음부터 많은 Agent를 만들지 않음 · 두 역할부터 분리", "red"), kick="이번 실습에서는"),
     ]
 
 
 def block_split():
     return [
         section("02", "자주 하는 판정과 필요한 조사 나누기", "Decisions API가 고르고, 조사 Agent가 설명"),
-        ill("scenes_ch5", "conveyor", "top20", "생산라인 기록은 계속 들어옴",
-            ["공정 시작 · 종료 기록 · 센서 값 · 알람", "기록마다 조사하면 대기 시간 · 호출 횟수 증가"]),
         page("판정과 조사의 역할 분리", flow([
             ("생산라인 이벤트", "시작 · 종료 · 센서 값 · 알람"),
             ("Decisions API", "조사 필요성 판정"),
@@ -261,9 +247,6 @@ def block_split():
         page("판정에서 조사까지", sf.decision_flow(), kick="전체 흐름"),
         ill("scenes_ch2", "gauges", "top20", "기준값 0.5는 시작값",
             ["추정값 ≥ 기준값 → 이벤트마다 조사 Agent", "낮추면 조사 대상 · 비용 증가 · 높이면 놓칠 수 있음"]),
-        page("앱이 정하는 것, Agent가 정하는 것", two(
-            pane("앱", ul(["언제 판정할지", "언제 조사 Agent를 부를지 · <b>호출 조건</b>", "기준값 · 기본 0.5"]), "bad"),
-            pane("조사 Agent", ul(["어떤 도구로", "무엇을 조회할지", "조회 결과로 원인 가설 · 추가 확인"]), "good")), kick="역할 분담"),
     ]
 
 
@@ -308,16 +291,9 @@ def block_decisions():
             pane("구현 참고 · OpenAI Decisions 공식 문서", f'<p style="font-size:16px;margin:0;word-break:break-all"><code>{DOC}</code></p>'
                  '<p style="font-size:15px;color:var(--ink-soft);margin:10px 0 0">Prompt 안에 주소 포함 · 함께 전달</p>', "good"), "w"), kick="4-1"),
         page("완성형 Prompt 구성", full_prompt()
-             + note("붙여 넣기", "위 상자의 <b>복사</b> → Claude Code에 그대로 · 다음 장부터 절별로 내용 확인", "red")
+             + note("붙여 넣기", "위 상자의 <b>복사</b> → Claude Code에 그대로", "red")
              + note("핵심 조건", "실제 API 호출 · 실제 Request / Response 기록 · 가짜 확률 · 가상 JSON 금지 · 조사 Agent는 아직 연결하지 않음"),
              kick="4-1 · 완성형 Prompt"),
-        pchunk("목표와 확률 처리 진단", 0, 23, 1),
-        pchunk("생산라인 감시", 23, 43, 2),
-        pchunk("Decisions API 호출", 43, 68, 3),
-        pchunk("실제 Request / Response 확인", 68, 88, 4),
-        pchunk("최소 화면", 88, 110, 5),
-        pchunk("API 단독 테스트", 110, 124, 6),
-        pchunk("실제 검증과 보고", 124, len(PL), 7),
         page("감시와 판정은 따로 동작", sf.lanes()
              + note("종료", "감시는 최대 180초 · 종료 후 새 판정 호출 없음 · 이미 시작한 요청은 완료 · 남은 이벤트는 <b>미호출</b> 표시", "red"),
              kick="4-1 · 동작 구조"),
@@ -348,10 +324,6 @@ def block_agent():
         lab("3", "조사 Agent 연결", "기준값을 넘은 이벤트를 조사 Agent에 넘기고, Agent가 도구로 Lot 이력과 정비 기록을 조회하게 하기",
             ["가이드라인 · 키워드 읽기", "실습 조건 확인", "요청문 직접 작성 · 같은 창", "새로고침 후 [감시 시작]"],
             "이벤트 행 아래 조사 결과와 도구 호출 기록"),
-        page("판정 다음에 필요한 정보", flow([
-            ("판정", "조사할 이벤트 고르기"), ("기준값 초과", "그 이벤트에 무슨 일이?"), ("판정 입력 그대로", "조사 Agent에 전달"),
-            ("도구 조회", "Lot 이력 · 정비 기록"),
-        ], hl=2), kick="5-1"),
         page("Prompt 작성 가이드라인", two(
             pane("기준값과 조사 Agent 연결", ul([
                 "어떤 조건에서 조사하고, Agent에게 <b>어떤 Context와 도구</b>를 줄지",
@@ -391,15 +363,6 @@ def block_check():
         ]), kick="6 · 확인"),
         ill("scenes_extra", "fact_hypothesis", "left40", "기록 발견과 원인 확정은 별개",
             ["정비 기록을 찾았다 ≠ 원인을 확정했다", "근거로 쓴 이벤트 · 기록 확인", "더 확인해야 할 사항 읽기"]),
-        page("이번 앱의 역할 분담", two(
-            pane("Decisions API · 판정", ul(["자주 반복되는 판정", "빠르고 저렴 · <b>이벤트마다</b>"]), "bad"),
-            pane("조사 Agent · 조사", ul(["자료를 찾아 설명", "비용이 큼 · <b>기준값을 넘은 이벤트만</b>"]), "good")), kick="6 · 확인"),
-        page("완료 확인", '<div class="chk">'
-             + "".join(f"<div>{x}</div>" for x in [
-                 "이벤트 → 판정 → 기준값 초과 → 도구 조회 → 조사 결과",
-                 "Decisions 호출 시작 간격 최소 3초",
-                 "감시 중지 · 브라우저 종료 신호 · 접속 확인 만료 뒤 새 판정 / 조사 호출 없음"])
-             + "</div>" + note("작성하지 않음", "기록표 · 별도 보고서"), kick="6 · 완료"),
     ]
 
 

@@ -26,12 +26,6 @@ def opening():
             ("link", "5교시 · 연결", "Agent가 rag-sim 검색을 도구로 사용", True),
         ]) + note("정할 것", "검색에 보낼 <b>질문</b>의 형식 · 반환할 <b>원문</b>의 형식")
              + note("API · Tool · MCP", "다른 프로그램이 요청하는 접점 · Agent가 고르는 기능 · 목록 · 호출 · 결과를 주고받는 공통 규격", "red"), kick="도입"),
-        page("이번 교시의 설계 초점", '<div class="quote">기능을 어디에서 실행하고,<br>어떤 정보를 모델에 돌려줄 것인가</div>'
-             + '<div class="parts" style="margin-top:22px">'
-             + fig._tile("folder", "rag-sim", "문서 검색 실행")
-             + fig._tile("model", "agent-sim", "사용할 도구를 모델에 알림", "core")
-             + fig._tile("doc", "검색 결과", "원문 · 출처를 다음 입력으로")
-             + "</div>" + note("연결 뒤에도", "근거의 품질은 앞선 RAG 설계의 영향을 받음"), kick="도입"),
         page("실습 안내", two(
             ul(["4교시 <b>agent-sim</b> + 오전 <b>rag-sim</b> 함께 사용",
                 "Claude Code 요청: 가이드라인 · 키워드 · 실습 조건 → <b>내 문장</b>으로",
@@ -62,16 +56,6 @@ def block_api():
                  ["<code>date</code>", "환율 고시일"],
                  ["갱신", "유럽중앙은행 고시 환율 · 하루 한 번 · 주말엔 새 값 없음"]])
              + note("응답", "사람이 보는 화면이 아니라 <b>프로그램이 읽고 처리하는 데이터</b>"), kick="API"),
-        page("날씨 API · Open-Meteo", prompt("https://api.open-meteo.com/v1/forecast?latitude=37.57&longitude=126.98&current=temperature_2m", "[브라우저] 주소창") + SP
-             + table(["부분", "뜻"], [
-                 ["<code>latitude</code> · <code>longitude</code>", "위도 · 경도 · 이 값은 서울"],
-                 ["<code>current=temperature_2m</code>", "현재 기온 (지상 2m)"],
-                 ["응답 <code>current</code> · <code>current_units</code>", "기온 값 · 단위"]])
-             + note("Open-Meteo", "위도 · 경도를 보내면 그 위치의 날씨 데이터를 돌려주는 API"), kick="API"),
-        page("API는 코드가 호출, Tool은 모델이 선택", table(["구분", "누가 부르나", "예"], [
-            ["<b>API</b>", "프로그램 코드", "화면이 열리면 환율 API를 호출하도록 작성한 코드"],
-            ["<b>Tool</b>", "LLM이 고르고, 앱이 실행", "「환율 조회」 도구를 LLM이 필요하다고 판단할 때"]])
-             + note("4교시", "도구 = <b>실행 함수 + 도구 선언</b> · 실행 함수 안에 API 호출이 들어갈 수 있음", "red"), kick="Tool"),
         page("Tool 안에서 API 호출", f5.chain([
             ("model", "LLM", "「환율 조회 도구를<br>USD로 불러 줘」", False),
             ("window", "앱", "환율 조회<br>함수 실행", False),
@@ -120,11 +104,6 @@ def block_mcp():
             ("API 호출 내역", "선택된 도구 · 입력 인자 · 반환 출처 대조"),
             ("출처 원문", "답변의 출처 주소 열기"),
         ]) + note("구분", "목록 조회와 실제 도구 실행은 <b>서로 다른 단계</b>", "red"), kick="MCP 실습"),
-        page("연결 상태 읽기", table(["상태", "뜻", "할 일"], [
-            ["<b>연결됨</b>", "해당 서버의 도구가 현재 목록에 들어옴", "도구 목록 확인"],
-            ["<b>도구 확인 필요</b>", "연결 설정은 켰지만 도구를 확인하지 못함", "오류 안내 읽기"],
-            ["<b>연결 안 됨</b>", "연결되지 않은 상태", "서버 항목의 [연결]"]])
-             + note("주의", "서버가 목록에 남아 있는 것만으로 호출 가능하다고 판단하지 않기", "red"), kick="MCP 실습"),
         page("연결 실패와 연결 해제", two(
             pane("연결이 실패하면", ul(["<code>https://</code> · 끝의 <code>/api/mcp</code> · 공백", "인터넷 접속 · 화면 오류 순서로 확인",
                                        "브라우저로 열어 <b>405</b> → 웹페이지 GET과 MCP 연결 요청이 다르기 때문일 수 있음",
@@ -137,21 +116,8 @@ def block_mcp():
              + fig._tile("rule", "도구 목록 보내기", "앱이 물으면 도구의<br>이름 · 설명문 · 입력 형식<br><code>tools/list</code>")
              + fig._tile("bolt", "도구 호출 처리하기", "「이 도구를 이 인자로 실행해 줘」<br>→ 실제 실행 · 결과 반환<br><code>tools/call</code>", "core")
              + "</div>" + note("주소", "문서를 읽는 웹페이지 주소 ≠ MCP 요청을 받는 주소 <code>https://learn.microsoft.com/api/mcp</code>"), kick="MCP"),
-        page("주소를 추가하면 저장되는 것", two(
-            prompt('{\n  "server_b4114941dc55dc3c": {\n    "label": "learn.microsoft.com",\n    "spec": {\n      "url": "https://learn.microsoft.com/api/mcp"\n    }\n  }\n}',
-                   "mcp_catalog.json · 저장 형식 예시 (선택 읽기)", sm=True),
-            ul(["시작 앱의 mcp_catalog.json은 빈 객체 <code>{}</code>",
-                "화면에서 주소 추가 → 이 파일에 등록 정보 저장 · <b>직접 편집 없음</b>",
-                "<b>mcp_catalog.json</b>: 등록 목록 · <b>mcp_config.json</b>: 연결 설정",
-                "같은 주소 재추가 → 기존 항목 재사용",
-                "재시작 후에도 주소는 남음 · 서버 동작 · 연결 상태는 다시 확인"])), kick="MCP"),
         page("등록부터 실제 호출까지", f5.mcp_seq()
              + note("통신 주체", "MCP 서버와 통신하는 것은 <b>앱의 MCP 클라이언트</b> · 서버 구현 코드는 서버에 남음", "red"), kick="MCP"),
-        page("URL 추가로 자동화되는 것", two(
-            pane("자동화되는 것", ul(["외부 목록을 읽어 <b>도구 선언</b> 만들기", "호출할 <b>연결 함수</b> 등록",
-                                     "tools/list는 이름 · 설명 · 입력 형식만 · 구현 코드 전체를 내려받지 않음"]), "good"),
-            pane("아닌 것", ul(["원격 코드가 LLM 안에 설치되는 것", "브라우저로 MCP 주소를 열어 확인하는 것",
-                               "405 오류 → 웹페이지용 GET을 받지 않는 것일 수 있음 · <b>앱의 연결 로그</b>로 확인"]), "bad")), kick="MCP"),
         page("MCP 클라이언트 코드 읽기", f5.guide(
             ["MCP 연결 · 도구 목록 조회 · 도구 호출이 코드의 어디에 있는지 어떻게 질문할까요?",
              "읽을 파일 · 찾을 동작 · 설명 수준 포함"],
@@ -170,18 +136,8 @@ def block_mcp():
 def block_api_lab():
     return [
         section("03", "실습 1 · rag-sim 검색을 API로 내놓기", "질문을 보내면 근거 청크를 JSON으로 돌려주는 GET API"),
-        page("연결할 부분 나누기", '<div class="parts">'
-             + fig._tile("folder", "데이터 저장 위치", "rag-sim 저장소")
-             + fig._tile("search", "검색 코드 실행 위치", "rag-sim · 원문 · 출처 반환", "core")
-             + fig._tile("model", "답변 생성 위치", "다른 앱의 모델")
-             + "</div>" + note("순서", "3절: HTTP GET 검색 API → 4절: API를 부르는 Tool을 MCP 서버로 · agent-sim에 연결", "red"), kick="실습 1"),
         page("오늘 만들 전체 구성", f5.arch()
              + note("관리 탭", "rag-sim에 <b>[API · MCP 관리]</b> 탭 하나 · 두 서버의 On/off와 외부 호출 로그를 같은 화면에서"), kick="실습 1"),
-        page("로컬 서버", ul(["서버 = 요청을 기다렸다가 답을 돌려주는 프로그램 · <b>내 노트북에서 실행하면 내 노트북이 서버</b>",
-                              "이미 여러 번 띄움: run.bat → 검은 창 + 브라우저 · 검은 창 안에서 도는 것이 로컬 서버 · 창을 닫으면 앱도 멈춤"])
-             + SP + two(
-            pane("2절 · 원격 서버", ul(["Microsoft가 인터넷에서 운영", "<code>https://learn.microsoft.com/api/mcp</code>"]), "bad"),
-            pane("이번 · 로컬 서버", ul(["하는 일의 구조는 같고 <b>위치만</b> 다름", "<code>http://127.0.0.1:8790/mcp</code>"]), "good")), kick="로컬 서버"),
         page("주소와 포트", two(
             ul(["<code>127.0.0.1</code> = 내 컴퓨터 자신 · <code>localhost</code>와 같은 뜻",
                 "이 주소로 보낸 요청은 밖으로 나가지 않고 내 PC 안에서 처리",
@@ -328,11 +284,6 @@ def block_design():
                 ["<b>RAG 설계</b>", "검색 범위 · 반환할 근거의 크기"],
                 ["<b>Agent 처리 흐름</b>", "언제 호출해 어떻게 사용할지"]]))
              + note("오류도 설계", "검색이 정상적으로 끝나 근거가 없는 경우 ≠ 서버에 연결되지 않은 경우 · 이후 판단에 필요한 정보가 다름", "red"), kick="Context"),
-        page("설계를 보완하는 질문", steps([
-            ("필요한 도구", "연결한 도구 중 이 과제에 필요한 것은"),
-            ("구별", "설명이 비슷한 도구를 구별할 수 있는지"),
-            ("근거 보존", "반환한 근거에서 문서명 · 페이지 · 조건이 유지되는지"),
-        ]) + note("기준", "도구 수 · 추정 토큰만 줄이기보다 <b>필요한 기능과 판단 근거</b>가 남아 있는지"), kick="Context"),
         page("정리", steps([
             ("API를 감싼 Tool → MCP", "API는 코드가, Tool은 AI가 부름 · API를 감싼 Tool을 MCP 규격으로 제공"),
             ("다른 앱의 도구가 된 RAG", "규격이 같아 이 서버는 agent-sim 전용이 아님"),
