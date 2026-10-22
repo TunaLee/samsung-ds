@@ -150,12 +150,9 @@ def block_rerank():
              + xf.row(xf.n("전체 청크", "저장소", icon="folder"), xf.a(), xf.n("1차 검색 후보", "관련 있을 법한 후보 추리기", icon="search"), xf.a(),
                       xf.n("재정렬", "질문과 후보 본문을 평가해 순서 다시 정하기", "r"), xf.a(), xf.n("최종 근거", "제한된 수만 LLM에 전달", "k"), cls="mt")
              + note("Reranking", "같은 후보라도 어떤 청크가 최종 근거에 포함되는지가 달라질 수 있음", "red"), kick="Reranking"),
-        page("Bi-encoder: 질문과 문서를 따로 벡터로", xf.bi_enc()
-             + note("Bi-encoder", "문서 벡터는 미리 저장 · 질문 벡터와 가까운 후보 찾기 · 많은 자료를 <b>저렴하고 빠르게</b> 좁히는 1차 검색"),
-             kick="Reranking"),
         page("Cross-encoder: 질문과 후보를 함께 읽고 점수", xf.cross_enc()
              + note("Cross-encoder", "질문 · 후보 본문을 한 쌍으로 처리해 관련성 점수 → 앱이 이 점수로 순서 변경 = <b>Reranking</b>")
-             + note("역할 나누기", "모든 책을 한 권씩 자세히 읽으면 오래 걸림 → Bi-encoder로 후보를 좁히고 Cross-encoder로 다시 평가 · 답변 문장은 이후의 생성 LLM이 만듦")
+             + note("역할 나누기", "모든 청크를 하나씩 자세히 읽으면 오래 걸림 → 1차 검색(임베딩)으로 후보를 좁히고 Cross-encoder로 다시 평가 · 답변 문장은 이후의 생성 LLM이 만듦")
              + note("한계", "처음 고른 후보에 필요한 책이 없다면 재정렬만으로 되살릴 수 없음", "red"), kick="Reranking"),
         page("Reranking 모델의 출력", xf.pair_score()
              + note("점수", "주로 순위를 정할 점수 · 범위는 모델마다 다름 · <b>정답 확률로 해석하지 않음</b>")
