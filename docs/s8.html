@@ -642,6 +642,38 @@
   code{font-family:var(--mono); font-size:.92em; background:var(--wash); padding:1px 5px; border-radius:4px;}
   .code pre code{background:none; padding:0; border-radius:0; font-size:inherit;} .code.prompt code{font-size:16.5px;}
 
+  /* ===== 과정 소개 전용 (s0-) ===== */
+  .s0-roles{display:block; width:100%; height:auto; max-height:450px;}
+  .s0-roles text{font-family:inherit; letter-spacing:-.02em;}
+
+  .s0-mods{display:flex; align-items:stretch; gap:8px;}
+  .s0-pa{align-self:center; font-style:normal; color:var(--violet); font-size:24px; font-weight:900;}
+  .s0-mod{flex:1; border:1px solid var(--line); border-top:4px solid var(--ink); border-radius:12px; padding:20px 16px; display:flex; flex-direction:column; gap:8px; background:#fff;}
+  .s0-mod.on{border-top-color:var(--violet); background:#FFF5F7;}
+  .s0-mod em{font:800 13px var(--mono); font-style:normal; color:var(--violet);}
+  .s0-mod small{font-size:14px; font-weight:800; color:var(--mut);}
+  .s0-mod b{font-size:22px; font-weight:900; line-height:1.25;}
+  .s0-mod span{font-size:15.5px; color:var(--ink-soft); line-height:1.45;}
+
+  .s0-tree{border:1px solid var(--line); border-radius:14px; padding:20px 24px; background:#fff;}
+  .s0-troot{display:flex; align-items:center; gap:10px; padding-bottom:12px; border-bottom:1px dashed var(--line);}
+  .s0-troot code{font-family:var(--mono); font-size:15px; font-weight:700; word-break:break-all;}
+  .s0-tree .ico{width:24px; height:24px; flex:none; color:var(--violet);}
+  .s0-tree ul{list-style:none; margin:12px 0 0; padding:0 0 0 22px; display:flex; flex-direction:column; gap:10px; border-left:2px solid var(--line); margin-left:11px;}
+  .s0-tree li{display:flex; align-items:center; gap:10px; font:700 18px var(--mono);}
+  .s0-tree li .ico{color:var(--ink);}
+
+  .s0-link{display:flex; align-items:center; gap:18px; border:2px solid var(--ink); border-radius:14px; padding:22px 26px; background:#fff;}
+  .s0-li{width:56px; height:56px; border-radius:12px; background:#FFF5F7; color:var(--violet); display:flex; align-items:center; justify-content:center; flex:none;}
+  .s0-li .ico{width:30px; height:30px;}
+  .s0-lt{display:flex; flex-direction:column; gap:6px; min-width:0;}
+  .s0-lt b{font-size:20px; font-weight:900;}
+  .s0-lt code{font-family:var(--mono); font-size:16px; color:var(--violet); word-break:break-all;}
+  .s0-ld{font-size:15px; color:var(--mut);}
+  .s0-gap{height:16px;}
+  .ctable.s0-tt th,.ctable.s0-tt td{padding:7px 14px; font-size:15.5px;}
+  .ctable.s0-tt td:first-child{font-family:var(--mono); white-space:nowrap;}
+
   /* ===== 2교시 도식 ===== */
   .tc.p2-on{border:2px solid var(--violet); background:#FFF5F7;}
   .p2-hc{display:flex; flex-direction:column; gap:12px;}
@@ -1280,6 +1312,21 @@
   .s8-full .code.prompt pre{max-height:330px;}
   .s8-full .code.prompt code{font-size:14px; line-height:1.5;}
   .s8-lanes .nr-f b{font-size:16px;}
+
+  /* ===== 부록 · 명령어 모음 (s9-) ===== */
+  .s9-row{display:flex; align-items:stretch; gap:14px;}
+  .s9-row .ftile{flex:1;}
+  .s9-row .ftile .ft{font-family:var(--mono);}
+  .s9-row .ftile code{font-size:14px;}
+  .s9-row.s9-sm .ftile{padding:16px 14px;} .s9-row.s9-sm .ftile .fi{font-size:32px; margin-bottom:8px;}
+  .s9-row.s9-sm .ftile .ft{font-size:18px;}
+  .s9-arr{align-self:center; font-size:30px; font-weight:900; color:var(--violet);}
+  .ctable.s9-t{font-size:15.5px;}
+  .ctable.s9-t th,.ctable.s9-t td{padding:7px 14px;}
+  .ctable.s9-t td code{font-size:14px;}
+  .ctable.s9-t td:nth-child(3){color:var(--ink-soft); font-size:14.5px;}
+  .ctable.s9-t.s9-wrap td:first-child{white-space:normal;}
+  .s9-mb{margin-bottom:12px;}
 
 </style>
 </head>

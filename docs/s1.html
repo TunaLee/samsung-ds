@@ -642,6 +642,38 @@
   code{font-family:var(--mono); font-size:.92em; background:var(--wash); padding:1px 5px; border-radius:4px;}
   .code pre code{background:none; padding:0; border-radius:0; font-size:inherit;} .code.prompt code{font-size:16.5px;}
 
+  /* ===== 과정 소개 전용 (s0-) ===== */
+  .s0-roles{display:block; width:100%; height:auto; max-height:450px;}
+  .s0-roles text{font-family:inherit; letter-spacing:-.02em;}
+
+  .s0-mods{display:flex; align-items:stretch; gap:8px;}
+  .s0-pa{align-self:center; font-style:normal; color:var(--violet); font-size:24px; font-weight:900;}
+  .s0-mod{flex:1; border:1px solid var(--line); border-top:4px solid var(--ink); border-radius:12px; padding:20px 16px; display:flex; flex-direction:column; gap:8px; background:#fff;}
+  .s0-mod.on{border-top-color:var(--violet); background:#FFF5F7;}
+  .s0-mod em{font:800 13px var(--mono); font-style:normal; color:var(--violet);}
+  .s0-mod small{font-size:14px; font-weight:800; color:var(--mut);}
+  .s0-mod b{font-size:22px; font-weight:900; line-height:1.25;}
+  .s0-mod span{font-size:15.5px; color:var(--ink-soft); line-height:1.45;}
+
+  .s0-tree{border:1px solid var(--line); border-radius:14px; padding:20px 24px; background:#fff;}
+  .s0-troot{display:flex; align-items:center; gap:10px; padding-bottom:12px; border-bottom:1px dashed var(--line);}
+  .s0-troot code{font-family:var(--mono); font-size:15px; font-weight:700; word-break:break-all;}
+  .s0-tree .ico{width:24px; height:24px; flex:none; color:var(--violet);}
+  .s0-tree ul{list-style:none; margin:12px 0 0; padding:0 0 0 22px; display:flex; flex-direction:column; gap:10px; border-left:2px solid var(--line); margin-left:11px;}
+  .s0-tree li{display:flex; align-items:center; gap:10px; font:700 18px var(--mono);}
+  .s0-tree li .ico{color:var(--ink);}
+
+  .s0-link{display:flex; align-items:center; gap:18px; border:2px solid var(--ink); border-radius:14px; padding:22px 26px; background:#fff;}
+  .s0-li{width:56px; height:56px; border-radius:12px; background:#FFF5F7; color:var(--violet); display:flex; align-items:center; justify-content:center; flex:none;}
+  .s0-li .ico{width:30px; height:30px;}
+  .s0-lt{display:flex; flex-direction:column; gap:6px; min-width:0;}
+  .s0-lt b{font-size:20px; font-weight:900;}
+  .s0-lt code{font-family:var(--mono); font-size:16px; color:var(--violet); word-break:break-all;}
+  .s0-ld{font-size:15px; color:var(--mut);}
+  .s0-gap{height:16px;}
+  .ctable.s0-tt th,.ctable.s0-tt td{padding:7px 14px; font-size:15.5px;}
+  .ctable.s0-tt td:first-child{font-family:var(--mono); white-space:nowrap;}
+
   /* ===== 2교시 도식 ===== */
   .tc.p2-on{border:2px solid var(--violet); background:#FFF5F7;}
   .p2-hc{display:flex; flex-direction:column; gap:12px;}
@@ -1281,6 +1313,21 @@
   .s8-full .code.prompt code{font-size:14px; line-height:1.5;}
   .s8-lanes .nr-f b{font-size:16px;}
 
+  /* ===== 부록 · 명령어 모음 (s9-) ===== */
+  .s9-row{display:flex; align-items:stretch; gap:14px;}
+  .s9-row .ftile{flex:1;}
+  .s9-row .ftile .ft{font-family:var(--mono);}
+  .s9-row .ftile code{font-size:14px;}
+  .s9-row.s9-sm .ftile{padding:16px 14px;} .s9-row.s9-sm .ftile .fi{font-size:32px; margin-bottom:8px;}
+  .s9-row.s9-sm .ftile .ft{font-size:18px;}
+  .s9-arr{align-self:center; font-size:30px; font-weight:900; color:var(--violet);}
+  .ctable.s9-t{font-size:15.5px;}
+  .ctable.s9-t th,.ctable.s9-t td{padding:7px 14px;}
+  .ctable.s9-t td code{font-size:14px;}
+  .ctable.s9-t td:nth-child(3){color:var(--ink-soft); font-size:14.5px;}
+  .ctable.s9-t.s9-wrap td:first-child{white-space:normal;}
+  .s9-mb{margin-bottom:12px;}
+
 </style>
 </head>
 <body>
@@ -1394,7 +1441,7 @@ claude</code></pre></div></div><div><ul class='ul'><li>rag-sim.zip을 실습 폴
 
 <section class="slide" data-title="익숙한 두 가지 방법"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">RAG</div><h2 class="s-title">익숙한 두 가지 방법</h2><div class="rule"></div><div class="body"><div class="parts"><div class="ftile "><div class="fi"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></div><div class="ft">User Input Prompt</div><div class="fd">배경 · 조건을 질문에 함께 적기</div></div><div class="ftile "><div class="fi"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11l-8.5 8.5a5 5 0 0 1-7-7L14 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L15 7"/></svg></div><div class="ft">첨부파일</div><div class="fd">PDF · 보고서를 붙이고<br>「이 문서를 참고해서 답해 줘」</div></div></div><div class="note red"><span class="nk">한계</span><span class="nt">자료가 수천 · 수만 개라면 질문마다 직접 고르기 어려움</span></div></div></section>
 
-<section class="slide" data-title="학습시키거나, 입력에 넣거나"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">RAG</div><h2 class="s-title">학습시키거나, 입력에 넣거나</h2><div class="rule"></div><div class="body"><div class="twocol "><div><div class="pane bad"><h4>추가 학습 · 파인튜닝</h4><ul class='ul'><li>모델 내부의 <b>가중치</b>를 조정</li><li>답변 형식 · 처리 방식을 맞출 때</li><li>데이터 준비 · 학습 비용이 큼</li></ul></div></div><div><div class="pane good"><h4>입력 컨텍스트에 넣기</h4><ul class='ul'><li>다시 학습하지 않음</li><li>질문 · 지시문 · 참고 자료를 함께 전달</li><li>새 문서를 바로 반영</li></ul></div></div></div></div></section>
+<section class="slide" data-title="추가 학습과 입력 전달"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">RAG</div><h2 class="s-title">추가 학습과 입력 전달</h2><div class="rule"></div><div class="body"><div class="twocol "><div><div class="pane bad"><h4>추가 학습 · 파인튜닝</h4><ul class='ul'><li>모델 내부의 <b>가중치</b>를 조정</li><li>답변 형식 · 처리 방식을 맞출 때</li><li>데이터 준비 · 학습 비용이 큼</li></ul></div></div><div><div class="pane good"><h4>입력 컨텍스트에 넣기</h4><ul class='ul'><li>다시 학습하지 않음</li><li>질문 · 지시문 · 참고 자료를 함께 전달</li><li>새 문서를 바로 반영</li></ul></div></div></div></div></section>
 
 <section class="slide" data-title="세 가지 방법 비교"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">RAG</div><h2 class="s-title">세 가지 방법 비교</h2><div class="rule"></div><div class="body"><table class="ctable "><thead><tr><th>방법</th><th>어떻게</th><th>비용</th><th>문서가 바뀌면</th></tr></thead><tbody><tr><td><b>추가 학습</b></td><td>예시 데이터로 응답 방식 조정</td><td>데이터 준비 · 학습 · 추론</td><td>재학습 또는 외부 검색 검토</td></tr><tr><td><b>전체를 매번 입력</b></td><td>질문마다 모든 문서 전달</td><td>질문마다 전체 자료의 입력 비용</td><td>다음 요청에 바로 반영</td></tr><tr><td><b>RAG</b></td><td>관련된 조각만 검색해 전달</td><td>문서 준비 · 검색 + 선택한 자료만</td><td>바뀐 문서만 다시 처리</td></tr></tbody></table><div class="note red"><span class="nk">설계 질문</span><span class="nt">우리 팀 자료라면? 문서의 양 · 바뀌는 빈도 · 하루 질문 수로 판단</span></div></div></section>
 

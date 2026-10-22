@@ -1,0 +1,14 @@
+  /* ===== 부록 · 명령어 모음 (s9-) ===== */
+  .s9-row{display:flex; align-items:stretch; gap:14px;}
+  .s9-row .ftile{flex:1;}
+  .s9-row .ftile .ft{font-family:var(--mono);}
+  .s9-row .ftile code{font-size:14px;}
+  .s9-row.s9-sm .ftile{padding:16px 14px;} .s9-row.s9-sm .ftile .fi{font-size:32px; margin-bottom:8px;}
+  .s9-row.s9-sm .ftile .ft{font-size:18px;}
+  .s9-arr{align-self:center; font-size:30px; font-weight:900; color:var(--violet);}
+  .ctable.s9-t{font-size:15.5px;}
+  .ctable.s9-t th,.ctable.s9-t td{padding:7px 14px;}
+  .ctable.s9-t td code{font-size:14px;}
+  .ctable.s9-t td:nth-child(3){color:var(--ink-soft); font-size:14.5px;}
+  .ctable.s9-t.s9-wrap td:first-child{white-space:normal;}
+  .s9-mb{margin-bottom:12px;}
