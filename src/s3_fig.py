@@ -268,3 +268,37 @@ def rewrite_bakri():
                                                  ("AEC-Q100 · C-SAM 박리 검사", "0.74", True), ("TI MSL · 흡습과 popcorn crack", "0.69", True)], True)
     return (f'<div class="rb-f">{flow}</div>'
             f'<div class="rb-cmp"><div class="rb-l">검색 결과 상위 3개 · 점수</div>{off}<div class="rb-vs">→</div>{on}</div>')
+
+
+def expansion_ex():
+    """질문 하나 → 검색어 3개 → 각각 검색 → 합치기 (설명용)."""
+    qs = [("package delamination cause", [("TI MSL · reflow 후 delamination", True), ("AEC-Q100 · C-SAM 박리 검사", True)]),
+          ("moisture induced delamination reflow", [("TI MSL · 흡습량과 박리", True), ("TI MSL · 베이킹 조건", True)]),
+          ("popcorn cracking mold compound", [("TI MSL · popcorn crack", True), ("TI ESD 포장 · 흡습 관리 표시", False)])]
+    cols = "".join(
+        f'<div class="qe-q"><code>{q}</code><ol>' + "".join(f'<li class="{"" if ok else "ng"}">{t}</li>' for t, ok in rs) + "</ol></div>"
+        for q, rs in qs)
+    merged = [("TI MSL · reflow 후 delamination", "검색어 1", True), ("TI MSL · 흡습량과 박리", "검색어 2", True),
+              ("AEC-Q100 · C-SAM 박리 검사", "검색어 1", True), ("TI MSL · popcorn crack", "검색어 3", True),
+              ("TI ESD 포장 · 흡습 관리 표시", "검색어 3", False)]
+    ml = "".join(f'<li class="{"" if ok else "ng"}"><span>{t}</span><em>{src}</em></li>' for t, src, ok in merged)
+    return (f'<div class="qe"><div class="qe-in"><small>① 원래 질문</small><p>패키지 박리 원인</p></div><i>→</i>'
+            f'<div class="qe-llm"><small>② LLM</small><p>검색어 3개로<br>늘리기</p></div><i>→</i>'
+            f'<div class="qe-qs"><small>③ 검색어마다 따로 검색</small>{cols}</div><i>→</i>'
+            f'<div class="qe-m"><small>④ 합치기 · 중복 제거 · 순위</small><ol>{ml}</ol></div></div>')
+
+
+def hyde_ex():
+    """질문 그대로 vs 가상 답변 문단으로 검색 (설명용)."""
+    hyp = ("FIT(Failure In Time)는 반도체 소자의 고장률 단위로, 10억(10⁹) 소자 · 시간 동안 발생하는 고장 수를 나타낸다. "
+           "1 FIT는 10억 시간에 고장 1건이다.")
+    return (f'<div class="hy">'
+            f'<div class="hy-s"><small>① 원래 질문</small><p>1 FIT는 무엇을 뜻하나요?</p><em>짧은 의문문</em></div><i>→</i>'
+            f'<div class="hy-s on"><small>② LLM이 가상 답변 작성</small><p class="hy-p">{hyp}</p><em>맞는지 확인하지 않음 · 검색에만 사용</em></div><i>→</i>'
+            f'<div class="hy-s"><small>③ 가상 답변을 임베딩해 검색</small><p>문서 속 설명과<br>형태가 비슷한 문장</p></div><i>→</i>'
+            f'<div class="hy-s"><small>④ 답변 생성</small><p><b>원래 질문</b> +<br>찾은 원문</p><em>가상 답변은 버림</em></div></div>'
+            f'<div class="hy-cmp">'
+            f'<div class="hy-r"><div class="hy-rh">질문 그대로 검색</div><ol><li>AN4750 · 목차의 FIT 항목 <b>0.52</b></li><li>품질 핸드북 · 약어표 <b>0.49</b></li></ol></div>'
+            f'<div class="hy-r good"><div class="hy-rh">가상 답변으로 검색</div><ol><li class="ok">AN4750 · FIT 정의와 계산 예 <b>0.81</b></li><li class="ok">품질 핸드북 · 고장률 단위 FIT <b>0.76</b></li></ol></div>'
+            f'<div class="hy-r bad"><div class="hy-rh">가상 답변이 빗나가면</div><p>「ALPS가 뭐야?」 → LLM이 <b>알프스 산맥</b>으로 짐작해 문단 작성 → 산 · 지형 관련 표현으로 검색 → 엉뚱한 청크</p></div>'
+            f'</div>')

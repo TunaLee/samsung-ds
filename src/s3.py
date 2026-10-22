@@ -113,12 +113,11 @@ def block_pre():
             + note("조건", "검색 방식 · 근거 수는 그대로"),
             table(["기록", ""], [["원래 질의", "______"], ["실제 검색 질의", "______"],
                                 ["필요한 근거가 상위 5개에 · 재작성 끔", "______"], ["필요한 근거가 상위 5개에 · 재작성 켬", "______"]], "x3rec")), kick="실습 1"),
-        page("Query Expansion", xf.expansion()
-             + note("방법", "질문 하나를 <b>여러 개의 검색 질의</b>로 늘려 각각 검색한 뒤 결과를 합침")
-             + note("대가", "검색 횟수 증가 · 질문과 관계없는 결과가 섞일 수 있음", "red"), kick="Pre-retrieval"),
-        page("HyDE", flow([("질문", "그대로 검색하지 않음"), ("가상 답변 문단", "LLM이 먼저 작성"), ("임베딩 · 검색", "그 문단으로 검색"), ("답변", "찾은 원문으로")], hl=1)
-             + note("HyDE", "Hypothetical Document Embeddings · 짧은 의문문보다 답변 문단이 문서 속 설명과 형태가 비슷 → 근거 청크와 더 가까이 놓이는 경향")
-             + note("주의", "가상 답변은 <b>검색에만</b> · 답변의 근거로 쓰지 않음 · 가상 답변이 틀린 방향이면 엉뚱한 곳을 검색", "red"), kick="Pre-retrieval"),
+        page("Query Expansion · 검색어 여러 개로", xf.expansion_ex()
+             + note("효과", "문서마다 다른 표현(delamination · moisture · popcorn crack)을 함께 잡음", "")
+             + note("대가", "검색 횟수가 검색어 수만큼 · 관계없는 결과가 섞임(취소선) · 결과는 설명용", "red"), kick="Pre-retrieval"),
+        page("HyDE · 가상 답변으로 검색", xf.hyde_ex()
+             + note("HyDE", "Hypothetical Document Embeddings · 짧은 의문문보다 <b>답변 문단</b>이 문서 속 설명과 형태가 비슷 · 결과는 설명용", "red"), kick="Pre-retrieval"),
         page("세 방법 비교", table(["방법", "무엇을 바꾸나", "추가 비용", "주의할 점"], [
             ["<b>Query Rewriting</b>", "질문 하나 → 검색에 맞는 문장 하나", "LLM 호출 1회", "질문에 없던 조건을 붙이면 뜻이 바뀜"],
             ["<b>Query Expansion</b>", "질문 하나 → 여러 질의", "LLM 호출 1회 + 검색 여러 번", "관계없는 결과가 섞임"],
