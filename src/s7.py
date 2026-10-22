@@ -263,23 +263,18 @@ def _qs(rows):
 
 def block_graph():
     return [
-        section("참고", "GraphRAG 실습", "기본 RAG를 직접 구현한 뒤 관계 탐색으로 확장"),
-        page("GraphRAG 트랙", sf.chain([("1", "PDF 읽기"), ("2", "Chunk 만들기"), ("3", "검색하기"), ("4", "검색 결과로 답변"),
-                                         ("5", "관계가 필요한 질문 실험"), ("6", "Graph 만들기"), ("7", "Graph 탐색 · 업무 결과물")], hl=(5, 6), cls="sm")
-             + two(ul(["업무 관련 기술 문서를 근거로 <b>검색 · 비교 · 검토</b>하는 앱", "강사 제공 공개 문서 중 하나 선택", "처음부터 전체를 만들지 않음 · 기본 RAG부터", "여러 정보를 잇는 질문으로 일반 RAG의 한계 확인 → 관계 탐색 추가"]),
-                   pane("최종 업무 결과물", ul(["조건 비교표", "검토 체크리스트", "방법별 비교서", "관계와 근거가 표시된 기술 검토 결과"]), "good"), "w")
-             + note("단계마다", "화면에 나타난 결과를 직접 확인하고, 다음에 추가할 것을 생각하며 개발", "red"), kick="참고 · GraphRAG"),
-        page("사용할 문서 선택", table(["문서", "연결해서 살펴볼 대상", "결과물 예"], [
-            ["<b>A. 패키지 수분 민감도</b><br>TI SLZA002 · Moisture Sensitivity Level", "패키지 · 수분 노출 · 리플로 · 손상 · 관리 조건", "수분 민감 패키지의 보관 · 취급 검토 도우미"],
-            ["<b>B. 소프트 에러 대응</b><br>ST AN4750 · Handling of soft errors in STM32 applications", "오류 유형 · 메모리 · 검출 방식 · 완화 방법 · 제약", "메모리 소프트 에러의 검출 · 완화 방법 비교서"],
-            ["<b>C. ESD 포장</b><br>TI SZZA027A · ESD Protective Semiconductor Packing Materials and Configurations", "부품 · 포장 형태 · 재료 · 보호 특성 · 시험 방법", "반도체 포장 방식별 ESD 보호 검토 체크리스트"],
-        ], "s7-tt"), kick="참고 · GraphRAG"),
-        page("관계 검색 질문의 출발점", '<div style="display:flex;flex-direction:column;gap:12px">'
-             + prompt("수분 노출과 패키지 손상에 관련된 조건을 어떤 근거로 연결할 수 있나요?", "A. 패키지 수분 민감도")
-             + prompt("RAM의 소프트 에러를 검출하고 완화하는 방법과 각 방법의 제약은 무엇인가요?", "B. 소프트 에러 대응")
-             + prompt("트레이와 테이프·릴의 ESD 보호 특성을 확인할 때 어떤 시험과 재료 정보를 함께 봐야 하나요?", "C. ESD 포장")
-             + "</div>", kick="참고 · GraphRAG"),
-        page("GraphRAG 실행 예", img(IMG + "graphrag_run.png", "what causes delamination? · 시작 노드 5 · 탐색된 노드 40 · 관계 57", light=True), kick="참고 · GraphRAG"),
+        page("더 해보기 · GraphRAG로 확장", two(
+            table(["문서", "연결해서 볼 대상"], [
+                ["<b>A. 패키지 수분 민감도</b><br>TI SLZA002", "패키지 · 수분 노출 · 리플로 · 손상 · 관리 조건"],
+                ["<b>B. 소프트 에러 대응</b><br>ST AN4750", "오류 유형 · 메모리 · 검출 방식 · 완화 방법 · 제약"],
+                ["<b>C. ESD 포장</b><br>TI SZZA027A", "부품 · 포장 형태 · 재료 · 보호 특성 · 시험 방법"],
+            ], "s7-tt"),
+            '<div style="display:flex;flex-direction:column;gap:10px">'
+            + prompt("수분 노출과 패키지 손상에 관련된 조건을 어떤 근거로 연결할 수 있나요?", "A · 관계 질문", sm=True)
+            + prompt("RAM의 소프트 에러를 검출하고 완화하는 방법과 각 방법의 제약은 무엇인가요?", "B · 관계 질문", sm=True)
+            + prompt("트레이와 테이프·릴의 ESD 보호 특성을 확인할 때 어떤 시험과 재료 정보를 함께 봐야 하나요?", "C · 관계 질문", sm=True)
+            + "</div>", "w2")
+             + note("방법", "3교시 실습 3의 그래프 만들기 · 그래프로 답하기를 그대로 · 결과물은 조건 비교표 · 검토 체크리스트처럼 업무 형태로", "red"), kick="더 해보기"),
     ]
 
 
