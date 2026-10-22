@@ -256,10 +256,11 @@ def block_api():
             ["<code>store</code>", "응답 객체를 이후 조회 · 대화 연결용으로 저장할지 · 서비스 전체 데이터 보관 제어는 아님"],
         ]) + note("시스템 프롬프트", "<code>input</code> 배열이 아닌 별도 항목 <code>instructions</code> · 그래도 이번 판단의 입력 · 입력 토큰에 함께 계산 · <code>tools</code>도 마찬가지", "red")
              + note("입력 컨텍스트", "여러 항목에 나뉘어 담긴 값을 함께 가리키는 말"), kick="5-4 API 요청"),
-        page("2회차 요청 · 달라지는 것은 input", two(
+        page("2회차 요청 · input에 도구 결과가 붙음", two(
             prompt(REQ2, "2회차 input", sm=True),
             ul(["<code>function_call</code> · 모델이 돌려준 호출 요청 · 이 시점엔 아무것도 실행 전", "<code>function_call_output</code> · 앱이 도구를 실행해 얻은 결과",
-                "<code>call_id</code> · 두 항목을 짝지음", "화면 호출 로그의 두 줄 = 이 두 항목"]), "w"), kick="5-4 API 요청"),
+                "<code>call_id</code> · 두 항목을 짝지음", "화면 호출 로그의 두 줄 = 이 두 항목"]), "w")
+             + note("질문 1번 · API 호출 2번", "instructions · tools는 1회차와 똑같이 다시 보냄 · input에만 호출 요청과 실행 결과가 덧붙음 · 모델은 앞 호출을 기억하지 못하기 때문", "red"), kick="5-4 API 요청"),
         page("도구 수와 크기", '<div class="quote">이 에이전트에 도구를 몇 개,<br>어떤 크기로 줄 것인가</div>'
              + two(pane("매 요청마다 실림", ul(["LLM이 보는 것 = 이번 요청의 instructions · input · tools 전부", "도구 3개면 설명문 3개, 30개면 30개", "<b>질문할 때마다, 호출할 때마다</b>"]), "bad"),
                    pane("함께 늘어나는 것", ul(["입력 토큰", "비슷한 도구가 많을수록 잘못 고를 가능성", "답변은 한 번이어도 뒤에서는 여러 번 호출 → 비용 계산에 포함"]), "bad")), kick="설계 질문"),
