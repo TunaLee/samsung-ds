@@ -1,5 +1,6 @@
 """4교시 · AI Agent · Tool Calling과 Context의 실행 흐름 (원본: 노션 교안 4교시)."""
 import fig
+import vizanim
 import s4_fig as f4
 from kit import (ba, cards, cover, flow, ill, img, lab, note, page, pane, prompt, section, steps, table, two, ul)
 from s1 import course_map
@@ -225,6 +226,8 @@ def block_flow():
             "응답 후 전체 현황 = <b>마지막 API 호출의 입력 + 출력 토큰</b>", "여러 호출의 비용을 합친 <b>누적 토큰</b>과 구분",
             "응답 대기 중 · 도구 결과 직후 · 항목별 비중은 <b>앱의 추정값</b>", "실제 요청 내용은 API 호출 내역의 instructions · tools · input과 대조"]))
              + note("직접 확인", "질문을 보내기 전 → 도구 결과가 돌아온 뒤 → 마지막 답변이 나온 뒤의 표시 비교", "red"), kick="5-2 컨텍스트"),
+        page("호출이 반복될수록 차는 입력", vizanim.context_window(turn="호출", sub="= 한 요청에 담기는 입력")
+             + note("반복 호출", "도구 결과가 다음 요청 입력에 계속 더해짐 · 허용 도구 · 실행 횟수 · 종료 조건을 함께 정하는 이유", "red"), kick="Context"),
         page("반복 호출에서 Context Window 관리", f4.growth()
              + note("RAG", "선택한 문서 원문이 입력량의 중요한 부분")
              + note("Agent", "도구 정의 + 실행 결과가 더해짐 · 작업이 길수록 어떤 결과와 이력을 남길지가 설계 문제", "red"), kick="5-2 컨텍스트"),

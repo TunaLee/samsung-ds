@@ -1,6 +1,7 @@
 """1교시 · AI Agent란? · Agent 구조와 Context Window (원본: 노션 교안 1교시)."""
 import agentfig as af
 import embedfig as ef
+import vizanim
 import fig
 from kit import (ba, big, cards, cover, flow, ill, img, lab, note, page, pane, prompt, section, steps, table, two, ul)
 
@@ -69,6 +70,8 @@ def block_context():
             ("Token", "길이를 세는 단위 · 한 글자나 한 단어와 항상 같지 않음", "2"),
             ("함께 계산", "입력 + 생성할 출력 · 추론 모델은 추론 토큰까지", "3"),
         ]) + note("길어지는 이유", "질문이 짧아도 지침 · 도구 정의 · 검색 문서 · 이전 실행 결과가 함께 들어감"), kick="Context"),
+        page("요청이 반복될수록 차는 입력", vizanim.context_window()
+             + note("책상 비유", "올린 것은 요청마다 다시 읽음 · 많을수록 비용 · 시간 증가 · 한도 근처에서는 이력을 요약해 정리", "red"), kick="Context"),
         page("관리할 때 보는 네 가지", table(["관점", "확인할 것"], [
             ["<b>입력의 전체 범위</b>", "질문뿐 아니라 지침 · 도구 정의 · 이력 · 문서 · 도구 결과까지"],
             ["<b>유지할 업무 조건</b>", "문서명 · 버전 · 수치 · 단위 · 예외 · 출처"],
