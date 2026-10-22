@@ -12,15 +12,23 @@ ERR = """claude : 'claude' 용어가 cmdlet, 함수, 스크립트 파일 또는 
 + CategoryInfo : ObjectNotFound: (claude:String) [], CommandNotFoundException
 + FullyQualifiedErrorId : CommandNotFoundException"""
 
-FIND = 'Get-ChildItem -Path $env:APPDATA, $env:LOCALAPPDATA -Filter "claude.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object FullName'
-FOUND = r"C:\Users\사용자명\AppData\Local\Packages\Claude_pzs8sdgfd5c\LocalCache\Roaming\Claude\claude-code\2.1.247\claude.exe"
-SETPATH = r'''# 1단계에서 확인한 본인의 폴더 경로로 입력합니다. (claude.exe 제외)
-$claudePath = "C:\Users\본인사용자명\AppData\Local\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude-code\2.1.247"
+TEST = r'Test-Path "$env:USERPROFILE\.local\bin\claude.exe"'
+DIRECT = r'& "$env:USERPROFILE\.local\bin\claude.exe" --version'
+SETPATH = r"""$claudePath = "$env:USERPROFILE\.local\bin"
 
-# 환경 변수 Path에 해당 경로를 추가합니다.
+# 현재 PowerShell에 즉시 적용
+$env:Path += ";$claudePath"
+
+# 사용자 PATH에 영구 등록 (중복 방지)
 $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
-[Environment]::SetEnvironmentVariable("Path", "$userPath;$claudePath", "User")'''
 
+if (($userPath -split ';') -notcontains $claudePath) {
+    [Environment]::SetEnvironmentVariable(
+        "Path",
+        "$userPath;$claudePath",
+        "User"
+    )
+}"""
 TREE = r"""C:\Users\사용자계정명\Downloads\samsung_ds_btrack
 ├─agents-lab
 ├─line-sim
@@ -87,22 +95,18 @@ def block_setup():
             prompt(TREE, "폴더 구조", sm=True), "w2"), kick="실습 준비"),
         page("PowerShell에서 claude 인식 오류", prompt(ERR, "오류 메시지 · CommandNotFoundException", sm=True)
              + note("원인", "환경 변수 <b>PATH</b>에 Claude Code 실행 파일 경로가 없어 터미널이 프로그램을 찾지 못함", "red")
-             + note("해결", "경로 확인 → PATH에 추가 → 터미널 재시작"), kick="Troubleshooting · Windows"),
-        page("1단계 · 실행 파일 경로 확인", prompt(FIND, "PowerShell · claude.exe 위치 검색")
-             + '<div class="s0-gap"></div>'
-             + prompt(FOUND, "출력 예시", sm=True)
-             + note("복사할 부분", "마지막 파일명 <code>\\claude.exe</code>를 뺀 <b>폴더 경로만</b>", "red"), kick="Troubleshooting · Windows"),
-        page("2단계 · 환경 변수 Path에 추가", prompt(SETPATH, "PowerShell · 경로 등록", sm=True)
-             + note("주의", "첫 줄 <code>$claudePath</code> 값을 1단계에서 복사한 <b>실제 폴더 경로</b>로 바꾼 뒤 실행", "red")
-             + note("시스템 설정 창", "열 필요 없음 · PowerShell에서 바로 등록"), kick="Troubleshooting · Windows"),
-        page("3단계 · 적용과 확인", two(
-            steps([("모두 종료", "열려 있는 PowerShell 창 전부 닫기"), ("새로 실행", "PowerShell 다시 열기"),
-                   ("확인", "버전 번호가 나오면 정상")]),
+             + note("해결", "설치 확인 → PATH 등록 → 버전 확인"), kick="Troubleshooting · Windows"),
+        page("1단계 · 설치 확인", two(
+            prompt(TEST, "PowerShell · 설치 파일 확인", sm=True)
+            + table(["결과", "뜻"], [["<b>True</b>", "설치됨 · <b>PATH 문제</b> → 다음 단계"],
+                                   ["<b>False</b>", "설치 안 됨 또는 다른 위치 · 1교시 설치 명령 다시 실행"]]),
+            prompt(DIRECT, "PowerShell · 직접 실행", sm=True)
+            + note("버전이 나오면", "프로그램은 정상 · 터미널이 위치를 모르는 것뿐", "red")), kick="Troubleshooting · Windows"),
+        page("2단계 · PATH 등록", prompt(SETPATH, "PowerShell · 그대로 붙여 넣기", sm=True)
+             + note("고칠 값 없음", "현재 창에 즉시 적용 + 사용자 PATH에 영구 등록 (이미 있으면 건너뜀) · 관리자 권한 불필요", "red"), kick="Troubleshooting · Windows"),
+        page("3단계 · 확인", two(
+            steps([("확인", "버전 번호가 나오면 정상"), ("새 창에서도", "PowerShell을 새로 열어 한 번 더")]),
             prompt("claude --version", "PowerShell · 확인")), kick="Troubleshooting · Windows"),
-        page("업데이트 후 다시 인식 오류", two(
-            ul(["등록한 경로에 <code>2.1.247</code> 같은 <b>버전 숫자</b> 포함", "메이저 업데이트 후 폴더명이 바뀔 수 있음"]),
-            ul(["다시 인식하지 못하면", "<b>1 ~ 3단계</b>를 그대로 반복", "새 경로로 갱신"]))
-             + note("참고", "업데이트 시 경로 변경 주의", "red"), kick="Troubleshooting · Windows"),
     ]
 
 
