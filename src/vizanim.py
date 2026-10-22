@@ -146,3 +146,71 @@ def context_window(fixed=(("지침", 1, .07), ("도구 정의", .6, .12)),
         s += f'<rect x="{lx}" y="{LY-11}" width="22" height="22" rx="4" fill="{col}" fill-opacity="{op}"/>'
         s += _t(lx + 30, LY + 1, name, "ts", "start")
     return d.svg(1160, 390, s)
+
+
+def index_query():
+    """Indexing Time(문서마다 1회 · 미리) → 저장소 ← Query Time(질문마다). 두 줄이 번갈아 움직인다."""
+    d = _D("iq", 12)
+    P = "#FFF0F3"
+
+    def hl(a, b):
+        return d.a([(0, f"stroke:{N};fill:{W}"), (a, f"stroke:{N};fill:{W}"), (a + 1, f"stroke:{O};fill:{P}"),
+                    (b, f"stroke:{O};fill:{P}"), (b + 1, f"stroke:{N};fill:{W}"), (100, f"stroke:{N};fill:{W}")])
+
+    def arrow(path):
+        return f'<path d="{path}" fill="none" stroke="{N}" stroke-width="2.5" marker-end="url(#{d.id("ah")})"/>'
+
+    def lane_op(on):
+        a, b = (1, .28) if on == "top" else (.28, 1)
+        return d.a([(0, f"opacity:{a}"), (46, f"opacity:{a}"), (50, f"opacity:{b}"), (95, f"opacity:{b}"), (99, f"opacity:{a}"), (100, f"opacity:{a}")])
+
+    TY, BY, BH = 58, 322, 68
+    top = _t(40, 26, "Indexing Time", "tt", "start") + _t(200, 27, "저장할 때 · 문서마다 1회 · 미리 준비", "ts", "start")
+    for (x, w, t, sub, a, b) in [(40, 120, "PDF", "원본", 2, 8), (190, 120, "파싱", "글자 꺼내기", 8, 16),
+                                 (340, 120, "청킹", "조각 나누기", 16, 24), (490, 120, "임베딩", "숫자 배열", 24, 32)]:
+        top += _box(x, TY, w, BH, t, sub=sub, extra=hl(a, b))
+    for x in (160, 310, 460):
+        top += arrow(f"M{x + 4} {TY + BH / 2} H{x + 24}")
+    top += arrow(f"M614 {TY + BH / 2} H760 V150")
+    top += _t(690, TY + BH / 2 - 16, "적재", "tn")
+
+    bot = _t(40, 294, "Query Time", "tt", "start") + _t(170, 295, "물어볼 때 · 질문마다 · 바로 응답", "ts", "start")
+    for (x, w, t, sub, a, b) in [(40, 120, "질문", "사용자 입력", 52, 58), (190, 140, "질문 임베딩", "같은 모델", 58, 64),
+                                 (360, 120, "검색", "가까운 순", 64, 74), (900, 120, "생성", "LLM · 근거로", 84, 90),
+                                 (1050, 90, "답", "출처 포함", 90, 96)]:
+        bot += _box(x, BY, w, BH, t, sub=sub, extra=hl(a, b))
+    for x0, x1 in ((160, 190), (330, 360), (1020, 1050)):
+        bot += arrow(f"M{x0 + 4} {BY + BH / 2} H{x1 - 6}")
+    bot += arrow(f"M484 {BY + BH / 2} H760 V288")
+    bot += _t(620, BY + BH / 2 - 16, "질문 벡터로 찾기", "tn")
+    bot += arrow(f"M862 216 H960 V{BY - 6}")
+    bot += _t(974, 262, "근거 청크 몇 개", "to", "start")
+
+    # 저장소 (원통) · 두 시점이 만나는 곳
+    cx, y0, y1, rx, ry = 760, 168, 266, 100, 20
+    db = (f'<path d="M{cx - rx} {y0} V{y1} A{rx} {ry} 0 0 0 {cx + rx} {y1} V{y0}" fill="{W}" stroke="{N}" stroke-width="3" '
+          + d.a([(0, f"stroke:{N}"), (36, f"stroke:{N}"), (37, f"stroke:{O}"), (44, f"stroke:{O}"), (45, f"stroke:{N}"),
+                 (70, f"stroke:{N}"), (71, f"stroke:{O}"), (80, f"stroke:{O}"), (81, f"stroke:{N}"), (100, f"stroke:{N}")]) + "/>")
+    db += f'<ellipse cx="{cx}" cy="{y0}" rx="{rx}" ry="{ry}" fill="{G}" stroke="{N}" stroke-width="3"/>'
+    for i, t in enumerate((37, 39, 41, 43)):
+        db += (f'<rect x="{cx - 70 + i * 36}" y="{y1 - 12}" width="28" height="14" rx="3" fill="{O}" '
+               + d.a([(0, "opacity:0"), (t, "opacity:0"), (t + 1, "opacity:1"), (96, "opacity:1"), (100, "opacity:0")]) + "/>")
+    db += _t(cx, 206, "벡터 저장소", "tt") + _t(cx, 230, "청크 · 벡터 · 출처", "ts")
+
+    # 오른쪽 위 비교 카드
+    card = f'<rect x="900" y="{TY}" width="240" height="130" rx="14" fill="{G}" fill-opacity=".35"/>'
+    for i, (k, v) in enumerate([("준비", "문서 올릴 때 1회"), ("", "오래 걸려도 됨"), ("질문", "질문마다 매번"), ("", "빨라야 함")]):
+        y = TY + 26 + i * 27
+        if k:
+            card += _t(920, y, k, "to" if k == "질문" else "tn", "start")
+        card += _t(970, y, v, "ts", "start")
+
+    mv = _move(d, [(0, 100, 92, 0), (2, 100, 92, 1), (8, 250, 92, 1), (16, 400, 92, 1), (24, 550, 92, 1),
+                   (30, 760, 92, 1), (36, 760, 172, 1), (37, 760, 172, 0), (100, 760, 172, 0)])
+    mv += _move(d, [(0, 100, 356, 0), (51, 100, 356, 0), (52, 100, 356, 1), (58, 260, 356, 1), (64, 420, 356, 1),
+                    (70, 760, 356, 1), (74, 760, 290, 1), (75, 760, 290, 0), (100, 760, 290, 0)])
+    mv += _move(d, [(0, 862, 216, 0), (77, 862, 216, 0), (78, 862, 216, 1), (82, 960, 216, 1), (86, 960, 356, 1),
+                    (92, 1095, 356, 1), (95, 1095, 356, 0), (100, 1095, 356, 0)])
+
+    s = f'<g {lane_op("top")}>{top}</g><g {lane_op("bot")}>{bot}</g>{db}{card}{mv}'
+    return d.svg(1160, 400, s)
