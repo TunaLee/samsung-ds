@@ -302,3 +302,20 @@ def hyde_ex():
             f'<div class="hy-r good"><div class="hy-rh">가상 답변으로 검색</div><ol><li class="ok">AN4750 · FIT 정의와 계산 예 <b>0.81</b></li><li class="ok">품질 핸드북 · 고장률 단위 FIT <b>0.76</b></li></ol></div>'
             f'<div class="hy-r bad"><div class="hy-rh">가상 답변이 빗나가면</div><p>「ALPS가 뭐야?」 → LLM이 <b>알프스 산맥</b>으로 짐작해 문단 작성 → 산 · 지형 관련 표현으로 검색 → 엉뚱한 청크</p></div>'
             f'</div>')
+
+
+def hiring():
+    """채용 비유: 서류 심사(1차 검색) → 면접(재정렬) → 합격(답변 근거). 숫자는 설명용."""
+    rows = [("지원자 전원", "저장소의 모든 청크", "2,000개", 100, "", ""),
+            ("서류 심사", "1차 검색 · 임베딩 코사인 유사도", "20개", 46, "싸고 빠름", "미리 만든 벡터끼리 비교 · 질문 임베딩 1번"),
+            ("대면 면접", "재정렬 · 질문과 청크를 함께 읽기", "5개", 24, "비싸고 느림", "후보마다 LLM 호출 1번 · 20번"),
+            ("최종 합격", "답변 LLM에 근거로 전달", "5개", 24, "", "질문 + 근거 5개로 답변")]
+    out = ""
+    for k, (h, rag, n, w, tag, cost) in enumerate(rows):
+        t = f'<em class="{"c" if tag == "싸고 빠름" else "e"}">{tag}</em>' if tag else ""
+        out += (f'<div class="hr-row r{k}"><div class="hr-h">{h}</div>'
+                f'<div class="hr-bar"><i style="width:{w}%"><b>{n}</b></i></div>'
+                f'<div class="hr-rag"><b>{rag}</b>{t}<small>{cost}</small></div></div>')
+    cmp = ('<div class="hr-cmp"><div class="hr-x"><b>서류 없이 전원 면접</b><span>청크 2,000개마다 LLM 호출 → <b>2,000번</b></span></div>'
+           '<div class="hr-o"><b>서류 → 면접</b><span>임베딩 1번 + LLM 호출 <b>20번</b></span></div></div>')
+    return (f'<div class="hr"><div class="hr-head"><span>채용</span><span></span><span>RAG에서는</span></div>{out}</div>{cmp}')
