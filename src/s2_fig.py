@@ -70,6 +70,38 @@ def breakpoints():
             + '</div>')
 
 
+def cut_example(thr=.5):
+    """실제 문장으로 보는 절단점: 이웃 문장 거리가 기준값을 넘는 곳에서 자름."""
+    groups = [("청크 1", "소프트 에러란", [
+                  "소프트 에러는 방사선 입자가 메모리 셀의 저장값을 뒤집는 현상이다.",
+                  "주요 원인은 패키지 재료의 알파 입자와 우주선 중성자다.",
+                  "값을 다시 쓰면 정상으로 돌아오므로 영구 손상은 아니다."], [.18, .24]),
+              ("청크 2", "FIT 단위", [
+                  "FIT는 10억 시간 동안 발생하는 고장 횟수를 뜻한다.",
+                  "1 FIT는 장치 하나가 약 11만 년에 한 번 고장 나는 수준이다."], [.15]),
+              ("청크 3", "시험 방법", [
+                  "시험은 가속 시험과 실시간 시험으로 나뉜다.",
+                  "가속 시험은 강한 방사선원으로 짧은 시간에 결과를 얻는다."], [.2])]
+    cuts = [.71, .68]
+
+    def gap(v):
+        on = v > thr
+        return (f'<div class="p2-exd{" on" if on else ""}"><span>{"절단점" if on else ""}</span>'
+                f'<div class="p2-exb"><i style="width:{v * 100:.0f}%"></i><u style="left:{thr * 100:.0f}%"></u></div><b>{v:.2f}</b></div>')
+    out, n = "", 0
+    for gi, (name, topic, sents, ds) in enumerate(groups):
+        rows = ""
+        for i, t in enumerate(sents):
+            n += 1
+            rows += f'<div class="p2-exs"><em>{n}</em>{t}</div>'
+            if i < len(ds):
+                rows += gap(ds[i])
+        out += f'<div class="p2-exg g{gi}"><div class="p2-exl"><b>{name}</b><small>{topic}</small></div><div>{rows}</div></div>'
+        if gi < len(cuts):
+            out += f'<div class="p2-exc">{gap(cuts[gi])}</div>'
+    return (f'<div class="p2-ex"><div class="p2-exh"><span>문장 순서대로</span><span>이웃 문장과의 거리 · 기준값 {thr}</span></div>{out}</div>')
+
+
 def size_compare():
     """큰 청크와 작은 청크가 담는 범위."""
     big = ('<div class="p2-sz"><div class="p2-szh">큰 청크</div>'
