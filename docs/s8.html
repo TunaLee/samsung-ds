@@ -983,6 +983,18 @@
   .kg-svg{width:100%; height:auto;}
   .kg-def{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:16px;}
   .kg-def span{border-top:3px solid var(--ink); padding-top:8px; font-size:15px; color:var(--mut);} .kg-def b{display:block; color:var(--ink); font-size:17px; margin-bottom:2px;}
+  /* 「박리」 재작성 흐름 */
+  .rb-f{display:flex; align-items:stretch; gap:6px;} .rb-f>i{display:flex; align-items:center; font-style:normal; font-weight:900; color:var(--mut); font-size:20px;}
+  .rb-s{flex:1; border:1px solid var(--line); border-top:3px solid var(--ink); border-radius:10px; padding:10px 10px 8px; display:flex; flex-direction:column; gap:4px;}
+  .rb-s small{font-size:12px; font-weight:900; color:var(--mut);} .rb-s p{margin:0; font-size:16px; line-height:1.35;} .rb-s em{font-style:normal; font-size:12px; color:var(--mut);}
+  .rb-s.on{border-top-color:var(--violet); background:#FFF5F7;} .rb-s.on p b{color:var(--violet);}
+  .rb-cmp{display:grid; grid-template-columns:1fr 30px 1fr; align-items:stretch; gap:10px; margin-top:16px; position:relative; padding-top:22px;}
+  .rb-l{position:absolute; top:0; left:0; font-size:13px; font-weight:900; color:var(--mut);}
+  .rb-vs{display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:900; color:var(--mut);}
+  .rb-r{border:1px solid var(--line); border-radius:12px; padding:10px 14px;} .rb-r.good{border:2px solid var(--violet);}
+  .rb-rh{font-size:15px; font-weight:900; display:flex; gap:8px; align-items:center; margin-bottom:6px;} .rb-rh code{font-size:13px;}
+  .rb-r ol{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:4px;}
+  .rb-r li{font-size:15px;} .rb-r li span{display:inline-block; width:78%;} .rb-r li b{color:var(--mut);} .rb-r li.ok span{color:var(--violet); font-weight:700;}
 
   /* ===== 4교시 도해 ===== */
   .s4seq{display:block; margin:0 auto; width:100%; height:auto; max-height:370px;}

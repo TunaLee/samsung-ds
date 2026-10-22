@@ -247,3 +247,24 @@ def kg_intro():
             f'<div class="kg-col"><div class="kg-h">③ 지식 그래프</div>{svg}</div></div>'
             f'<div class="kg-def"><span><b>노드</b>대상 · 부품 · 현상 · 방법</span><span><b>연결</b>관계 · 방향이 있음</span>'
             f'<span><b>같은 대상</b>문서 여러 곳에 나와도 노드 하나</span><span><b>근거</b>연결마다 청크 ID · 페이지</span></div>')
+
+
+def rewrite_bakri():
+    """「박리」 → 재작성 → 검색 질의 → 검색 → 답변(원래 질문) + 끔/켬 검색 결과 비교 (설명용)."""
+    steps = [("① 원래 질문", "<b>박리</b>", "사용자가 입력"),
+             ("② LLM 재작성", "gpt-5.6-luna", "질문 + 문서 목록 + 지시문"),
+             ("③ 검색 질의", "반도체 패키지의 박리<br><b>(delamination)</b>에 관한 설명", "원래 단어 유지 · 영어 용어 추가"),
+             ("④ 검색", "바뀐 질의로", "검색 방식 · 근거 수는 그대로"),
+             ("⑤ 답변 생성", "<b>원래 질문</b> + 근거", "질문의 뜻은 사용자 것 그대로")]
+    flow = '<i>→</i>'.join(f'<div class="rb-s{" on" if k in (2,) else ""}"><small>{a}</small><p>{b}</p><em>{c}</em></div>'
+                           for k, (a, b, c) in enumerate(steps))
+
+    def res(title, q, rows, good):
+        li = "".join(f'<li class="{"ok" if ok else ""}"><span>{d}</span><b>{sc}</b></li>' for d, sc, ok in rows)
+        return (f'<div class="rb-r{" good" if good else ""}"><div class="rb-rh">{title}<code>{q}</code></div><ol>{li}</ol></div>')
+    off = res("재작성 끔", "박리", [("AEC-Q100 Rev H · 목차", "0.41", False), ("TI ESD 포장 · 재료 구분", "0.39", False),
+                                   ("Samsung 품질 핸드북 · 용어", "0.38", False)], False)
+    on = res("재작성 켬", "…박리(delamination)…", [("TI MSL · reflow 후 delamination", "0.78", True),
+                                                 ("AEC-Q100 · C-SAM 박리 검사", "0.74", True), ("TI MSL · 흡습과 popcorn crack", "0.69", True)], True)
+    return (f'<div class="rb-f">{flow}</div>'
+            f'<div class="rb-cmp"><div class="rb-l">검색 결과 상위 3개 · 점수</div>{off}<div class="rb-vs">→</div>{on}</div>')
