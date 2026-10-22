@@ -77,7 +77,7 @@ def _move(d, pts, color=O, r=9, shape=None):
 
 def context_window(fixed=(("지침", 1, .07), ("도구 정의", .6, .12)),
                    grow=("대화 이력", "도구 결과 · 검색 문서"), summary="이력 요약", call="입력 정리",
-                   title="Context Window", sub="= 한 요청의 장바구니", turn="요청"):
+                   title="Context Window", sub="= 모델이 한 번에 볼 수 있는 크기", turn="요청"):
     """요청이 반복될수록 입력이 차오르고, 한도 근처에서 정리(요약)한 뒤 다시 쌓인다."""
     d = _D("cw", 12)
     X0, Y, H, BW = 60, 110, 84, 1040
