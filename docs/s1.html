@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Agent란? · Agent 구조와 Context Window</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#16142B; --ink-soft:#4A4766; --mut:#8E8AAC;
+    --violet:#5B3DF5; --violet-700:#3A1FC9; --violet-300:#B7A9FF;
+    --wash:#F4F1FF; --wash-2:#FAF9FF; --line:#E8E4F8;
+    --paper:#FFFFFF; --mint:#0FB5A1; --mint-soft:#E4F8F4;
+    --amber:#F4A93C; --rose:#E8537A;
+    --code-bg:#1C1933; --code-ink:#ECEAFF; --code-dim:#9C97D6;
+    --sw:1280px; --sh:720px;
+    --shadow:0 24px 60px -24px rgba(43,28,120,.45);
+    --serif: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--serif); color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 15% -10%, #ECE7FF 0%, rgba(236,231,255,0) 60%),
+      radial-gradient(1000px 700px at 110% 10%, #F0EBFF 0%, rgba(240,235,255,0) 55%),
+      #EAE7F4;
+    min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  .progress{position:fixed; top:0; left:0; right:0; height:3px; z-index:60; background:transparent;}
+  .progress .fill{height:100%; width:0; background:linear-gradient(90deg,var(--violet),#9B7BFF); transition:width .2s ease;}
+
+  .stage{
+    position:fixed; inset:0 0 0 0; z-index:10;
+    display:flex; justify-content:safe center; align-items:safe center;
+    overflow:auto; padding:30px 30px 96px;
+  }
+  .sizer{position:relative;}
+  .scaler{ width:var(--sw); height:var(--sh); transform-origin:top left; position:relative; }
+
+  .slide{
+    width:var(--sw); height:var(--sh);
+    background:var(--paper); border:1px solid var(--line);
+    border-radius:22px; box-shadow:var(--shadow);
+    overflow:hidden; display:none; flex-direction:column;
+    padding:50px 60px 46px; position:relative;
+  }
+  .slide.active{display:flex;}
+
+  .eyebrow{display:inline-flex; align-items:center; gap:10px; font-family:var(--mono); font-size:13px; font-weight:700; letter-spacing:.04em; color:var(--violet); text-transform:uppercase;}
+  .eyebrow .tag{color:#fff; background:var(--violet); border-radius:6px; padding:3px 8px; font-size:11px; letter-spacing:.05em;}
+  .eyebrow .tag.mint{background:var(--mint);}
+  .eyebrow .dot{width:5px;height:5px;border-radius:50%;background:var(--violet-300);}
+  .coord{position:absolute; top:30px; right:40px; font-family:var(--mono); font-size:12px; color:var(--mut); font-weight:600; letter-spacing:.05em;}
+  .coord b{color:var(--ink);}
+
+  .s-title{font-size:39px; line-height:1.12; letter-spacing:-.025em; font-weight:800; margin:14px 0 4px;}
+  .s-title.sm{font-size:32px;} .s-title.xs{font-size:28px;}
+  .s-sub{font-size:17px; color:var(--ink-soft); font-weight:500; line-height:1.5; max-width:64ch;}
+  .rule{height:4px; width:54px; border-radius:3px; background:var(--violet); margin:13px 0 6px;}
+  .body{flex:1; min-height:0; display:flex; flex-direction:column; justify-content:center;}
+  .body.top{justify-content:flex-start; padding-top:6px;}
+
+  .slide.cover{ padding:0; justify-content:center;
+    background:
+      radial-gradient(900px 520px at 100% 0%, #6B4BFF 0%, rgba(107,75,255,0) 58%),
+      radial-gradient(700px 600px at -5% 110%, #3A1FC9 0%, rgba(58,31,201,0) 55%),
+      linear-gradient(135deg,#2A1B8C 0%, #4226D6 48%, #5B3DF5 100%);
+    color:#fff; border:none; }
+  .cover .aperture{position:absolute; top:-120px; right:-120px; width:460px; height:460px; border-radius:50%; background:radial-gradient(circle at 35% 35%, rgba(255,255,255,.5), rgba(255,255,255,0) 62%); filter:blur(2px);}
+  .cover .ring{position:absolute; right:60px; top:60px; width:120px; height:120px; border-radius:50%; border:1.5px solid rgba(255,255,255,.4);}
+  .cover .ring::after{content:""; position:absolute; inset:18px; border-radius:50%; border:1.5px dashed rgba(255,255,255,.35);}
+  .cover .wrap{padding:60px 70px; position:relative; z-index:2; width:100%;}
+  .cover .kick{font-family:var(--mono); letter-spacing:.18em; font-size:13.5px; font-weight:600; color:rgba(255,255,255,.86); text-transform:uppercase; display:flex; align-items:center; gap:14px;}
+  .cover .kick .pill{border:1px solid rgba(255,255,255,.45); border-radius:999px; padding:4px 12px;}
+  .cover h1{font-size:58px; line-height:1.08; letter-spacing:-.03em; font-weight:800; margin:24px 0 16px; max-width:21ch;}
+  .cover .lead{font-size:18px; line-height:1.55; color:rgba(255,255,255,.9); max-width:56ch; font-weight:400;}
+  .cover .meta{margin-top:36px; display:flex; gap:24px; flex-wrap:wrap; font-size:14px;}
+  .cover .meta .it{display:flex; flex-direction:column; gap:3px;}
+  .cover .meta .it .k{font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:rgba(255,255,255,.6); text-transform:uppercase;}
+  .cover .meta .it .v{font-size:15px; font-weight:700; color:#fff;}
+
+  .slide.section{ background:linear-gradient(140deg,#3A1FC9 0%, #5B3DF5 70%, #7A5BFF 100%); color:#fff; border:none; justify-content:center; padding:60px 70px; }
+  .slide.section.mintbg{ background:linear-gradient(140deg,#0A8A7A 0%, #0FB5A1 70%, #34D6C2 100%); }
+  .slide.section .ghost{position:absolute; right:34px; bottom:-66px; font-family:var(--mono); font-weight:700; font-size:330px; line-height:.8; color:rgba(255,255,255,.10); letter-spacing:-.04em;}
+  .slide.section .lab-flag{display:inline-flex; align-items:center; gap:9px; align-self:flex-start; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.4); padding:7px 14px; border-radius:999px; font-weight:700; font-size:13px; font-family:var(--mono); letter-spacing:.06em;}
+  .slide.section .lab-flag .sq{width:9px;height:9px;border-radius:3px;background:#fff;}
+  .slide.section .seyebrow{font-family:var(--mono); letter-spacing:.16em; font-size:14px; color:rgba(255,255,255,.85); text-transform:uppercase; margin-bottom:14px;}
+  .slide.section h2{font-size:48px; line-height:1.1; letter-spacing:-.025em; font-weight:800; margin:0 0 14px; max-width:24ch; position:relative; z-index:2;}
+  .slide.section p{font-size:18px; color:rgba(255,255,255,.92); max-width:54ch; line-height:1.55; position:relative; z-index:2;}
+  .slide.section .agenda{display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; position:relative; z-index:2;}
+  .slide.section .agenda span{font-size:13px; font-weight:600; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.3); padding:6px 12px; border-radius:999px;}
+
+  .cards{display:grid; gap:16px;}
+  .cards.c2{grid-template-columns:repeat(2,1fr);} .cards.c3{grid-template-columns:repeat(3,1fr);} .cards.c4{grid-template-columns:repeat(4,1fr);}
+  .card{background:var(--paper); border:1px solid var(--line); border-left:3px solid var(--violet); border-radius:4px; padding:17px 19px; display:flex; flex-direction:column; gap:7px; position:relative;}
+  .card .ic{width:38px; height:38px; border-radius:4px; display:grid; place-items:center; background:transparent; border:1.5px solid var(--violet-300); color:var(--violet); margin-bottom:3px;}
+  .card .ic svg{width:20px;height:20px;}
+  .card h3{font-size:17px; font-weight:800; letter-spacing:-.01em; margin:0 0 1px; padding-bottom:8px; border-bottom:1px solid var(--line);}
+  .card p{font-size:14px; color:var(--ink-soft); line-height:1.5; margin:0;}
+  .card .n{font-family:var(--mono); font-size:11.5px; color:var(--violet); font-weight:700;}
+
+  .biglist{display:flex; flex-direction:column; gap:13px;}
+  .biglist .li{display:flex; gap:15px; align-items:flex-start;}
+  .biglist .li .num{flex:none; width:34px; height:34px; border-radius:10px; background:var(--violet); color:#fff; font-family:var(--mono); font-weight:700; display:grid; place-items:center; font-size:14px; margin-top:1px;}
+  .biglist .li .tx h4{margin:0 0 3px; font-size:17.5px; font-weight:800;}
+  .biglist .li .tx p{margin:0; font-size:14px; color:var(--ink-soft); line-height:1.5;}
+
+  .phase-label{font-family:var(--mono); font-size:12px; font-weight:700; letter-spacing:.08em; color:var(--violet); text-transform:uppercase; margin:0 0 10px; display:flex; align-items:center; gap:9px;}
+  .phase-label .ln{height:1px; flex:1; background:var(--line);}
+  .pipe{display:flex; align-items:stretch; gap:0; margin-bottom:20px;}
+  .pipe .step{flex:1; background:var(--paper); border:1px solid var(--line); border-top:3px solid var(--violet); border-radius:4px; padding:12px 10px; text-align:center; min-width:0;}
+  .pipe .step .si{font-family:var(--mono); font-size:11px; color:var(--violet); font-weight:700;}
+  .pipe .step .sn{font-size:14.5px; font-weight:800; margin-top:3px; letter-spacing:-.01em;}
+  .pipe .step .sd{font-size:11px; color:var(--mut); margin-top:2px; line-height:1.3;}
+  .pipe .arrow{display:flex; align-items:center; padding:0 5px; color:var(--violet-300);}
+  .pipe .arrow svg{width:17px;height:17px;}
+  .pipe.q .step{background:var(--paper); border-color:var(--line); border-top-color:var(--mint);} .pipe.q .step .si{color:var(--mint);} .pipe.q .arrow{color:#8AD7CC;}
+
+  .code{background:var(--code-bg); border-radius:14px; overflow:hidden; border:1px solid #2A2548; box-shadow:0 18px 40px -22px rgba(28,25,51,.7);}
+  .code .bar{display:flex; align-items:center; gap:7px; padding:10px 15px; border-bottom:1px solid #2A2548; background:#171430;}
+  .code .bar .dot{width:11px;height:11px;border-radius:50%;}
+  .code .bar .r{background:#FF6058;} .code .bar .y{background:#FFC130;} .code .bar .g{background:#28CA42;}
+  .code .bar .copybtn{margin-left:auto; font:600 12px var(--sans, sans-serif); color:#fff; background:#F28C28; border:0; border-radius:6px; padding:4px 10px; cursor:pointer;}
+  .code .bar .copybtn.done{background:#28CA42;}
+  .code .bar .savebtn{margin-left:6px; font:600 12px var(--sans, sans-serif); color:#1F3A5F; background:#fff; border:0; border-radius:6px; padding:4px 10px; cursor:pointer;}
+  @media print{.code .bar .savebtn{display:none}}
+  @media print{.code .bar .copybtn{display:none}}
+  .code .bar .copybtn, .code .bar .savebtn{flex:none; white-space:nowrap;}
+  .code .bar .fn{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-left:8px; font-family:var(--mono); font-size:12px; color:var(--code-dim);}
+  .code pre{margin:0; padding:16px 18px; overflow:auto;}
+  .code code{font-family:var(--mono); font-size:13px; line-height:1.6; color:var(--code-ink); white-space:pre;}
+  .code.sm code{font-size:12px; line-height:1.55;}
+  .cm{color:#7D78B8;} .kw{color:#C792FF;} .st{color:#9DE39A;} .fn2{color:#82D3FF;} .nm{color:#FFD479;}
+
+  .callout{border-radius:4px; padding:15px 18px; display:flex; gap:13px; align-items:flex-start; background:var(--paper); border:1px solid var(--line); border-left:3px solid var(--violet);}
+  .callout .ci{flex:none; width:34px;height:34px;border-radius:4px;background:var(--violet);color:#fff;display:grid;place-items:center;}
+  .callout .ci svg{width:18px;height:18px;}
+  .callout .ct h4{margin:0 0 3px; font-size:15.5px; font-weight:800;}
+  .callout .ct p{margin:0; font-size:13.5px; color:var(--ink-soft); line-height:1.5;}
+  .callout.mint{border-left-color:var(--mint);} .callout.mint .ci{background:var(--mint);}
+  .callout.amber{border-left-color:var(--amber);} .callout.amber .ci{background:var(--amber);}
+  .callout.rose{border-left-color:var(--rose);} .callout.rose .ci{background:var(--rose);}
+
+  .lab-badge{display:inline-flex; align-items:center; gap:9px; background:var(--mint-soft); color:#0A7F70; border:1px solid #BFE9E1; padding:7px 13px; border-radius:999px; font-weight:700; font-size:13px; font-family:var(--mono); letter-spacing:.04em;}
+  .lab-badge .sq{width:9px;height:9px;border-radius:3px;background:var(--mint);}
+
+  .twocol{display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start;}
+  .twocol.w{grid-template-columns:1.15fr .85fr;} .twocol.w2{grid-template-columns:.85fr 1.15fr;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{font-size:12.5px; font-weight:600; color:var(--ink-soft); background:#fff; border:1px solid var(--line); padding:6px 12px; border-radius:999px;}
+  .chip b{color:var(--violet);}
+
+  .deliv{background:var(--paper); border:1px dashed var(--violet-300); border-left:3px solid var(--violet); border-radius:4px; padding:15px 18px; display:flex; align-items:center; gap:13px;}
+  .deliv .di{flex:none;width:36px;height:36px;border-radius:4px;background:var(--violet);color:#fff;display:grid;place-items:center;}
+  .deliv .di svg{width:19px;height:19px;}
+  .deliv .dt b{display:block;font-size:11px;font-family:var(--mono);letter-spacing:.08em;color:var(--violet);text-transform:uppercase;}
+  .deliv .dt span{font-size:15px;font-weight:700;}
+
+  .vlist{display:flex;flex-direction:column;gap:10px;}
+  .vlist .v{display:flex;gap:11px;align-items:flex-start;font-size:14.5px;color:var(--ink-soft);line-height:1.45;}
+  .vlist .v .b{flex:none;width:22px;height:22px;border-radius:7px;background:var(--wash);color:var(--violet);display:grid;place-items:center;font-family:var(--mono);font-size:12px;font-weight:700;margin-top:1px;}
+  .vlist .v b{color:var(--ink);font-weight:700;}
+
+  .keymsg{margin-top:auto; background:var(--ink); color:#fff; border-radius:4px; padding:15px 20px; display:flex; gap:13px; align-items:center; font-size:15px; line-height:1.5;}
+  .keymsg .k{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;color:var(--violet-300);text-transform:uppercase;flex:none;}
+  .keymsg b{color:#fff;}
+
+  .formula{display:flex; flex-direction:column; gap:10px; background:var(--code-bg); border-radius:13px; padding:20px; color:#fff; font-family:var(--mono);}
+  .formula .big{font-size:21px; text-align:center;}
+
+  .ctable{width:100%; border-collapse:separate; border-spacing:0; font-size:14px; border:1px solid var(--line); border-radius:13px; overflow:hidden;}
+  .ctable th,.ctable td{padding:13px 16px; text-align:left; border-bottom:1px solid var(--line); vertical-align:top;}
+  .ctable thead th{background:var(--wash); color:var(--violet); font-family:var(--mono); font-size:12px; letter-spacing:.04em; text-transform:uppercase; font-weight:700;}
+  .ctable tbody tr:last-child td{border-bottom:none;}
+  .ctable td b{color:var(--ink);} .ctable .hl{color:var(--violet); font-weight:700;}
+  .ctable .yes{color:var(--mint); font-weight:700;} .ctable .no{color:var(--rose); font-weight:700;}
+
+  .timeline{display:flex; gap:0; align-items:stretch; margin-top:6px;}
+  .timeline .t{flex:1; position:relative; padding:0 6px;}
+  .timeline .t .yr{font-family:var(--mono); font-size:13px; font-weight:700; color:var(--violet);}
+  .timeline .t .ev{font-size:13px; font-weight:700; margin-top:30px; line-height:1.3;}
+  .timeline .t .ds{font-size:11.5px; color:var(--mut); margin-top:3px; line-height:1.35;}
+  .timeline .t::before{content:""; position:absolute; left:0; right:0; top:26px; height:2px; background:var(--line);}
+  .timeline .t::after{content:""; position:absolute; left:8px; top:21px; width:12px; height:12px; border-radius:50%; background:var(--violet); border:3px solid #fff; box-shadow:0 0 0 1px var(--violet-300);}
+
+  .quote{background:var(--wash-2); border-left:4px solid var(--violet); border-radius:0 13px 13px 0; padding:18px 22px;}
+  .quote p{margin:0; font-size:18px; line-height:1.5; font-weight:600; color:var(--ink);}
+  .quote .src{margin-top:10px; font-size:12.5px; color:var(--mut); font-family:var(--mono);}
+  .refbox{background:var(--paper); border:1px solid var(--line); border-left:3px solid var(--violet); border-radius:4px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start;}
+  .refbox .rk{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; color:var(--violet); text-transform:uppercase; font-weight:700;}
+  .refbox h4{margin:2px 0 3px; font-size:14.5px; font-weight:800;}
+  .refbox p{margin:0; font-size:12.5px; color:var(--ink-soft); line-height:1.45;}
+  .refbox .ri{flex:none;width:30px;height:30px;border-radius:8px;background:var(--violet);color:#fff;display:grid;place-items:center;}
+  .refbox .ri svg{width:16px;height:16px;}
+
+  .arch{display:flex; align-items:center; gap:18px; justify-content:center; margin:6px 0;}
+  .arch .box{border:1.5px solid var(--line); border-radius:14px; padding:18px 20px; text-align:center; background:var(--wash-2); min-width:160px;}
+  .arch .box .bt{font-size:15px; font-weight:800;} .arch .box .bs{font-size:12px; color:var(--mut); margin-top:3px; line-height:1.35;}
+  .arch .box.local{border-style:dashed; border-color:var(--violet-300); background:#fff;}
+  .arch .box.api{background:linear-gradient(135deg,#EFEAFF,#F8F5FF); border-color:var(--violet-300);}
+  .arch .conn{display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--violet); font-family:var(--mono); font-size:11px; font-weight:700;}
+  .arch .conn svg{width:34px;height:18px;}
+
+  .stat-row{display:flex; gap:16px;}
+  .stat{flex:1; background:var(--paper); border:1px solid var(--line); border-left:3px solid var(--violet); border-radius:4px; padding:16px 18px;}
+  .stat .num{font-size:30px; font-weight:800; letter-spacing:-.02em; color:var(--violet); font-family:var(--mono);}
+  .stat .lab{font-size:13px; color:var(--ink-soft); margin-top:4px; line-height:1.4;}
+
+  .twopane{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .pane{border:1px solid var(--line); border-radius:4px; padding:16px 18px; background:var(--paper);}
+  .pane.bad{border-left:3px solid var(--rose);} .pane.good{border-left:3px solid var(--mint);}
+  .pane h4{margin:0 0 9px; font-size:14px; font-weight:800; display:flex; align-items:center; gap:7px;}
+  .pane.bad h4{color:#C9405B;} .pane.good h4{color:#0E9E6E;}
+  .pane p{margin:0; font-size:13px; color:var(--ink-soft); line-height:1.5;}
+  .mini{font-family:var(--mono); font-size:13.5px; background:#16142B; border:1px solid #2A2545; border-radius:6px; padding:13px 15px; color:#E8E4F5; line-height:1.7; white-space:pre-wrap;}
+  .pane .mini{font-family:var(--mono); font-size:12px; background:var(--wash-2); border:1px solid var(--line); border-radius:3px; padding:8px 10px; color:var(--ink-soft); line-height:1.5; margin-top:8px;}
+
+  .controlbar{
+    position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:70;
+    display:flex; align-items:center; gap:4px;
+    background:#2B2B2E; border-radius:999px; padding:8px 10px;
+    box-shadow:0 16px 40px -12px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.04) inset;
+  }
+  .controlbar button{appearance:none; border:none; background:transparent; cursor:pointer; color:#C9C9D2; display:grid; place-items:center; border-radius:999px; transition:.12s ease; font-family:var(--serif);}
+  .controlbar .ico{width:38px; height:38px;}
+  .controlbar .ico svg{width:19px;height:19px;}
+  .controlbar .ico:hover{color:#fff; background:rgba(255,255,255,.1);}
+  .controlbar .ico:disabled{color:#5C5C66; cursor:not-allowed; background:transparent;}
+  .controlbar .sep{width:1px; height:24px; background:rgba(255,255,255,.16); margin:0 6px;}
+  .controlbar .count{ color:#EDEDF2; font-style:italic; font-family:Georgia,'Times New Roman',serif; font-size:17px; min-width:78px; text-align:center; letter-spacing:.02em; user-select:none;}
+  .controlbar .count b{font-style:italic; font-weight:600;}
+  .controlbar .zoom{width:32px;height:38px; color:#9A9AA6; font-size:18px;}
+  .controlbar .zoom:hover{color:#fff;}
+  .controlbar .zoom svg{width:17px;height:17px;}
+  .controlbar .pdf{
+    margin-left:6px; background:#7CB342; color:#fff; font-weight:800; font-size:14px; letter-spacing:.06em;
+    padding:0 22px; height:38px; border-radius:999px; display:flex; align-items:center;
+    box-shadow:0 6px 16px -6px rgba(124,179,66,.8);
+  }
+  .controlbar .pdf:hover{background:#86BD4B; color:#fff;}
+
+  .overview{position:fixed; inset:0; z-index:80; background:rgba(22,20,43,.55); backdrop-filter:blur(8px); display:none; padding:40px; overflow:auto;}
+  .overview.on{display:block;}
+  .overview .head{display:flex; align-items:center; justify-content:space-between; max-width:1100px; margin:0 auto 18px; color:#fff;}
+  .overview .head h3{margin:0; font-size:18px; font-weight:800;}
+  .overview .head button{appearance:none;border:1px solid rgba(255,255,255,.3); background:rgba(255,255,255,.1); color:#fff; border-radius:10px; padding:8px 14px; cursor:pointer; font-family:var(--serif); font-weight:700; font-size:13px;}
+  .ovgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; max-width:1100px; margin:0 auto;}
+  .ovcard{background:#fff; border:1px solid var(--line); border-radius:11px; padding:13px 15px; cursor:pointer; transition:.12s; text-align:left;}
+  .ovcard:hover{transform:translateY(-2px); box-shadow:0 12px 22px -12px rgba(0,0,0,.4); border-color:var(--violet);}
+  .ovcard .ovn{font-family:var(--mono); font-size:11px; color:var(--violet); font-weight:700;}
+  .ovcard .ovt{font-size:13.5px; font-weight:700; margin-top:4px; line-height:1.3; color:var(--ink);}
+
+  .hint{position:fixed; left:18px; bottom:24px; z-index:65; font-size:11px; color:var(--mut); font-family:var(--mono);}
+
+
+  /* ===== 이미지 / 도해 컴포넌트 (덱 하네스 추가분) ===== */
+  .figure{border:1px solid var(--line); border-radius:4px; background:var(--wash-2); overflow:hidden; display:flex; flex-direction:column; min-height:0;}
+  .figure img{display:block; width:100%; height:auto; object-fit:contain; min-height:0;}
+  .figure figcaption{font-family:var(--mono); font-size:11px; color:var(--mut); padding:7px 11px; border-top:1px solid var(--line); background:#fff;}
+  .figure.tight img{max-height:330px; object-fit:contain; background:#fff;}
+  /* 원본이 검은 여백을 달고 있는 캡처용 */
+  .figure.dark{background:#16142B; border-color:#2A2548;}
+  .figure.dark img{background:#16142B;}
+  .figure.dark figcaption{background:#1C1933; color:#9C97D6; border-top-color:#2A2548;}
+
+  /* 스크린샷: 창 프레임을 씌워 원본 캡처임을 드러낸다 */
+  .shot{border:1px solid var(--line); border-radius:9px; overflow:hidden; background:#fff; box-shadow:0 10px 26px -18px rgba(28,25,51,.6); display:flex; flex-direction:column; min-height:0;}
+  .shot .sbar{display:flex; align-items:center; gap:6px; padding:7px 11px; background:var(--wash); border-bottom:1px solid var(--line);}
+  .shot .sbar .d{width:9px;height:9px;border-radius:50%;background:var(--violet-300);}
+  .shot .sbar .t{margin-left:6px; font-family:var(--mono); font-size:11px; color:var(--mut);}
+  .shot img{display:block; width:100%; height:auto; max-height:400px; object-fit:contain; min-height:0;}
+
+  /* 도구 두 가지를 나란히 처음 보여줄 때 — 그림과 한 줄만 */
+  .duo{display:grid; grid-template-columns:1fr 1fr; gap:30px;}
+  .duo .side{border:1px solid var(--line); border-radius:18px; background:var(--wash-2);
+    padding:34px 30px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:20px; text-align:center;}
+  .duo .side img{max-height:92px; max-width:78%; width:auto; display:block;}
+  .duo .side .tagline{font-family:var(--mono); font-size:11.5px; letter-spacing:.12em;
+    color:var(--violet); text-transform:uppercase; font-weight:700;}
+  .duo .side h3{margin:0; font-size:23px; font-weight:800; letter-spacing:-.02em;}
+  .duo .side p{margin:0; font-size:15px; color:var(--ink-soft); line-height:1.55; max-width:30ch;}
+
+  /* 제품·도구 로고 — 작은 브랜드 마크 */
+  .brandmark{display:flex; align-items:center; gap:15px; margin-bottom:18px;}
+  .brandmark img{height:46px; width:auto; display:block;}
+  .brandmark .bt{font-size:13.5px; color:var(--ink-soft); line-height:1.45;}
+  .brandmark .bt b{color:var(--ink);}
+
+  /* 채워야 할 이미지 자리 — 인쇄에도 남으므로 발표 전 반드시 교체 */
+  .need-img{border:2px dashed var(--violet-300); border-radius:4px; background:repeating-linear-gradient(135deg,#FBFAFF,#FBFAFF 10px,#F4F1FF 10px,#F4F1FF 20px);
+    display:flex; flex-direction:column; justify-content:center; gap:6px; padding:20px 22px; min-height:150px;}
+  .need-img .nk{font-family:var(--mono); font-size:10.5px; font-weight:700; letter-spacing:.1em; color:var(--violet); text-transform:uppercase;}
+  .need-img .nd{font-size:14px; font-weight:700; color:var(--ink); line-height:1.4;}
+  .need-img .nm2{font-family:var(--mono); font-size:11.5px; color:var(--mut);}
+  .need-img.sm{min-height:92px; padding:14px 16px; align-items:center; text-align:center;}
+
+  /* 코드 실행 결과 */
+  .code .out{border-top:1px dashed #38325C; background:#141127; padding:11px 18px; font-family:var(--mono); font-size:12.5px; line-height:1.55; color:#9DE39A; white-space:pre; overflow:auto;}
+  .code .out .ol{color:#7D78B8;}
+  .code .err{color:#FF8E8E;}
+
+  /* 메모리 슬롯 도해 */
+  .slots{display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start;}
+  .slot{border:1.5px solid var(--line); border-radius:8px; min-width:74px; padding:9px 11px; text-align:center; background:#fff;}
+  .slot .adr{font-family:var(--mono); font-size:10px; color:var(--mut); letter-spacing:.02em;}
+  .slot .val{font-family:var(--mono); font-size:15px; font-weight:700; color:var(--ink); margin-top:2px;}
+  .slot .nm{font-size:11px; color:var(--violet); font-weight:700; margin-top:3px;}
+  .slot.ref{border-style:dashed; border-color:var(--violet-300); background:var(--wash-2);}
+  .slot.dim{opacity:.45;}
+  .ptr{display:grid; place-items:center; color:var(--violet); font-family:var(--mono); font-size:18px; font-weight:700; padding:0 2px; align-self:center;}
+
+  /* 인라인 SVG 차트 */
+  .plot{background:var(--wash-2); border:1px solid var(--line); border-radius:4px; padding:14px; display:grid; place-items:center; min-height:0;}
+  .plot svg{width:100%; height:auto; display:block; max-height:300px;}
+  .plot .cap{font-family:var(--mono); font-size:11px; color:var(--mut); margin-top:8px; text-align:center;}
+  .formula .cap{font-family:var(--mono); font-size:11.5px; color:var(--code-dim); text-align:center;}
+
+  /* 수정·보강 표시 (원본 pptx에 없던 내용) */
+  .newmark{position:absolute; top:30px; right:112px; font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.08em;
+    color:var(--mint); border:1px solid #BFE9E1; background:var(--mint-soft); border-radius:999px; padding:3px 9px;}
+
+  @media print{
+    @page{ size:1280px 720px; margin:0; }
+    body{background:#fff !important;}
+    .controlbar,.progress,.hint,.overview{display:none !important;}
+    .stage{position:static; inset:auto; overflow:visible; display:block; padding:0;}
+    .sizer{width:auto !important; height:auto !important;}
+    .scaler{transform:none !important; width:auto !important; height:auto !important;}
+    .slide{ display:flex !important; width:1280px !important; height:720px !important;
+      border-radius:0 !important; border:none !important; box-shadow:none !important;
+      page-break-after:always; break-after:page;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .slide:last-child{page-break-after:auto;}
+  }
+  /* ===== 코리안리 교육 테마: 흰 바탕 · 검정 제목 · 빨강 강조 ===== */
+  :root{
+    --ink:#111111; --ink-soft:#4B4B52; --mut:#8C8C94;
+    --violet:#E8002D; --violet-700:#B50023; --violet-300:#F7A8B8;
+    --wash:#F5F5F7; --wash-2:#FAFAFB; --line:#E6E6EA;
+    --mint:#13A06B; --mint-soft:#E6F6EF; --amber:#F2A100; --rose:#E8002D;
+    --shadow:0 20px 50px -28px rgba(0,0,0,.35);
+  }
+  body{background:#EDEDF0;}
+  .progress .fill{background:var(--violet);}
+  .slide{border-radius:14px; padding:34px 60px 40px;}
+  .topbar{display:flex; justify-content:space-between; align-items:center; font-size:12.5px; font-weight:700; color:var(--ink); padding-bottom:14px; margin-bottom:16px; border-bottom:1px solid var(--line); position:relative;}
+  .topbar::before{content:""; position:absolute; left:-60px; top:-34px; width:120px; height:4px; background:var(--violet);}
+  .topbar .coord{position:static; font-family:var(--mono); font-size:12px; color:var(--mut);}
+  .kick{font-size:14px; font-weight:800; color:var(--violet); letter-spacing:-.01em;}
+  .s-title{font-size:36px; margin:6px 0 2px; letter-spacing:-.03em;}
+  .rule{background:var(--ink); height:3px; width:44px; margin:12px 0 4px;}
+  .s-sub{font-size:16.5px; margin-top:4px;}
+
+  .slide.cover{background:#fff; color:var(--ink); border:1px solid var(--line); padding:0;}
+  .cover .wrap{padding:70px 80px;}
+  .cover .ckick{display:flex; align-items:center; gap:12px; font-size:15px; font-weight:800;}
+  .cover .ckick .bar{width:46px; height:5px; background:var(--violet);}
+  .cover h1{font-size:76px; line-height:1.08; letter-spacing:-.045em; font-weight:900; margin:34px 0 22px; max-width:none;}
+  .cover h1 em{font-style:normal; color:var(--violet);}
+  .cover .lead{font-size:20px; color:var(--ink-soft); max-width:60ch;}
+  .cover .meta{margin-top:44px; padding-top:20px; border-top:1px solid var(--line); gap:40px;}
+  .cover .meta .it .k{color:var(--mut); font-family:var(--serif); font-size:13px; letter-spacing:0;}
+  .cover .meta .it .v{color:var(--ink); font-size:17px;}
+
+  .slide.section{background:#111; color:#fff; padding:70px 80px; justify-content:center;}
+  .slide.section .ghost{color:rgba(255,255,255,.06); font-family:var(--serif); font-weight:900;}
+  .slide.section .sno{font-size:20px; font-weight:900; color:var(--violet); margin-bottom:14px; font-family:var(--mono);}
+  .slide.section h2{font-size:54px; font-weight:900;}
+  .slide.section .stime{margin-top:26px; display:inline-block; align-self:flex-start; border:1px solid rgba(255,255,255,.35); border-radius:999px; padding:7px 16px; font-size:14px; font-weight:700;}
+
+  .labcover .labwrap{flex:1; display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:center;}
+  .labcover .lflag{display:inline-block; background:var(--violet); color:#fff; font-weight:800; font-size:14px; padding:7px 14px; border-radius:6px;}
+  .labcover h2{font-size:40px; letter-spacing:-.03em; margin:18px 0 12px; line-height:1.15;}
+  .labcover .goal{font-size:17px; color:var(--ink-soft); line-height:1.55; margin:0 0 24px;}
+  .labcover .lout{background:#FFF0F3; border-radius:10px; padding:14px 18px; font-size:15.5px; font-weight:700;}
+  .labcover .lout span{display:block; font-size:12.5px; color:var(--violet); margin-bottom:4px;}
+  .labcover .labr{border:1px solid var(--line); border-radius:12px; padding:22px 26px;}
+  .labcover .lh{font-size:13px; font-weight:800; color:var(--mut); margin-bottom:8px;}
+  .labcover ol{margin:0; padding-left:22px; display:flex; flex-direction:column; gap:12px; font-size:16px; font-weight:600; line-height:1.4;}
+  .labcover ol li::marker{color:var(--violet); font-weight:800;}
+
+  .card{border-left:none; border-top:3px solid var(--ink); border-radius:6px;}
+  .card .n{color:var(--violet);}
+  .card h3{border-bottom:none; padding-bottom:0;}
+  .biglist .li .num{background:var(--violet); border-radius:50%;}
+  .pipe .step{border-top-color:var(--ink);}
+  .pipe .step.hl{border-top-color:var(--violet); background:#FFF5F7;}
+  .pipe .arrow{color:var(--mut); font-size:18px;}
+  .ctable{border-radius:8px; font-size:14.5px;}
+  .ctable thead th{background:#fff; color:var(--ink); font-family:var(--serif); font-size:13px; border-bottom:2px solid var(--ink);}
+  .ctable td{line-height:1.45;}
+  .ctable.tools td:first-child{font-weight:800; width:20%;}
+  .tg{font-weight:800;} .tg.g{color:var(--violet);} .tg.c{color:#B4572E;} .tg.m{color:#2F6BD8;}
+  .code{border-radius:10px;}
+  .code.prompt{background:#1B1B1F; border-color:#2B2B31;}
+  .code.prompt .bar{background:#151518; border-bottom-color:#2B2B31;}
+  .code.prompt .plabel{font-size:12.5px; font-weight:800; color:#FF5B7A;}
+  .code.prompt code{font-family:var(--serif); font-size:15px; line-height:1.65; white-space:pre-wrap; color:#F1F1F4;}
+  .code.prompt pre{max-height:400px;}
+  .code .bar .copybtn{background:var(--violet);}
+  .note{display:flex; gap:12px; align-items:baseline; margin-top:14px; font-size:15px; line-height:1.5; color:var(--ink-soft);}
+  .note .nk{flex:none; background:var(--ink); color:#fff; font-size:12.5px; font-weight:800; padding:3px 10px; border-radius:5px;}
+  .note.red .nk{background:var(--violet);}
+  .note.ok .nk{background:var(--mint);}
+  .note b{color:var(--ink);}
+  .twocol{gap:28px;}
+  .threecol{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+  .pane{border-radius:10px; padding:18px 20px;}
+  .pane h4{font-size:16px;}
+  .pane.bad{border-left:4px solid #9A9AA2;} .pane.bad h4{color:#55555C;}
+  .pane.good{border-left:4px solid var(--violet);} .pane.good h4{color:var(--violet);}
+  .ul{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:7px; font-size:15px; line-height:1.5; color:var(--ink-soft);}
+  .ul b{color:var(--ink);}
+  .need-img{border-color:#F3B3C1; background:repeating-linear-gradient(135deg,#FFFAFB,#FFFAFB 10px,#FFF1F4 10px,#FFF1F4 20px); border-radius:10px;}
+  .need-img .nk{color:var(--violet);}
+  .stat{border-left:none; border-top:3px solid var(--violet); border-radius:8px;}
+  .stat .num{color:var(--ink); font-family:var(--serif); font-weight:900;}
+  .chat{display:flex; flex-direction:column; gap:12px;}
+  .chat .u,.chat .a{display:flex; gap:10px; align-items:flex-start;}
+  .chat .who{flex:none; width:30px; height:30px; border-radius:50%; background:#2F6BD8; color:#fff; font-size:12px; font-weight:800; display:grid; place-items:center;}
+  .chat .who.ai{background:var(--ink);}
+  .chat .bub{background:var(--wash); border-radius:10px; padding:11px 15px; font-size:14.5px; line-height:1.55;}
+  .chat .a .bub{background:#fff; border:1px solid var(--line);}
+  .chk{display:flex; flex-direction:column; gap:9px; font-size:15px;}
+  .chk div::before{content:"✓"; color:var(--violet); font-weight:900; margin-right:9px;}
+  .hl{color:var(--violet); font-weight:800;}
+  /* 큰 강의장용 글자 크기 */
+  .ctable{font-size:17px;} .ctable th,.ctable td{padding:13px 16px;} .ctable thead th{font-size:14.5px;}
+  .card{padding:20px 22px;} .card h3{font-size:21px;} .card p{font-size:16px; line-height:1.5;}
+  .biglist{gap:18px;} .biglist .li .num{width:36px; height:36px; font-size:16px;} .biglist .li .tx h4{font-size:20px;} .biglist .li .tx p{font-size:16px;}
+  .ul{font-size:17.5px; gap:9px;}
+  .pane h4{font-size:19px;}
+  .note{font-size:17px;} .note .nk{font-size:14px;}
+  .code.prompt code{font-size:16.5px;}
+  .code.prompt pre{max-height:470px;}
+  .chat .bub{font-size:17px;}
+  .chk{font-size:18px; gap:12px;}
+  .pipe .step{padding:16px 12px;} .pipe .step .sn{font-size:18px;} .pipe .step .sd{font-size:13.5px;} .pipe .step .si{font-size:13px;}
+  .stat .num{font-size:36px;} .stat .lab{font-size:16px;}
+  .need-img .nd{font-size:16px;}
+  .labcover ol{font-size:19px;} .labcover .goal{font-size:19px;} .labcover .lout{font-size:18px;}
+  .s-sub{font-size:18px;}
+  .code.prompt.sm code{font-size:13.5px; line-height:1.55;} .code.prompt.sm pre{max-height:520px; padding:12px 16px;}
+  .ctable td:first-child{white-space:nowrap;}
+  /* ===== 그림 요소 ===== */
+  .parts{display:flex; align-items:stretch; gap:12px;}
+  .parts .plus{align-self:center; font-size:30px; font-weight:900; color:var(--mut);}
+  .ftile{flex:1; border:1px solid var(--line); border-radius:14px; padding:22px 18px; text-align:center; background:#fff;}
+  .ftile.core{background:#111; color:#fff; border-color:#111;} .ftile.core .fd{color:#C9C9CF;}
+  .ftile .fi,.tc .fi{font-size:42px; line-height:1; margin-bottom:12px;}
+  .ftile .ft,.tc .ft{font-size:21px; font-weight:900;}
+  .ftile .fd,.tc .fd{font-size:15px; color:var(--ink-soft); margin-top:6px; line-height:1.45;}
+  .loopwrap{display:grid; grid-template-columns:170px 1fr 170px; align-items:center; gap:10px;}
+  .loopwrap svg{width:100%; max-height:380px;}
+  .loop .lt{font:900 19px var(--serif); fill:#111;} .loop .ls{font:500 13.5px var(--serif); fill:#6B6B73;} .loop .lc{font:900 20px var(--serif); fill:#E8002D;}
+  .lend{border:2px solid #111; border-radius:12px; padding:16px; text-align:center; font-size:14px; color:var(--mut);}
+  .lend b{display:block; color:#111; font-size:17px; margin-top:4px;} .lend.r{background:#111; color:#bbb;} .lend.r b{color:#fff;}
+  .tcall{display:flex; align-items:stretch; gap:6px;}
+  .tc{flex:1; border:1px solid var(--line); border-radius:14px; padding:20px 12px; text-align:center; background:#fff;}
+  .tc:nth-child(odd){} .tc-arr{align-self:center; color:var(--violet); font-size:26px; font-weight:900;}
+  .tback{margin-top:14px; text-align:center; font-size:16px; font-weight:700; color:var(--violet);}
+  .disc{display:flex; flex-direction:column; gap:14px;}
+  .disc .dl{display:grid; grid-template-columns:150px 1fr 330px; gap:16px; align-items:center;}
+  .disc .dk{font-size:15px; font-weight:800; color:var(--mut); text-align:right;}
+  .disc .dbar{border-radius:10px; padding:16px 18px; font-size:16px; color:#fff;}
+  .disc .dbar b{font-size:18px; margin-right:8px;}
+  .disc .w1{background:#111; width:40%;} .disc .w2{background:var(--violet); width:72%;} .disc .w3{background:#F7A8B8; color:#111; width:100%;}
+  .disc .dn{font-size:15px; color:var(--ink-soft);}
+  .bundle{border:2px solid #111; border-radius:16px; overflow:hidden;}
+  .bundle .bh{background:#111; color:#fff; font-weight:900; font-size:17px; padding:12px 18px;}
+  .bundle .bb{display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:12px; padding:16px;}
+  .bundle .bs{border:1px solid var(--line); border-top:4px solid var(--violet); border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:4px;}
+  .bundle .bs.app{border-top-color:#2F6BD8;}
+  .bundle .bs span{font:800 11px var(--mono); color:var(--mut);} .bundle .bs b{font-size:17px;} .bundle .bs i{font-style:normal; font-size:13.5px; color:var(--ink-soft);}
+  .bundle .bf{border-top:1px dashed var(--line); padding:10px 18px; font-size:15px; font-weight:700; color:var(--violet);}
+  .forget{display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+  .forget .fc{border:1px solid var(--line); border-radius:14px; padding:18px; background:var(--wash-2); display:flex; flex-direction:column; gap:8px;}
+  .forget .fh{font-weight:900; font-size:18px; margin-bottom:4px;}
+  .forget .fl{background:#fff; border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:15px;}
+  .forget .fx{font-size:15px; font-weight:800; color:#777;} .forget .fx.ok{color:var(--violet);}
+  .forget .pin{background:#FFF0F3; border:2px solid var(--violet); border-radius:10px; padding:12px 14px; font-weight:900; font-size:17px;}
+  .forget .pin small{font-weight:600; font-size:13.5px; color:var(--ink-soft);}
+  .forget .good{background:#fff;}
+  .tline{display:grid; grid-auto-flow:column; grid-auto-columns:1fr; position:relative; margin-top:10px;}
+  .tline::before{content:""; position:absolute; left:0; right:0; top:44px; height:3px; background:var(--line);}
+  .tl{padding:0 10px; position:relative;}
+  .tl .ty{font:800 15px var(--mono); color:var(--mut); height:32px;}
+  .tl .tdot{width:18px; height:18px; border-radius:50%; background:#fff; border:4px solid #BBB; margin:2px 0 14px; position:relative; z-index:1;}
+  .tl .tt{font-size:19px; font-weight:900; line-height:1.25;} .tl .td{font-size:14.5px; color:var(--ink-soft); margin-top:6px; line-height:1.45;}
+  .tl.on .ty{color:var(--violet);} .tl.on .tdot{border-color:var(--violet); background:var(--violet);} .tl.on .tt{color:var(--violet);}
+  .win{border:1px solid #D9D9DE; border-radius:10px; overflow:hidden; background:#fff; box-shadow:0 14px 30px -20px rgba(0,0,0,.4);}
+  .win .wbar{display:flex; align-items:center; gap:6px; padding:8px 12px; background:#F1F1F4; border-bottom:1px solid #E1E1E6;}
+  .win .wbar i{width:10px; height:10px; border-radius:50%; background:#FF5F57;} .win .wbar i:nth-child(2){background:#FEBC2E;} .win .wbar i:nth-child(3){background:#28C840;}
+  .win .wbar span{margin-left:8px; font-size:12.5px; font-weight:700; color:#55555C;}
+  .win .wbar .url{flex:1; background:#fff; border-radius:6px; padding:3px 10px; font-family:var(--mono); font-weight:500;}
+  .win .wbody{padding:12px;}
+  .gsheet{border-collapse:collapse; width:100%; font-size:13px;}
+  .gsheet th{background:#F3F3F3; color:#777; font-weight:600; border:1px solid #E2E2E2; padding:4px 6px; font-size:11.5px;}
+  .gsheet td{border:1px solid #E2E2E2; padding:5px 7px; white-space:nowrap;}
+  .gsheet tr:nth-child(2) td{background:#E7F4EC; font-weight:800;}
+  .win.gs .wbar{background:#E7F4EC;}
+  .gcal{display:grid; grid-template-columns:repeat(5,1fr); gap:4px;}
+  .gcal .ch{text-align:center; font-weight:800; font-size:13px; padding:4px 0; color:#444;}
+  .gcal .cb{position:relative; height:130px; background:repeating-linear-gradient(#fff,#fff 13px,#F0F0F3 13px,#F0F0F3 14px); border-radius:4px;}
+  .gcal .ev{position:absolute; left:2px; right:2px; background:#4C8BF5; color:#fff; font-size:9.5px; font-weight:700; border-radius:4px; padding:2px 4px; overflow:hidden; line-height:1.2;}
+  .win.gc .wbar{background:#E8F0FE;}
+  .se{display:grid; gap:6px;}
+  .se label{font-size:12.5px; font-weight:800; color:#555;} .se label em{font-style:normal; color:var(--violet);}
+  .se .in{border:1px solid #D9D9DE; border-radius:8px; padding:8px 10px; font-size:14px; background:#fff;}
+  .se .in.ta{min-height:72px; font-size:13px; line-height:1.5; color:#333; white-space:pre-line;}
+  .se .files{display:flex; gap:6px; flex-wrap:wrap;} .se .file{background:var(--wash); border-radius:6px; padding:5px 9px; font-size:12.5px;}
+  .se .sv{justify-self:end; background:#111; color:#fff; border-radius:8px; padding:7px 18px; font-weight:800; font-size:13.5px; margin-top:4px;}
+  .rcard{display:flex; flex-direction:column;}
+  .rcard .rr{display:grid; grid-template-columns:1fr 60px 92px; align-items:center; padding:10px 6px; border-bottom:1px solid var(--line); font-size:15px;}
+  .rcard .rr b{text-align:right;} .rcard .rr em{font-style:normal; justify-self:end; font-size:12px; font-weight:800; padding:3px 8px; border-radius:6px;}
+  .rcard em.late{background:#FFF1D6; color:#B26A00;} .rcard em.done{background:#E3F5EC; color:#14804A;} .rcard em.ask{background:#FFE5EA; color:var(--violet);} .rcard em.ing{background:#EEF3FF; color:#2F6BD8;}
+  .bars{display:flex; flex-direction:column; gap:10px;}
+  .bars .br{display:grid; grid-template-columns:130px 1fr 64px; gap:12px; align-items:center; font-size:15px;}
+  .bars .bt{height:18px; background:#F1F1F4; border-radius:9px; overflow:hidden;} .bars .bt i{display:block; height:100%; background:#C9C9CF; border-radius:9px;}
+  .bars .br.on .bt i{background:var(--violet);} .bars .br.on .bn,.bars .br.on .bv{font-weight:900; color:var(--violet);}
+  .bars .bv{text-align:right; font-weight:700;}
+  .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+  .kpi{background:var(--wash); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:2px;}
+  .kpi span{font-size:12.5px; color:var(--mut);} .kpi b{font-size:28px; font-weight:900;} .kpi b small{font-size:14px; color:var(--mut); margin-left:2px;}
+  .kpi em{font-style:normal; font-size:12px; color:var(--violet); font-weight:700;}
+  .a4{width:150px; height:200px; border:1px solid #CCC; border-radius:4px; background:#fff; padding:14px 12px; display:flex; flex-direction:column; gap:7px; overflow:hidden; box-shadow:0 8px 18px -12px rgba(0,0,0,.4);}
+  .a4 .a4h{height:12px; width:70%; background:#111; border-radius:2px;} .a4 .a4l{height:6px; width:90%; background:#DDD;} .a4 .a4l.s{width:60%;}
+  .a4 .a4t{height:14px; background:#E7E7EC; border:1px solid #CFCFD6; flex:none;} .a4 .a4c{height:60px; background:#FFD9E1; border:1px solid #F3A2B3; flex:none;}
+  .a4.cut{border-right:3px solid var(--violet);}
+  .a4pair{display:flex; gap:40px; justify-content:center; align-items:flex-end;}
+  .a4pair figure{margin:0; text-align:center; font-size:15px; font-weight:800;}
+  .a4pair figure.bad{color:#888;} .a4pair figure.ok{color:var(--violet);}
+  .a4pair figcaption{margin-top:10px;}
+  .stack{display:flex; flex-direction:column; gap:12px;}
+  .arrowdown{text-align:center; font-size:26px; color:var(--violet); font-weight:900; line-height:1;}
+  .rep h4{margin:0 0 8px; font-size:17px;} .rep p{margin:0 0 8px; font-size:13.5px; line-height:1.5;} .rep sup{color:var(--violet); font-weight:800;}
+  .rep .bars .br{grid-template-columns:60px 1fr 54px; font-size:13px;} .rep .bars .bt{height:12px;}
+  .rep .refs{margin-top:10px; padding-top:8px; border-top:1px solid var(--line); font-size:11.5px; color:var(--mut); line-height:1.5;}
+  .br-w .kpis{grid-template-columns:repeat(4,1fr);} .br-w .kpi b{font-size:22px;} .br-w .kpi span{font-size:11px;} .br-w .kpi em{font-size:10.5px;}
+  .br-w .bars .br{font-size:13px; grid-template-columns:110px 1fr 54px;} .br-w .bars .bt{height:13px;}
+  .todo h4{margin:0 0 12px; font-size:20px;} .todo h4 small{font-size:13px; color:var(--mut); margin-left:6px;}
+  .todo .tcs{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  .todo .tcs div{border:1px solid var(--line); border-top:4px solid #2F6BD8; border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:4px;}
+  .todo .tcs b{font-size:15px;} .todo .tcs span{font-size:12.5px; color:var(--mut);}
+  .ftile .fi,.tc .fi{display:flex; justify-content:center;}
+  .ico{width:46px; height:46px; color:var(--violet);}
+  .ftile.core .ico{color:#fff;}
+  .tc .ico{width:42px; height:42px;}
+  .se .file{display:inline-flex; align-items:center; gap:4px;} .se .file .ico{width:15px; height:15px;}
+  .realshot{margin:0; border:1px solid #D9D9DE; border-radius:10px; overflow:hidden; background:#000; box-shadow:0 14px 30px -20px rgba(0,0,0,.45);}
+  .realshot img{display:block; width:100%; height:auto; max-height:430px; object-fit:contain;}
+  .realshot .cap{background:#fff; font-size:12.5px; color:var(--mut); padding:6px 10px; border-top:1px solid #E1E1E6;}
+  .realshot.light{background:#FAFAFB;}
+  /* ===== 그림 장 (농심 덱 장면) ===== */
+  .slide.ill{padding:0; background:#fff;}
+  .slide.ill svg.scene{position:absolute; inset:0; width:1280px; height:720px;}
+  .ill .icoord{position:absolute; top:28px; right:40px; z-index:3; font-family:var(--mono); font-size:12px; color:var(--mut);}
+  .ill .icoord b{color:var(--ink);}
+  .ill .icap{position:absolute; z-index:2; color:var(--ink);}
+  .ill .icap h2{margin:0; font-weight:900; letter-spacing:-.03em; word-break:keep-all;}
+  .ill .icap ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
+  .ill .icap li{position:relative; padding-left:16px; word-break:keep-all; color:var(--ink-soft);}
+  .ill .icap li::before{content:""; position:absolute; left:0; top:.62em; width:7px; height:7px; border-radius:50%; background:var(--violet);}
+  .ill .icap.left{left:72px; top:0; bottom:0; width:410px; display:flex; flex-direction:column; justify-content:center;}
+  .ill .icap.left h2{font-size:40px; line-height:1.22;}
+  .ill .icap.left .bar{width:56px; height:5px; background:var(--violet); margin:22px 0 20px;}
+  .ill .icap.left li{font-size:20px; line-height:1.5;}
+  .ill .icap.top{left:72px; right:150px; top:40px; display:grid; grid-template-columns:1.35fr 1fr; gap:36px; align-items:start;}
+  .ill .icap.top h2{font-size:32px; line-height:1.25;}
+  .ill .icap.top ul{padding-top:4px; gap:5px;}
+  .ill .icap.top li{font-size:17px; line-height:1.45;}
+  .ill .icap.top.z25 h2{font-size:34px;}
+  .websvg{width:100%; height:auto; max-height:430px;}
+  .websvg.pipe2{max-height:380px;}
+  .websvg .bt{font-family:var(--serif); font-size:20px; font-weight:800;}
+  .websvg .bs{font-family:var(--serif); font-size:15px; fill:#55555C;}
+  .websvg .bso{font-family:var(--serif); font-size:15px; fill:#E8002D; font-weight:700;}
+  .websvg .bsw{font-family:var(--serif); font-size:15px; fill:#DCDCE1;}
+  .bav{display:grid; grid-template-columns:1fr 56px 1.4fr; align-items:stretch;}
+  .bav .b,.bav .a{border-radius:14px; padding:22px 24px; display:flex; flex-direction:column; gap:12px;}
+  .bav .b{background:var(--wash); color:var(--ink-soft);} .bav .a{background:#fff; border:2px solid var(--violet);}
+  .bav .lab{font-size:13px; font-weight:800; color:var(--mut);} .bav .a .lab{color:var(--violet);}
+  .bav .q{font-size:17px; line-height:1.6;}
+  .bav .arr{align-self:center; text-align:center; font-size:30px; font-weight:900; color:var(--violet);}
+  .combo{display:flex; align-items:center; justify-content:center; gap:18px; margin:30px 0;}
+  .combo span{border:2px solid var(--ink); border-radius:12px; padding:18px 26px; font-size:22px; font-weight:900;}
+  .combo span.hl{background:var(--violet); border-color:var(--violet); color:#fff;}
+  .combo b{font-size:30px; color:var(--mut);}
+  /* ===== AI Agent 과정 도식 ===== */
+  .cs{display:grid; grid-template-columns:1fr 54px 260px; align-items:center; gap:6px;}
+  .cs-in{border:2px solid var(--ink); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:10px;}
+  .cs-h{font-weight:900; font-size:16px;}
+  .cs-row{display:grid; grid-template-columns:44px 1fr 210px; align-items:center; gap:12px; background:var(--wash); border-radius:10px; padding:10px 12px;}
+  .cs-row b{display:block; font-size:16.5px;} .cs-row span{font-size:14px; color:var(--ink-soft);} .cs-row em{font-style:normal; font-size:14px; color:var(--violet); font-weight:700;}
+  .cs-ic .ico{width:32px; height:32px;}
+  .cs-arr{text-align:center; font-size:32px; font-weight:900; color:var(--violet);}
+  .cs-llm{background:#111; color:#fff; border-radius:14px; padding:24px; display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center;}
+  .cs-llm .ico{color:#fff; width:48px; height:48px;} .cs-llm b{font-size:26px;} .cs-llm span{font-size:14px; color:#C9C9CF;}
+  .cs-win{margin-top:14px; border:2px dashed var(--violet); border-radius:12px; padding:12px 16px; font-size:16px;} .cs-win b{color:var(--violet); margin-right:8px;}
+  .bg-h{font-weight:900; font-size:17px; margin-bottom:10px;}
+  .bg-bar{display:flex; height:120px; border-radius:12px; overflow:hidden; gap:3px;}
+  .bg-s{color:#fff; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:4px;}
+  .bg-s b{font-size:28px; font-weight:900;} .bg-s span{font-size:15px;}
+  .bg-out{margin-top:10px; border:2px dashed var(--mut); border-radius:10px; padding:10px; text-align:center; color:var(--ink-soft); font-size:15px;}
+  .tws{display:flex; flex-direction:column; gap:12px;}
+  .tw{display:grid; grid-template-columns:160px 1fr; align-items:center; gap:14px; border:1px solid var(--line); border-radius:12px; padding:14px 18px;}
+  .tw b{font-size:19px;} .tw.hl{border:2px solid var(--violet); background:#FFF5F7;} .tw.hl b{color:var(--violet);}
+  .tw-f{display:flex; align-items:center; gap:10px;} .tw-f span{flex:1; background:var(--wash); border-radius:8px; padding:10px; text-align:center; font-size:15px;}
+  .tw-f i{font-style:normal; color:var(--mut); font-weight:900;}
+  .em{display:grid; grid-template-columns:1.2fr 40px 180px 40px 1.1fr; align-items:center; gap:8px;}
+  .em-h{font-size:13px; font-weight:800; color:var(--mut); margin-bottom:6px;}
+  .em-col{display:flex; flex-direction:column; gap:10px;}
+  .em-s,.em-v{border:1px solid var(--line); border-radius:10px; padding:12px; font-size:15px; display:flex; gap:10px; align-items:center;}
+  .em-s b,.em-v b{background:var(--ink); color:#fff; border-radius:6px; padding:2px 7px; font-size:12px;}
+  .em-v code{font-family:var(--mono); font-size:13.5px;} .em-v.far b{background:var(--violet);}
+  .em-arr{text-align:center; font-size:26px; color:var(--violet); font-weight:900;}
+  .em-m{background:#111; color:#fff; border-radius:14px; padding:20px 12px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:6px;}
+  .em-m .ico{color:#fff;} .em-m b{font-size:18px;} .em-m span{font-size:13px; color:#C9C9CF;}
+  .vsp{width:100%; height:auto; max-height:400px;}
+  .vsp .vt{font:800 17px var(--serif); fill:#26262B;} .vsp .vt.r{fill:#E8002D;} .vsp .vs{font:600 14px var(--serif); fill:#6B6B73;}
+  .nrs{display:flex; flex-direction:column; gap:10px;}
+  .nr{display:grid; grid-template-columns:150px 1fr; align-items:center; gap:14px;}
+  .nr-l{font-weight:900; font-size:16px;}
+  .nr-f{display:flex; align-items:center; gap:8px;} .nr-f i{font-style:normal; color:var(--mut); font-weight:900;}
+  .nr-f span{flex:1; border:1px solid var(--line); border-top:3px solid var(--ink); border-radius:8px; padding:12px 8px; text-align:center;}
+  .nr-f span.on{border-top-color:var(--violet); background:#FFF5F7;}
+  .nr-f b{display:block; font-size:17px;} .nr-f em{font-style:normal; font-size:13px; color:var(--mut);}
+  .nr-mid{margin-left:164px; color:var(--violet); font-weight:800; font-size:15px;}
+  .quote{font-size:30px; font-weight:900; line-height:1.4; letter-spacing:-.02em; border-left:6px solid var(--violet); padding:10px 0 10px 26px;}
+  .cmap{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+  .cm{border:1px solid var(--line); border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:6px;}
+  .cm b{font-size:14px; color:var(--mut);} .cm span{font-size:17px; font-weight:800; line-height:1.35;}
+  .cm.on{border:2px solid var(--violet); background:#FFF5F7;} .cm.on b{color:var(--violet);}
+  code{font-family:var(--mono); font-size:.92em; background:var(--wash); padding:1px 5px; border-radius:4px;}
+  .code pre code{background:none; padding:0; border-radius:0; font-size:inherit;} .code.prompt code{font-size:16.5px;}
+
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="fill" id="pfill"></div></div>
+
+<main class="stage" id="stage">
+  <div class="sizer" id="sizer">
+    <div class="scaler" id="scaler">
+
+
+
+<!-- ============================================================
+     슬라이드는 여기부터. 규격: 1280x720 고정.
+     첫 장은 slide cover active, 나머지는 active 없이.
+     ============================================================ -->
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<g id="robot">
+  <line x1="0" y1="-190" x2="0" y2="-206" stroke="#26262B" stroke-width="4"/>
+  <circle cx="0" cy="-210" r="7" fill="#26262B"/>
+  <rect x="-12" y="-108" width="24" height="14" fill="#26262B"/>
+  <rect x="-30" y="-34" width="20" height="34" rx="6" fill="#26262B"/>
+  <rect x="10" y="-34" width="20" height="34" rx="6" fill="#26262B"/>
+  <rect x="-44" y="-98" width="88" height="70" rx="20" fill="#DCDCE1" stroke="#26262B" stroke-width="4"/>
+  <circle cx="0" cy="-64" r="9" fill="#FFFFFF" stroke="#26262B" stroke-width="3"/>
+  <rect x="-54" y="-190" width="108" height="86" rx="43" fill="#DCDCE1" stroke="#26262B" stroke-width="4"/>
+  <rect x="-38" y="-172" width="76" height="50" rx="22" fill="#FFFFFF" stroke="#26262B" stroke-width="3"/>
+  <circle cx="-15" cy="-152" r="7.5" fill="#E8002D"/>
+  <circle cx="15" cy="-152" r="7.5" fill="#E8002D"/>
+</g>
+<g id="person">
+  <circle cx="-38" cy="-206" r="8" fill="#FFFFFF" stroke="#26262B" stroke-width="3"/>
+  <circle cx="38" cy="-206" r="8" fill="#FFFFFF" stroke="#26262B" stroke-width="3"/>
+  <rect x="-11" y="-178" width="22" height="24" fill="#FFFFFF" stroke="#26262B" stroke-width="3"/>
+  <path d="M-58 0 L-62 -118 Q-60 -150 -28 -158 L28 -158 Q60 -150 62 -118 L58 0 Z" fill="#26262B"/>
+  <path d="M-20 -158 L0 -116 L20 -158 Z" fill="#FFFFFF"/>
+  <path d="M-5 -152 L5 -152 L8 -112 L0 -102 L-8 -112 Z" fill="#DCDCE1"/>
+  <path d="M-20 -158 L-6 -96 M20 -158 L6 -96" stroke="#DCDCE1" stroke-width="2" fill="none"/>
+  <circle cx="0" cy="-210" r="38" fill="#FFFFFF" stroke="#26262B" stroke-width="4"/>
+  <path d="M-41 -206 Q-46 -256 0 -256 Q44 -256 41 -208 Q30 -234 -2 -234 Q-28 -232 -41 -206 Z" fill="#26262B"/>
+  <circle cx="-13" cy="-204" r="3.8" fill="#26262B"/>
+  <circle cx="13" cy="-204" r="3.8" fill="#26262B"/>
+  <path d="M-10 -188 Q0 -180 10 -188" stroke="#26262B" stroke-width="3" fill="none" stroke-linecap="round"/>
+</g>
+<g id="legs">
+  <rect x="-50" y="-4" width="44" height="146" rx="8" fill="#DCDCE1" stroke="#26262B" stroke-width="3"/>
+  <rect x="6" y="-4" width="44" height="146" rx="8" fill="#DCDCE1" stroke="#26262B" stroke-width="3"/>
+  <ellipse cx="-30" cy="148" rx="28" ry="10" fill="#26262B"/>
+  <ellipse cx="30" cy="148" rx="28" ry="10" fill="#26262B"/>
+</g>
+<filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"/></filter>
+</defs></svg><section class="slide cover active" data-title="표지"><div class="wrap"><div class="ckick"><span class="bar"></span>B Track · AI Agent 아키텍트 과정 · 1교시</div><h1>AI Agent란?<br><em>구조</em>와 Context Window</h1><p class="lead">모델의 판단과 앱의 실행이 이어지는 구조를 이해하고, 첫 RAG로 근거가 전달되는 과정을 확인합니다</p><div class="meta"><div class="it"><span class="k">교시</span><span class="v">1교시</span></div><div class="it"><span class="k">실습</span><span class="v">rag-sim · Claude Code</span></div><div class="it"><span class="k">문서</span><span class="v">AN4750 Soft Errors</span></div></div></div></section>
+
+<section class="slide" data-title="학습 목표"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><h2 class="s-title">학습 목표</h2><div class="rule"></div><div class="body"><div class="cards c4"><div class="card"><span class="n">01</span><h3>판단과 실행</h3><p>모델의 판단과 앱의 실행이 이어지는 방식</p></div><div class="card"><span class="n">02</span><h3>입력 구성</h3><p>지침 · 도구 정의 · 참고 정보와 모델 입력의 관계</p></div><div class="card"><span class="n">03</span><h3>Context Window</h3><p>남겨야 할 정보와 출력 공간 구분</p></div><div class="card"><span class="n">04</span><h3>첫 RAG</h3><p>검색한 원문이 답변 근거로 전달되는 과정</p></div></div></div></section>
+
+<section class="slide" data-title="과정 전체 흐름"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><h2 class="s-title">과정 전체 흐름</h2><div class="rule"></div><div class="body"><div class="cmap"><div class="cm on"><b>1교시</b><span>AI Agent 구조 · Context Window · 첫 RAG</span></div><div class="cm"><b>2교시</b><span>청크 크기와 검색 방식</span></div><div class="cm"><b>3교시</b><span>Advanced RAG · 검색 성능 개선</span></div><div class="cm"><b>4교시</b><span>Tool Calling과 Context의 실행 흐름</span></div><div class="cm"><b>5교시</b><span>MCP로 RAG와 외부 도구 연결</span></div><div class="cm"><b>6교시</b><span>Multi-Agent · 판정과 조사</span></div><div class="cm"><b>7교시</b><span>캡스톤 1 · 기획과 제작</span></div><div class="cm"><b>8교시</b><span>캡스톤 2 · 완성과 제출</span></div></div><div class="note red"><span class="nk">이어지는 질문</span><span class="nt">판단에 쓸 정보를 어떻게 준비할까 → 검색을 개선하고 → 도구로 연결해 Agent가 직접 판단</span></div></div></section>
+
+<section class="slide section" data-title="01. AI Agent의 구조"><div class="ghost">01</div><div class="sno">01</div><h2>AI Agent의 구조</h2><p>요청을 받은 뒤 다음 행동을 정하는 프로그램</p></section>
+
+<section class="slide" data-title="요청 하나를 처리하는 과정"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">구조</div><h2 class="s-title">요청 하나를 처리하는 과정</h2><div class="rule"></div><div class="body"><div class="loopwrap"><div class="lend">요청<br><b>「시험 조건과 근거 페이지를 정리해 줘」</b></div><svg viewBox="0 0 600 380" class="loop"><defs><marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#E8002D"/></marker></defs><circle cx="300" cy="190" r="120" fill="none" stroke="#F3C0CB" stroke-width="3" stroke-dasharray="8 8"/><path d="M370 95 Q450 120 470 160" fill="none" stroke="#E8002D" stroke-width="3" marker-end="url(#ah)"/><path d="M470 225 Q450 270 370 290" fill="none" stroke="#E8002D" stroke-width="3" marker-end="url(#ah)"/><path d="M230 290 Q150 270 130 225" fill="none" stroke="#E8002D" stroke-width="3" marker-end="url(#ah)"/><path d="M130 160 Q150 115 230 95" fill="none" stroke="#E8002D" stroke-width="3" marker-end="url(#ah)"/><rect x="222" y="38" width="156" height="64" rx="12" fill="#fff" stroke="#111" stroke-width="2"/><text x="300" y="66" text-anchor="middle" class="lt">판단</text><text x="300" y="88" text-anchor="middle" class="ls">어떤 문서가 필요한가</text><rect x="422" y="158" width="156" height="64" rx="12" fill="#fff" stroke="#111" stroke-width="2"/><text x="500" y="186" text-anchor="middle" class="lt">검색 실행</text><text x="500" y="208" text-anchor="middle" class="ls">앱이 문서 검색</text><rect x="222" y="278" width="156" height="64" rx="12" fill="#fff" stroke="#111" stroke-width="2"/><text x="300" y="306" text-anchor="middle" class="lt">결과 확인</text><text x="300" y="328" text-anchor="middle" class="ls">원문 · 출처</text><rect x="22" y="158" width="156" height="64" rx="12" fill="#fff" stroke="#111" stroke-width="2"/><text x="100" y="186" text-anchor="middle" class="lt">추가 검색</text><text x="100" y="208" text-anchor="middle" class="ls">부족하면 다시</text><text x="300" y="186" text-anchor="middle" class="lc">스스로 반복</text><text x="300" y="210" text-anchor="middle" class="ls">끝날 때까지</text></svg><div class="lend r">답<br><b>조건 · 출처가 달린 답변</b></div></div><div class="note "><span class="nk">AI Agent</span><span class="nt">목표에 따라 필요한 행동을 판단하고, 도구 실행 결과로 다음 행동이나 답변을 이어 가는 프로그램</span></div></div></section>
+
+<section class="slide" data-title="모델은 고르고, 앱은 실행"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">구조</div><h2 class="s-title">모델은 고르고, 앱은 실행</h2><div class="rule"></div><div class="body"><div class="twocol "><div><div class="pane good"><h4>LLM (모델)</h4><ul class='ul'><li>질문과 자료를 읽고 판단</li><li>사용할 <b>도구와 입력값</b>을 선택</li><li>결과를 받아 다음 판단</li></ul></div></div><div><div class="pane bad"><h4>앱</h4><ul class='ul'><li>모델이 고른 도구의 <b>실행 코드</b>를 호출</li><li>쓸 수 있는 도구 · 접근할 자료 관리</li><li>호출 횟수 · 종료 조건 관리</li></ul></div></div></div><div class="note "><span class="nk">Tool</span><span class="nt">앱에 연결해 모델이 선택할 수 있게 제공한 기능 · 문서 검색 · 메모 저장 등</span></div></div></section>
+
+<section class="slide" data-title="Claude Code와 앱 안의 모델"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">구조</div><h2 class="s-title">Claude Code와 앱 안의 모델</h2><div class="rule"></div><div class="body"><div class="twocol "><div><div class="pane good"><h4>Claude Code</h4><ul class='ul'><li>개발 작업을 하는 Agent</li><li>파일을 읽고 코드를 수정</li><li>오늘은 <b>앱 구현을 돕는 도구</b></li></ul></div></div><div><div class="pane good"><h4>rag-sim · agent-sim 안의 모델</h4><ul class='ul'><li>API로 호출하는 모델</li><li>앱 안에서 검색 · 답변 · 도구 선택</li><li>오늘 <b>설계하는 대상</b></li></ul></div></div></div></div></section>
+
+<section class="slide" data-title="AI Agent를 이루는 네 가지"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">구조</div><h2 class="s-title">AI Agent를 이루는 네 가지</h2><div class="rule"></div><div class="body"><div class="parts"><div class="ftile "><div class="fi"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg></div><div class="ft">Instructions</div><div class="fd">어떤 업무를 어떤 규칙으로<br>출처 표시 · 근거 부족 시 처리</div></div><div class="plus">+</div><div class="ftile core"><div class="fi"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/><rect x="10" y="10" width="4" height="4"/></svg></div><div class="ft">LLM</div><div class="fd">정보를 해석해 답변하거나<br>다음 행동 선택</div></div><div class="plus">+</div><div class="ftile "><div class="fi"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-2.5z"/></svg></div><div class="ft">Tools</div><div class="fd">앱이 실제로 실행할 기능<br>모델에는 이름 · 설명 · 입력 규격</div></div><div class="plus">+</div><div class="ftile "><div class="fi"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="ft">Context</div><div class="fd">질문 · 선택한 이력<br>참고 문서 · 도구 결과</div></div></div><div class="note red"><span class="nk">앱의 역할</span><span class="nt">네 요소를 연결하고 실행 결과가 다음 판단으로 돌아가도록 제어</span></div></div></section>
+
+<section class="slide" data-title="모델에 전달되는 입력"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">구조</div><h2 class="s-title">모델에 전달되는 입력</h2><div class="rule"></div><div class="body"><div class="cs"><div class="cs-in"><div class="cs-h">모델에 전달하는 전체 입력</div><div class="cs-row"><div class="cs-ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg></div><div><b>Instructions · 지침</b><span>역할 · 업무 규칙 · 답변 형식</span></div><em>어떻게 처리하고 답할까</em></div><div class="cs-row"><div class="cs-ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-2.5z"/></svg></div><div><b>Tools · 도구 정의</b><span>도구 이름 · 설명 · 입력 규격</span></div><em>어떤 기능을 쓸 수 있을까</em></div><div class="cs-row"><div class="cs-ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div><b>Context Information · 참고 정보</b><span>질문 · 선택한 이력 · 문서 · 도구 결과</span></div><em>무엇을 근거로 답할까</em></div></div><div class="cs-arr">→</div><div class="cs-llm"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/><rect x="10" y="10" width="4" height="4"/></svg><b>LLM</b><span>해석 · 판단</span><span>답변 또는 도구 호출 요청</span></div></div><div class="cs-win"><b>Context Window</b> 한 번의 요청에서 쓸 수 있는 토큰 한도 · 입력 + 출력(+ 추론) 공간을 함께 계산</div><div class="note "><span class="nk">Tools</span><span class="nt">모델에 가는 것은 기능의 <b>설명</b> · 실행 코드는 앱에 남음 · 실행 결과는 다음 요청의 참고 정보로</span></div></div></section>
+
+<section class="slide section" data-title="02. Context Window"><div class="ghost">02</div><div class="sno">02</div><h2>Context Window</h2><p>필요한 정보를 유지하면서 입력의 범위를 정하고 답변 공간을 남기기</p></section>
+
+<section class="slide" data-title="Context Window와 토큰"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">Context</div><h2 class="s-title">Context Window와 토큰</h2><div class="rule"></div><div class="body"><div class="cards c3"><div class="card"><span class="n">1</span><h3>Context Window</h3><p>한 번의 요청에서 처리할 수 있는 정보량의 한도</p></div><div class="card"><span class="n">2</span><h3>Token</h3><p>길이를 세는 단위 · 한 글자나 한 단어와 항상 같지 않음</p></div><div class="card"><span class="n">3</span><h3>함께 계산</h3><p>입력 + 생성할 출력 · 추론 모델은 추론 토큰까지</p></div></div><div class="note "><span class="nk">길어지는 이유</span><span class="nt">질문이 짧아도 지침 · 도구 정의 · 검색 문서 · 이전 실행 결과가 함께 들어감</span></div></div></section>
+
+<section class="slide" data-title="관리할 때 보는 네 가지"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">Context</div><h2 class="s-title">관리할 때 보는 네 가지</h2><div class="rule"></div><div class="body"><table class="ctable "><thead><tr><th>관점</th><th>확인할 것</th></tr></thead><tbody><tr><td><b>입력의 전체 범위</b></td><td>질문뿐 아니라 지침 · 도구 정의 · 이력 · 문서 · 도구 결과까지</td></tr><tr><td><b>유지할 업무 조건</b></td><td>문서명 · 버전 · 수치 · 단위 · 예외 · 출처</td></tr><tr><td><b>선택할 자료와 도구</b></td><td>현재 요청에 필요한 근거와 도구 정의 · 검색 후보 전체 ≠ 전달할 근거</td></tr><tr><td><b>출력과 다음 요청</b></td><td>답변 공간 남기기 · 도구 결과가 더해진 다음 입력도 다시 확인</td></tr></tbody></table></div></section>
+
+<section class="slide" data-title="Context Engineering"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">Context</div><h2 class="s-title">Context Engineering</h2><div class="rule"></div><div class="body"><div class="bav"><div class="b"><div class="lab">줄이기만 하면</div><div class="q">시험 조건에서 숫자만 남기고<br>적용 대상 · 문서 버전 · 예외 조항을 뺌<br><br>→ 짧은 입력으로 잘못된 답</div></div><div class="arr">→</div><div class="a"><div class="lab">근거부터 정하면</div><div class="q">필요한 근거를 먼저 정하고<br>반복된 문단 · 관련 없는 자료를 줄임<br><br>→ 짧지만 의미가 유지된 입력</div></div></div><div class="note red"><span class="nk">Context Engineering</span><span class="nt">모델에 보낼 정보의 선택 · 구성 · 갱신을 설계하는 일</span></div></div></section>
+
+<section class="slide" data-title="입력 예산 예시"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">Context</div><h2 class="s-title">입력 예산 예시</h2><div class="rule"></div><div class="body"><div class="bg"><div class="bg-h">입력 예산 12,000 토큰 (설명용 가정)</div><div class="bg-bar"><div class="bg-s" style="flex:2000;background:#26262B"><b>2,000</b><span>지침 · 도구 정의</span></div><div class="bg-s" style="flex:2000;background:#6B6B73"><b>2,000</b><span>질문 · 선택한 이력</span></div><div class="bg-s" style="flex:8000;background:#E8002D"><b>8,000</b><span>문서 · 도구 결과</span></div></div><div class="bg-out">+ 출력 · 추론 공간은 별도로 남겨 둠</div></div><div class="note "><span class="nk">주의</span><span class="nt">설명용 가정 · 특정 모델의 최대 한도나 실습 앱 설정값이 아님</span></div></div></section>
+
+<section class="slide" data-title="구조를 고를 때의 기준"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">설계 질문</div><h2 class="s-title">구조를 고를 때의 기준</h2><div class="rule"></div><div class="body"><div class="quote">이 문제를 풀기 위해 어떤 구조를 고를 것이고,<br>그 대가는 무엇인가?</div><div class="twocol "><div><div class="pane bad"><h4>더 정확해지는 대신</h4><ul class='ul'><li>느려짐</li><li>입력 비용 증가</li></ul></div></div><div><div class="pane bad"><h4>더 유연해지는 대신</h4><ul class='ul'><li>비용 증가</li><li>관리할 것 증가</li></ul></div></div></div><div class="note "><span class="nk">오늘의 연습</span><span class="nt">실행 결과를 직접 보고 상황에 맞는 구조 고르기</span></div></div></section>
+
+<section class="slide section" data-title="03. 실습 준비"><div class="ghost">03</div><div class="sno">03</div><h2>실습 준비</h2><p>Claude Code 설치 · 기본 명령 · API Key 보안 · rag-sim 실행</p></section>
+
+<section class="slide" data-title="PowerShell 기본"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">실습 준비</div><h2 class="s-title">PowerShell 기본</h2><div class="rule"></div><div class="body"><div class="twocol "><div><table class="ctable "><thead><tr><th>명령</th><th>하는 일</th></tr></thead><tbody><tr><td><code>pwd</code></td><td>현재 폴더 경로</td></tr><tr><td><code>ls</code></td><td>파일 · 하위 폴더 목록</td></tr><tr><td><code>cd 폴더</code></td><td>폴더로 이동</td></tr><tr><td><code>cd ..</code></td><td>상위 폴더로</td></tr><tr><td><code>Ctrl+C</code></td><td>실행 중인 프로그램 중단</td></tr></tbody></table></div><div><ul class='ul'><li>시작 메뉴 → PowerShell · 일반 권한</li><li><code>PS C:\Users\사용자&gt;</code> 뒤에 입력</li><li>공백 있는 경로는 큰따옴표</li><li><b>claude 실행 전</b>: PowerShell 명령 · <b>실행 후</b>: 자연어 요청</li></ul></div></div></div></section>
+
+<section class="slide" data-title="Claude Code 설치"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">실습 준비</div><h2 class="s-title">Claude Code 설치</h2><div class="rule"></div><div class="body"><div class="twocol w"><div><div class="code prompt"><div class="bar"><span class="plabel">PowerShell · 설치</span></div><pre><code>irm https://claude.ai/install.ps1 | iex</code></pre></div><div class="code prompt"><div class="bar"><span class="plabel">창을 닫았다 다시 열고 · 확인</span></div><pre><code>claude --version</code></pre></div></div><div><figure class="realshot"><img src="img/s1/powershell.png" alt="버전 번호가 나오면 설치 완료"><div class="cap">버전 번호가 나오면 설치 완료</div></figure></div></div><div class="note red"><span class="nk">막히면</span><span class="nt">irm 인식 실패 → CMD가 아닌 PowerShell인지(PS 표시) · command not found → 창을 새로 열고 다시</span></div></div></section>
+
+<section class="slide" data-title="실습 폴더에서 실행"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">실습 준비</div><h2 class="s-title">실습 폴더에서 실행</h2><div class="rule"></div><div class="body"><div class="twocol w"><div><div class="code prompt"><div class="bar"><span class="plabel">PowerShell</span></div><pre><code>cd C:\samsung_ds_YYYYMMDD\rag-sim
+claude</code></pre></div></div><div><ul class='ul'><li>rag-sim.zip을 실습 폴더에 풀기 · <b>app.py · run.bat</b> 확인</li><li>Claude Code는 <b>실행한 폴더</b>를 작업 공간으로 사용</li><li>처음 실행하면 브라우저 로그인 · 배부받은 구독 계정</li></ul></div></div><div class="note red"><span class="nk">막히면</span><span class="nt">브라우저가 안 열리면 터미널의 주소를 직접 붙여 넣기 · 계속 로그인 요청이면 브라우저 계정 확인</span></div></div></section>
+
+<section class="slide" data-title="Claude Code 기본 명령"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">실습 준비</div><h2 class="s-title">Claude Code 기본 명령</h2><div class="rule"></div><div class="body"><table class="ctable "><thead><tr><th>명령</th><th>하는 일</th></tr></thead><tbody><tr><td><code>/model</code></td><td>작업에 쓸 모델 선택</td></tr><tr><td><code>/usage</code></td><td>현재까지 사용량 · 구독 한도 확인</td></tr><tr><td><code>/init</code></td><td>프로젝트를 훑어 CLAUDE.md 생성</td></tr><tr><td><code>/clear</code></td><td>대화를 지우고 새로 시작</td></tr><tr><td><code>/context</code></td><td>지금 대화가 입력 한도를 얼마나 쓰는지</td></tr><tr><td><code>/resume</code></td><td>이전 대화 불러오기</td></tr><tr><td><code>Esc</code></td><td>진행 중인 작업 멈추기</td></tr></tbody></table><div class="note red"><span class="nk">/context</span><span class="nt">AI는 한 번에 처리할 입력에 한도가 있음 · 오늘 하루 설계의 기준</span></div></div></section>
+
+<section class="slide" data-title="모델 등급별 용도"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">실습 준비</div><h2 class="s-title">모델 등급별 용도</h2><div class="rule"></div><div class="body"><table class="ctable "><thead><tr><th>등급</th><th>맞는 일</th></tr></thead><tbody><tr><td><b>최상위</b> (Fable)</td><td>장시간 자율 작업 · 최고 난도 문제</td></tr><tr><td><b>상위</b> (Opus)</td><td>설계 · 여러 파일에 걸친 변경 · 원인 찾기 어려운 버그</td></tr><tr><td><b>기본</b> (Sonnet)</td><td>일상 개발 · 기능 추가 · 테스트 · 코드 리뷰</td></tr><tr><td><b>경량</b> (Haiku)</td><td>포맷 변환 · 일괄 치환 · 로그 요약 · 간단한 분류</td></tr></tbody></table><div class="note red"><span class="nk">실전 기본값</span><span class="nt">기본 등급으로 시작 → 막히면 올리고 → 단순 반복이면 내리기 · <b>작업 단위로</b> 바꾸기</span></div><div class="note "><span class="nk">가격 · 모델명</span><span class="nt">교육 시점의 공식 문서로 확인</span></div></div></section>
+
+<section class="slide" data-title="토큰을 아끼는 습관"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">실습 준비</div><h2 class="s-title">토큰을 아끼는 습관</h2><div class="rule"></div><div class="body"><div class="cards c3"><div class="card"><span class="n">1</span><h3>/context</h3><p>먼저 무엇이 토큰을 쓰는지 확인</p></div><div class="card"><span class="n">2</span><h3>/clear</h3><p>작업이 바뀌면 대화 비우기</p></div><div class="card"><span class="n">3</span><h3>/compact</h3><p>한도 경고 전에 미리 압축</p></div><div class="card"><span class="n">4</span><h3>@파일:줄</h3><p>탐색시키지 말고 위치 지정</p></div><div class="card"><span class="n">5</span><h3>서브에이전트</h3><p>조사는 맡기고 요약만 받기</p></div><div class="card"><span class="n">6</span><h3>CLAUDE.md</h3><p>짧게 유지 · 매번 읽힘</p></div></div><div class="note red"><span class="nk">토큰이 새는 패턴</span><span class="nt">관련 없는 일을 한 창에서 · 실패한 수정이 쌓임 · 범위 없는 「조사해 줘」</span></div></div></section>
+
+<section class="slide" data-title="/init으로 프로젝트 파악"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">실습 준비</div><h2 class="s-title">/init으로 프로젝트 파악</h2><div class="rule"></div><div class="body"><div class="twocol w"><div><div class="code prompt"><div class="bar"><span class="plabel">Claude Code</span></div><pre><code>/init</code></pre></div></div><div><ul class='ul'><li>만들어진 <b>CLAUDE.md</b> 읽기</li><li>궁금한 점을 직접 질문: 앱 목적 · 입력 · 처리 흐름 · 결과</li><li>답을 읽고 <b>실제 파일이나 화면</b>에서 한 곳 확인</li></ul></div></div><div class="note "><span class="nk">요청문</span><span class="nt">정답 문장 없음 · 키워드와 실습 조건을 조합해 내 문장으로</span></div></div></section>
+
+<section class="slide" data-title="API Key가 하는 일"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">보안</div><h2 class="s-title">API Key가 하는 일</h2><div class="rule"></div><div class="body"><div class="pipe"><div class="step"><div class="si">01</div><div class="sn">앱</div><div class="sd">질문 · 문서</div></div><div class="arrow">→</div><div class="step hl"><div class="si">02</div><div class="sn">API 요청</div><div class="sd">API Key 포함</div></div><div class="arrow">→</div><div class="step"><div class="si">03</div><div class="sn">서비스</div><div class="sd">요청자 확인</div></div><div class="arrow">→</div><div class="step"><div class="si">04</div><div class="sn">사용량 기록</div><div class="sd">계정별 청구</div></div></div><div class="note red"><span class="nk">유출되면</span><span class="nt">다른 사람이 내 계정으로 요청 · 비용은 내 계정에 청구</span></div><div class="note "><span class="nk">실습</span><span class="nt">코드에 직접 적지 않고 <b>.env</b> 파일에 보관 · 실행할 때 읽음</span></div></div></section>
+
+<section class="slide" data-title=".env가 막는 것과 못 막는 것"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">보안</div><h2 class="s-title">.env가 막는 것과 못 막는 것</h2><div class="rule"></div><div class="body"><div class="twocol "><div><div class="pane good"><h4>막는 것</h4><ul class='ul'><li>Key를 <b>코드 · Git</b>에서 분리</li><li>저장소에 올릴 때 함께 공개되는 것 방지</li></ul></div></div><div><div class="pane bad"><h4>못 막는 것</h4><ul class='ul'><li>Claude Code가 프로젝트 파일 · 셸에 접근하면</li><li>.env나 환경 변수의 Key를 읽을 수 있음</li></ul></div></div></div><table class="ctable "><thead><tr><th>수준</th><th>방법</th></tr></thead><tbody><tr><td><b>개인 실습</b></td><td>.env + .gitignore + 프로젝트별 Key + 사용량 · 권한 제한</td></tr><tr><td><b>강화</b></td><td>OS Keychain · Credential Manager · Secret Manager</td></tr><tr><td><b>운영 · 기업</b></td><td>Agent에는 Key를 주지 않고 API Proxy · Gateway가 대신 호출</td></tr></tbody></table></div></section>
+
+<section class="slide" data-title="대화 기록이 남는 곳"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">보안</div><h2 class="s-title">대화 기록이 남는 곳</h2><div class="rule"></div><div class="body"><table class="ctable "><thead><tr><th>위치</th><th>내용</th><th>보관</th></tr></thead><tbody><tr><td><b>내 PC</b><br><code>%USERPROFILE%\.claude\projects</code></td><td>요청 · 답변 · 읽은 파일 · 명령 결과가 <b>암호화 없이</b> .jsonl로</td><td>기본 30일 · settings.json의 cleanupPeriodDays</td></tr><tr><td><b>서비스 서버</b></td><td>답변 생성을 위해 전송</td><td>계정 유형 · 데이터 사용 설정에 따라 다름</td></tr></tbody></table><div class="note red"><span class="nk">원칙</span><span class="nt">API Key · 사번 · 미공개 자료는 대화창에 붙여 넣지 않기 · 회사 PC는 사내 보안 규정 따르기</span></div></div></section>
+
+<section class="slide" data-title=".env에 Key 넣기"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">보안</div><h2 class="s-title">.env에 Key 넣기</h2><div class="rule"></div><div class="body"><div class="biglist"><div class="li"><span class="num">1</span><div class="tx"><h4>복사</h4><p>rag-sim 폴더의 <b>.env.example</b> → <b>.env</b></p></div></div><div class="li"><span class="num">2</span><div class="tx"><h4>붙여 넣기</h4><p>메모장으로 열어 <code>OPENAI_API_KEY=</code> 뒤에 배부받은 Key</p></div></div><div class="li"><span class="num">3</span><div class="tx"><h4>저장</h4><p>오늘 하루 계속 사용 · 오후 앱도 같은 방법</p></div></div></div><div class="note red"><span class="nk">막히면</span><span class="nt">.env.txt로 저장된 경우가 많음 → 확장자 표시 켜고 확인 · 키가 없으면 바로 예비 키 요청</span></div></div></section>
+
+<section class="slide" data-title="rag-sim 실행"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">실습 준비</div><h2 class="s-title">rag-sim 실행</h2><div class="rule"></div><div class="body"><div class="twocol w2"><div><ul class='ul'><li>Claude Code에 실행 준비 요청: 실행 조건 · 필요한 패키지 · 설치 · 실행 확인</li><li>chromadb · pypdf 등 설치</li><li><b>run.bat</b> 더블클릭 또는 <code>.\run.bat</code></li><li>브라우저에서 앱이 열림</li></ul><div class="note red"><span class="nk">막히면</span><span class="nt">메시지를 그대로 Claude Code에 붙여 넣기 · 창이 바로 닫히면 <code>python app.py</code>로 오류 읽기</span></div></div><div><figure class="realshot"><img src="img/s1/raglab.png" alt="rag-sim · 메뉴 네 개와 상태 표시줄"><div class="cap">rag-sim · 메뉴 네 개와 상태 표시줄</div></figure></div></div></div></section>
+
+<section class="slide section" data-title="04. AI에게 문서를 전달하는 방법"><div class="ghost">04</div><div class="sno">04</div><h2>AI에게 문서를 전달하는 방법</h2><p>RAG가 고른 구조와 임베딩</p></section>
+
+<section class="slide" data-title="익숙한 두 가지 방법"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">RAG</div><h2 class="s-title">익숙한 두 가지 방법</h2><div class="rule"></div><div class="body"><div class="parts"><div class="ftile "><div class="fi"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></div><div class="ft">User Input Prompt</div><div class="fd">배경 · 조건을 질문에 함께 적기</div></div><div class="ftile "><div class="fi"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11l-8.5 8.5a5 5 0 0 1-7-7L14 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L15 7"/></svg></div><div class="ft">첨부파일</div><div class="fd">PDF · 보고서를 붙이고<br>「이 문서를 참고해서 답해 줘」</div></div></div><div class="note red"><span class="nk">한계</span><span class="nt">자료가 수천 · 수만 개라면 질문마다 직접 고르기 어려움</span></div></div></section>
+
+<section class="slide" data-title="학습시키거나, 입력에 넣거나"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">RAG</div><h2 class="s-title">학습시키거나, 입력에 넣거나</h2><div class="rule"></div><div class="body"><div class="twocol "><div><div class="pane bad"><h4>추가 학습 · 파인튜닝</h4><ul class='ul'><li>모델 내부의 <b>가중치</b>를 조정</li><li>답변 형식 · 처리 방식을 맞출 때</li><li>데이터 준비 · 학습 비용이 큼</li></ul></div></div><div><div class="pane good"><h4>입력 컨텍스트에 넣기</h4><ul class='ul'><li>다시 학습하지 않음</li><li>질문 · 지시문 · 참고 자료를 함께 전달</li><li>새 문서를 바로 반영</li></ul></div></div></div></div></section>
+
+<section class="slide" data-title="세 가지 방법 비교"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">RAG</div><h2 class="s-title">세 가지 방법 비교</h2><div class="rule"></div><div class="body"><table class="ctable "><thead><tr><th>방법</th><th>어떻게</th><th>비용</th><th>문서가 바뀌면</th></tr></thead><tbody><tr><td><b>추가 학습</b></td><td>예시 데이터로 응답 방식 조정</td><td>데이터 준비 · 학습 · 추론</td><td>재학습 또는 외부 검색 검토</td></tr><tr><td><b>전체를 매번 입력</b></td><td>질문마다 모든 문서 전달</td><td>질문마다 전체 자료의 입력 비용</td><td>다음 요청에 바로 반영</td></tr><tr><td><b>RAG</b></td><td>관련된 조각만 검색해 전달</td><td>문서 준비 · 검색 + 선택한 자료만</td><td>바뀐 문서만 다시 처리</td></tr></tbody></table><div class="note red"><span class="nk">설계 질문</span><span class="nt">우리 팀 자료라면? 문서의 양 · 바뀌는 빈도 · 하루 질문 수로 판단</span></div></div></section>
+
+<section class="slide ill" data-title="입력은 책상, 저장소는 서랍"><svg class="scene" viewBox="0 0 1280 720" aria-hidden="true">
+<ellipse cx="320" cy="655" rx="270" ry="14" fill="#DCDCE1"/>
+<path d="M98 452 A72 72 0 0 0 214 566" stroke="#26262B" stroke-width="5" fill="none"/>
+<circle cx="160" cy="500" r="62" fill="#DCDCE1" stroke="#26262B" stroke-width="4"/>
+<ellipse cx="160" cy="500" rx="26" ry="62" fill="none" stroke="#26262B" stroke-width="3"/>
+<ellipse cx="160" cy="500" rx="62" ry="20" fill="none" stroke="#26262B" stroke-width="3"/>
+<line x1="98" y1="500" x2="222" y2="500" stroke="#26262B" stroke-width="3"/>
+<line x1="160" y1="566" x2="160" y2="602" stroke="#26262B" stroke-width="6"/>
+<ellipse cx="160" cy="606" rx="42" ry="8" fill="#26262B"/>
+<g transform="rotate(-8 166.0 286.0)"><rect x="96" y="236" width="140" height="100" rx="6" fill="#FFFFFF" stroke="#26262B" stroke-width="3.5"/><rect x="98" y="238" width="136" height="14" rx="4" fill="#DCDCE1"/><circle cx="108" cy="245" r="3" fill="#26262B"/><circle cx="118" cy="245" r="3" fill="#26262B"/><circle cx="128" cy="245" r="3" fill="#26262B"/><line x1="110" y1="270" x2="222" y2="270" stroke="#DCDCE1" stroke-width="6" stroke-linecap="round"/><line x1="110" y1="286" x2="222" y2="286" stroke="#DCDCE1" stroke-width="6" stroke-linecap="round"/><line x1="110" y1="302" x2="222" y2="302" stroke="#DCDCE1" stroke-width="6" stroke-linecap="round"/></g><g transform="rotate(5 358.0 253.0)"><rect x="292" y="205" width="132" height="96" rx="6" fill="#FFFFFF" stroke="#26262B" stroke-width="3.5"/><rect x="294" y="207" width="128" height="14" rx="4" fill="#DCDCE1"/><circle cx="304" cy="214" r="3" fill="#26262B"/><circle cx="314" cy="214" r="3" fill="#26262B"/><circle cx="324" cy="214" r="3" fill="#26262B"/><line x1="306" y1="239" x2="410" y2="239" stroke="#DCDCE1" stroke-width="6" stroke-linecap="round"/><line x1="306" y1="255" x2="410" y2="255" stroke="#DCDCE1" stroke-width="6" stroke-linecap="round"/><line x1="306" y1="271" x2="410" y2="271" stroke="#DCDCE1" stroke-width="6" stroke-linecap="round"/></g><g transform="rotate(-4 531.0 346.0)"><rect x="470" y="300" width="122" height="92" rx="6" fill="#FFFFFF" stroke="#26262B" stroke-width="3.5"/><rect x="472" y="302" width="118" height="14" rx="4" fill="#DCDCE1"/><circle cx="482" cy="309" r="3" fill="#26262B"/><circle cx="492" cy="309" r="3" fill="#26262B"/><circle cx="502" cy="309" r="3" fill="#26262B"/><line x1="484" y1="334" x2="578" y2="334" stroke="#DCDCE1" stroke-width="6" stroke-linecap="round"/><line x1="484" y1="350" x2="578" y2="350" stroke="#DCDCE1" stroke-width="6" stroke-linecap="round"/><line x1="484" y1="366" x2="578" y2="366" stroke="#DCDCE1" stroke-width="6" stroke-linecap="round"/></g>
+<path d="M246 470 L270 470 M240 492 L262 492" stroke="#DCDCE1" stroke-width="5" stroke-linecap="round"/>
+<g transform="translate(330,650) scale(1.15)"><use href="#robot"/><path d="M-9 -138 Q0 -131 9 -138" stroke="#26262B" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M44 -86 Q100 -120 117 -222" stroke="#26262B" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="117" cy="-222" r="10" fill="#DCDCE1" stroke="#26262B" stroke-width="3"/><path d="M-44 -86 L-78 -78" stroke="#26262B" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="-78" cy="-78" r="10" fill="#DCDCE1" stroke="#26262B" stroke-width="3"/></g>
+<rect x="210" y="562" width="30" height="40" fill="#FFFFFF" stroke="#26262B" stroke-width="2.5" transform="rotate(-10 225 582)"/>
+<rect x="240" y="558" width="30" height="40" fill="#FFFFFF" stroke="#26262B" stroke-width="2.5" transform="rotate(9 255 578)"/>
+<path d="M205 584 Q240 540 276 584" stroke="#26262B" stroke-width="4" fill="none"/>
+<path d="M194 584 L286 584 L274 640 L206 640 Z" fill="#DCDCE1" stroke="#26262B" stroke-width="4"/>
+<line x1="218" y1="588" x2="216" y2="636" stroke="#26262B" stroke-width="2"/><line x1="240" y1="588" x2="238" y2="636" stroke="#26262B" stroke-width="2"/><line x1="262" y1="588" x2="260" y2="636" stroke="#26262B" stroke-width="2"/>
+<line x1="200" y1="612" x2="280" y2="612" stroke="#26262B" stroke-width="2"/>
+<circle cx="240" cy="560" r="10" fill="#DCDCE1" stroke="#26262B" stroke-width="3"/>
+<line x1="465" y1="395" x2="484" y2="376" stroke="#26262B" stroke-width="9" stroke-linecap="round"/>
+<circle cx="503" cy="356" r="28" fill="#FFFFFF" fill-opacity=".55" stroke="#26262B" stroke-width="6"/>
+<circle cx="465" cy="395" r="10" fill="#DCDCE1" stroke="#26262B" stroke-width="3"/><line x1="640" y1="170" x2="640" y2="690" stroke="#DCDCE1" stroke-width="3"/>
+<ellipse cx="960" cy="665" rx="290" ry="14" fill="#DCDCE1"/>
+<g filter="url(#soft)" opacity=".45">
+  <rect x="690" y="612" width="74" height="16" rx="3" fill="#26262B"/><rect x="696" y="596" width="64" height="16" rx="3" fill="#DCDCE1" stroke="#26262B" stroke-width="2"/><rect x="688" y="628" width="78" height="16" rx="3" fill="#DCDCE1" stroke="#26262B" stroke-width="2"/>
+  <g transform="rotate(-6 745.0 300.0)"><rect x="690" y="260" width="110" height="80" rx="6" fill="#FFFFFF" stroke="#26262B" stroke-width="3.5"/><rect x="692" y="262" width="106" height="14" rx="4" fill="#DCDCE1"/><circle cx="702" cy="269" r="3" fill="#26262B"/><circle cx="712" cy="269" r="3" fill="#26262B"/><circle cx="722" cy="269" r="3" fill="#26262B"/><line x1="704" y1="294" x2="786" y2="294" stroke="#DCDCE1" stroke-width="6" stroke-linecap="round"/><line x1="704" y1="310" x2="786" y2="310" stroke="#DCDCE1" stroke-width="6" stroke-linecap="round"/></g><g transform="rotate(7 1078.0 262.0)"><rect x="1020" y="220" width="116" height="84" rx="6" fill="#FFFFFF" stroke="#26262B" stroke-width="3.5"/><rect x="1022" y="222" width="112" height="14" rx="4" fill="#DCDCE1"/><circle cx="1032" cy="229" r="3" fill="#26262B"/><circle cx="1042" cy="229" r="3" fill="#26262B"/><circle cx="1052" cy="229" r="3" fill="#26262B"/><line x1="1034" y1="254" x2="1122" y2="254" stroke="#DCDCE1" stroke-width="6" stroke-linecap="round"/><line x1="1034" y1="270" x2="1122" y2="270" stroke="#DCDCE1" stroke-width="6" stroke-linecap="round"/><line x1="1034" y1="286" x2="1122" y2="286" stroke="#DCDCE1" stroke-width="6" stroke-linecap="round"/></g>
+  <rect x="1150" y="300" width="100" height="120" rx="4" fill="#DCDCE1" stroke="#26262B" stroke-width="3"/>
+  <rect x="1158" y="318" width="12" height="38" fill="#26262B"/><rect x="1174" y="318" width="12" height="38" fill="#26262B"/><rect x="1190" y="318" width="12" height="38" fill="#26262B"/><rect x="1206" y="318" width="12" height="38" fill="#26262B"/><rect x="1222" y="318" width="12" height="38" fill="#26262B"/>
+  <rect x="1158" y="368" width="12" height="40" fill="#FFFFFF" stroke="#26262B" stroke-width="2"/><rect x="1174" y="368" width="12" height="40" fill="#FFFFFF" stroke="#26262B" stroke-width="2"/><rect x="1190" y="368" width="12" height="40" fill="#FFFFFF" stroke="#26262B" stroke-width="2"/><rect x="1206" y="368" width="12" height="40" fill="#FFFFFF" stroke="#26262B" stroke-width="2"/><rect x="1222" y="368" width="12" height="40" fill="#FFFFFF" stroke="#26262B" stroke-width="2"/>
+  <rect x="700" y="420" width="60" height="78" rx="3" fill="#FFFFFF" stroke="#26262B" stroke-width="3" transform="rotate(-12 730 459)"/>
+</g>
+<g transform="translate(960,640) scale(1.2)"><use href="#robot"/><path d="M-9 -138 Q0 -131 9 -138" stroke="#26262B" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M-44 -86 L-70 -100" stroke="#26262B" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M44 -86 L70 -100" stroke="#26262B" stroke-width="9" fill="none" stroke-linecap="round"/></g>
+<rect x="780" y="556" width="360" height="16" rx="6" fill="#26262B"/>
+<rect x="796" y="572" width="328" height="62" fill="#DCDCE1" stroke="#26262B" stroke-width="3"/><rect x="800" y="572" width="14" height="94" fill="#26262B"/><rect x="1106" y="572" width="14" height="94" fill="#26262B"/>
+<path d="M960 558 L870 548 L874 468 L960 478 L1046 468 L1050 548 Z" fill="#E8002D" stroke="#26262B" stroke-width="3"/>
+<path d="M960 548 L880 540 L884 478 L960 486 Z" fill="#FFFFFF" stroke="#26262B" stroke-width="3"/>
+<path d="M960 548 L1040 540 L1036 478 L960 486 Z" fill="#FFFFFF" stroke="#26262B" stroke-width="3"/>
+<line x1="896" y1="496" x2="948" y2="500" stroke="#DCDCE1" stroke-width="5" stroke-linecap="round"/><line x1="972" y1="500" x2="1024" y2="496" stroke="#DCDCE1" stroke-width="5" stroke-linecap="round"/><line x1="896" y1="512" x2="948" y2="516" stroke="#DCDCE1" stroke-width="5" stroke-linecap="round"/><line x1="972" y1="516" x2="1024" y2="512" stroke="#DCDCE1" stroke-width="5" stroke-linecap="round"/><line x1="896" y1="528" x2="948" y2="532" stroke="#DCDCE1" stroke-width="5" stroke-linecap="round"/><line x1="972" y1="532" x2="1024" y2="528" stroke="#DCDCE1" stroke-width="5" stroke-linecap="round"/>
+<circle cx="960" cy="496" r="4" fill="#26262B"/><circle cx="960" cy="514" r="4" fill="#26262B"/><circle cx="960" cy="532" r="4" fill="#26262B"/>
+<circle cx="876" cy="520" r="12" fill="#DCDCE1" stroke="#26262B" stroke-width="3"/>
+<circle cx="1044" cy="520" r="12" fill="#DCDCE1" stroke="#26262B" stroke-width="3"/>
+<g transform="translate(1205,561.64) scale(0.68)"><use href="#legs"/><path d="M54 -140 L70 -40" stroke="#26262B" stroke-width="22" fill="none" stroke-linecap="round"/><circle cx="70" cy="-40" r="12" fill="#FFFFFF" stroke="#26262B" stroke-width="3"/><use href="#person"/><path d="M-54 -140 Q-96 -150 -126 -100" stroke="#26262B" stroke-width="22" fill="none" stroke-linecap="round"/><circle cx="-126" cy="-100" r="12" fill="#FFFFFF" stroke="#26262B" stroke-width="3"/></g></svg><span class="coord icoord"><b>01</b> / <span class="tot"></span></span><div class="icap top"><h2>입력은 책상, 저장소는 서랍</h2><ul><li>책상은 좁고, 올릴수록 비용 · 시간</li><li>RAG: 서랍에서 이번 질문에 필요한 종이만 꺼냄</li></ul></div></section>
+
+<section class="slide" data-title="참고 자료를 전달하는 세 흐름"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">RAG</div><h2 class="s-title">참고 자료를 전달하는 세 흐름</h2><div class="rule"></div><div class="body"><div class="tws"><div class="tw"><b>사람이 선택</b><div class="tw-f"><span>사람이 필요한 문단 고르기</span><i>→</i><span>질문과 함께 전달</span><i>→</i><span>LLM이 읽고 답변</span></div></div><div class="tw"><b>문서 전체 전달</b><div class="tw-f"><span>짧은 자료 전체</span><i>→</i><span>질문과 함께 전달</span><i>→</i><span>LLM이 읽고 답변</span></div></div><div class="tw hl"><b>RAG</b><div class="tw-f"><span>질문으로 관련 자료 검색</span><i>→</i><span>질문 + 검색된 자료</span><i>→</i><span>LLM이 읽고 답변</span></div></div></div><div class="note "><span class="nk">검색 대상</span><span class="nt">PDF만이 아니라 웹페이지 · DB 기록 · 다른 시스템 정보도 가능</span></div></div></section>
+
+<section class="slide" data-title="RAG: 검색 · 증강 · 생성"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">RAG</div><h2 class="s-title">RAG: 검색 · 증강 · 생성</h2><div class="rule"></div><div class="body"><div class="pipe"><div class="step hl"><div class="si">01</div><div class="sn">검색 Retrieval</div><div class="sd">질문과 관련된 자료 찾기</div></div><div class="arrow">→</div><div class="step"><div class="si">02</div><div class="sn">증강 Augmented</div><div class="sd">찾은 자료를 질문과 함께 전달</div></div><div class="arrow">→</div><div class="step"><div class="si">03</div><div class="sn">생성 Generation</div><div class="sd">자료를 근거로 답변</div></div></div><div class="note red"><span class="nk">Naive RAG</span><span class="nt">벡터 검색을 쓰는 RAG · 대량 자료에서 필요한 근거를 <b>저렴하고 빠르게</b> 전달</span></div></div></section>
+
+<section class="slide" data-title="글자 비교만으로는 못 찾는 질문"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">임베딩</div><h2 class="s-title">글자 비교만으로는 못 찾는 질문</h2><div class="rule"></div><div class="body"><div class="bav"><div class="b"><div class="lab">글자 일치 비교</div><div class="q">질문: 반도체 패키지의 박리<br>문서: package delamination<br><br>→ 글자가 달라 연결하기 어려움</div></div><div class="arr">→</div><div class="a"><div class="lab">의미 비교</div><div class="q">의미를 비교할 수 있는 형태로 미리 바꿔 두기<br><br>→ 표현이 달라도 관련 자료를 찾음</div></div></div></div></section>
+
+<section class="slide" data-title="문장을 숫자 배열로: 임베딩"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">임베딩</div><h2 class="s-title">문장을 숫자 배열로: 임베딩</h2><div class="rule"></div><div class="body"><div class="em"><div class="em-col"><div class="em-h">문장</div><div class="em-s"><b>S1</b>웨이퍼 식각 공정의 가스 유량 · 압력 레시피</div><div class="em-s"><b>S2</b>박막 증착 설비의 온도 · 진공 레시피</div><div class="em-s"><b>S3</b>돼지고기 김치찌개 레시피와 조리 순서</div></div><div class="em-arr">→</div><div class="em-m"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/><rect x="10" y="10" width="4" height="4"/></svg><b>임베딩 모델</b><span>문장 → 숫자 배열</span></div><div class="em-arr">→</div><div class="em-col"><div class="em-h">벡터 (숫자 배열)</div><div class="em-v"><b>S1</b><code>[0.082, −0.145, 0.231, …]</code></div><div class="em-v"><b>S2</b><code>[0.079, −0.138, 0.228, …]</code></div><div class="em-v far"><b>S3</b><code>[−0.312, 0.451, −0.089, …]</code></div></div></div><div class="note red"><span class="nk">임베딩</span><span class="nt">글을 벡터(순서가 있는 숫자 배열)로 표현 · 숫자는 설명용</span></div></div></section>
+
+<section class="slide" data-title="의미가 가까우면 가까이"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">임베딩</div><h2 class="s-title">의미가 가까우면 가까이</h2><div class="rule"></div><div class="body"><div class="twocol w"><div><svg viewBox="0 0 640 380" class="vsp">
+<defs><marker id="va" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#26262B"/></marker>
+<marker id="vr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#E8002D"/></marker></defs>
+<line x1="60" y1="330" x2="610" y2="330" stroke="#DCDCE1" stroke-width="2"/><line x1="320" y1="20" x2="320" y2="350" stroke="#DCDCE1" stroke-width="2"/>
+<line x1="320" y1="330" x2="560" y2="140" stroke="#E8002D" stroke-width="4" marker-end="url(#vr)"/>
+<line x1="320" y1="330" x2="575" y2="200" stroke="#E8002D" stroke-width="4" marker-end="url(#vr)"/>
+<line x1="320" y1="330" x2="110" y2="110" stroke="#26262B" stroke-width="4" marker-end="url(#va)"/>
+<path d="M545 150 Q600 160 565 205" fill="none" stroke="#E8002D" stroke-width="2" stroke-dasharray="5 5"/>
+<text x="560" y="128" class="vt r">S1 식각 공정</text><text x="582" y="222" class="vt r">S2 증착 공정</text>
+<text x="70" y="98" class="vt">S3 김치찌개</text>
+<text x="420" y="300" class="vs">가까움 → 유사도 높음</text><text x="120" y="250" class="vs">멀리 → 유사도 낮음</text></svg></div><div><ul class='ul'><li>식각 · 증착 레시피: <b>반도체 공정</b>이라는 문맥 공유 → 가까움</li><li>김치찌개 레시피: 같은 단어, 다른 문맥 → 멀리</li><li>가깝다 ≠ 정답 · 모든 조건 충족은 별도 확인</li></ul></div></div></div></section>
+
+<section class="slide" data-title="벡터와 차원"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">임베딩</div><h2 class="s-title">벡터와 차원</h2><div class="rule"></div><div class="body"><div class="cards c2"><div class="card"><span class="n">1</span><h3>벡터</h3><p>순서가 있는 숫자 배열 · 2개면 평면, 3개면 공간 좌표</p></div><div class="card"><span class="n">2</span><h3>차원</h3><p>숫자의 개수 · 실제 임베딩은 수백 ~ 수천</p></div><div class="card"><span class="n">3</span><h3>숫자의 뜻</h3><p>숫자 하나에 「온도」 같은 뜻이 붙어 있지 않음 · 여러 숫자가 함께 표현</p></div><div class="card"><span class="n">4</span><h3>LLM에는 원문</h3><p>벡터는 고르는 데만 · 답변엔 원문 · 출처 전달 → 함께 저장</p></div></div></div></section>
+
+<section class="slide" data-title="거리와 각도는 다른 기준"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">임베딩</div><h2 class="s-title">거리와 각도는 다른 기준</h2><div class="rule"></div><div class="body"><div class="twocol w2"><div><svg viewBox="0 0 420 320" class="vsp">
+<defs><marker id="ca" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#26262B"/></marker>
+<marker id="cr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#E8002D"/></marker></defs>
+<line x1="60" y1="260" x2="400" y2="260" stroke="#DCDCE1" stroke-width="2"/><line x1="60" y1="20" x2="60" y2="280" stroke="#DCDCE1" stroke-width="2"/>
+<line x1="60" y1="260" x2="320" y2="260" stroke="#26262B" stroke-width="5" marker-end="url(#ca)"/>
+<line x1="60" y1="260" x2="190" y2="260" stroke="#E8002D" stroke-width="7" marker-end="url(#cr)"/>
+<line x1="60" y1="260" x2="60" y2="130" stroke="#26262B" stroke-width="5" marker-end="url(#ca)"/>
+<line x1="190" y1="250" x2="70" y2="140" stroke="#6B6B73" stroke-width="2" stroke-dasharray="6 5"/>
+<text x="180" y="292" class="vt r">A (1, 0)</text><text x="300" y="292" class="vt">B (2, 0)</text><text x="72" y="122" class="vt">C (0, 1)</text>
+<text x="140" y="185" class="vs">거리 √2</text><path d="M60 230 L90 230 L90 260" fill="none" stroke="#6B6B73" stroke-width="2"/></svg></div><div><table class="ctable "><thead><tr><th>기준</th><th>읽는 법</th></tr></thead><tbody><tr><td><b>유클리드 거리</b></td><td>끝점 사이 직선거리 · 작을수록 가까움</td></tr><tr><td><b>코사인 유사도</b></td><td>사이 각도 · 클수록 방향이 비슷 (−1 ~ 1)</td></tr><tr><td><b>코사인 거리</b></td><td>1 − 코사인 유사도 · 작을수록 비슷 (0 ~ 2)</td></tr></tbody></table></div></div><div class="note "><span class="nk">A와 B</span><span class="nt">같은 방향 → 코사인 유사도 1 · 거리는 1 · 길이를 1로 맞추는 정규화로 비교가 단순해짐</span></div></div></section>
+
+<section class="slide" data-title="질문도 임베딩해서 고르기"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">임베딩</div><h2 class="s-title">질문도 임베딩해서 고르기</h2><div class="rule"></div><div class="body"><div class="pipe"><div class="step"><div class="si">01</div><div class="sn">문서 준비</div><div class="sd">벡터 계산 · 저장 · 재사용</div></div><div class="arrow">→</div><div class="step"><div class="si">02</div><div class="sn">질문</div><div class="sd">같은 모델로 벡터</div></div><div class="arrow">→</div><div class="step hl"><div class="si">03</div><div class="sn">비교</div><div class="sd">유사도 높은 순</div></div><div class="arrow">→</div><div class="step"><div class="si">04</div><div class="sn">전달</div><div class="sd">연결된 원문 · 출처 + 질문</div></div><div class="arrow">→</div><div class="step"><div class="si">05</div><div class="sn">생성</div><div class="sd">LLM이 읽고 답</div></div></div><div class="note red"><span class="nk">시간 · 비용이 줄어드는 두 지점</span><span class="nt">미리 계산한 벡터의 <b>재사용</b> · 답변에 넣을 자료의 <b>선택</b></span></div></div></section>
+
+<section class="slide" data-title="실습 앱의 임베딩"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">임베딩</div><h2 class="s-title">실습 앱의 임베딩</h2><div class="rule"></div><div class="body"><div class="stat-row"><div class="stat"><div class="num">text-embedding-3-small</div><div class="lab">OpenAI 임베딩 모델 · .env의 Key 사용</div></div><div class="stat"><div class="num">1,536</div><div class="lab">벡터 하나의 숫자 개수</div></div><div class="stat"><div class="num">같은 모델</div><div class="lab">문서와 질문 모두</div></div></div><div class="note "><span class="nk">섞지 않기</span><span class="nt">차원이 같아도 다른 모델의 벡터는 같은 의미 공간이라는 보장 없음 · 확인은 lab/llm.py</span></div></div></section>
+
+<section class="slide" data-title="긴 문서도 같은 차원"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">임베딩</div><h2 class="s-title">긴 문서도 같은 차원</h2><div class="rule"></div><div class="body"><div class="stat-row"><div class="stat"><div class="num">짧은 문장</div><div class="lab">1,536개</div></div><div class="stat"><div class="num">긴 문단</div><div class="lab">1,536개</div></div><div class="stat"><div class="num">입력 한도</div><div class="lab">모델이 처리할 수 있는 길이 안에서</div></div></div><div class="note red"><span class="nk">그렇다면</span><span class="nt">수십 쪽 문서를 점 하나로 표현하면 특정 조건을 찾을 수 있을까?</span></div></div></section>
+
+<section class="slide" data-title="점 하나와 여러 점"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">임베딩</div><h2 class="s-title">점 하나와 여러 점</h2><div class="rule"></div><div class="body"><div class="twocol w"><div><figure class="realshot light"><img src="img/s1/doc_vs_sentences.png" alt="같은 공간 · 문서 전체 1점 vs 문장별 36점 (설명용)"><div class="cap">같은 공간 · 문서 전체 1점 vs 문장별 36점 (설명용)</div></figure></div><div><ul class='ul'><li>전체를 하나로: 여러 주제가 섞임</li><li>문장 · 문단별로: 주제마다 따로 찾을 수 있음</li><li>너무 잘게: 적용 대상 · 앞 문장의 조건을 잃음</li><li>→ 찾을 수 있으면서 문맥이 남게 나누기 = <b>청킹</b></li></ul></div></div><div class="note "><span class="nk">청크</span><span class="nt">나뉜 조각 하나 · 벡터 + 원문 + 출처를 함께 저장 · 크기 비교는 2교시</span></div></div></section>
+
+<section class="slide section" data-title="05. naive RAG 직접 실행"><div class="ghost">05</div><div class="sno">05</div><h2>naive RAG 직접 실행</h2><p>PDF 한 편으로 파싱부터 생성까지</p></section>
+
+<section class="slide" data-title="Naive RAG의 구성"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">naive RAG</div><h2 class="s-title">Naive RAG의 구성</h2><div class="rule"></div><div class="body"><div class="nrs"><div class="nr"><div class="nr-l">저장할 때 · 문서 1회</div><div class="nr-f"><span class=""><b>PDF</b><em>원본</em></span><i>→</i><span class=""><b>파싱</b><em>글자 꺼내기</em></span><i>→</i><span class=""><b>청킹</b><em>조각 나누기</em></span><i>→</i><span class="on"><b>임베딩</b><em>숫자 배열</em></span><i>→</i><span class=""><b>저장소</b><em>조각 + 벡터 + 출처</em></span></div></div><div class="nr-mid">↓ 가까운 조각 몇 개만 꺼냄</div><div class="nr"><div class="nr-l">물어볼 때 · 질문마다</div><div class="nr-f"><span class=""><b>질문</b><em></em></span><i>→</i><span class=""><b>질문 임베딩</b><em>같은 모델</em></span><i>→</i><span class="on"><b>검색</b><em>가까운 순</em></span><i>→</i><span class=""><b>생성</b><em>근거로 답변</em></span><i>→</i><span class=""><b>답</b><em></em></span></div></div></div><div class="note "><span class="nk">순서</span><span class="nt">임베딩을 먼저 배웠지만 실제로는 <b>청킹이 먼저</b> · 검색할 단위가 정해져야 벡터를 계산</span></div></div></section>
+
+<section class="slide" data-title="자료 준비와 질문 처리"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">naive RAG</div><h2 class="s-title">자료 준비와 질문 처리</h2><div class="rule"></div><div class="body"><div class="twocol "><div><table class="ctable "><thead><tr><th>자료 준비 (문서마다 1회)</th><th></th></tr></thead><tbody><tr><td><b>파싱</b></td><td>PDF에서 글 · 페이지 출처</td></tr><tr><td><b>청킹</b></td><td>검색할 크기로 나누기</td></tr><tr><td><b>임베딩</b></td><td>청크마다 벡터</td></tr><tr><td><b>적재</b></td><td>원문 · 벡터 · 출처를 저장소에</td></tr></tbody></table></div><div><table class="ctable "><thead><tr><th>질문 처리 (질문마다)</th><th></th></tr></thead><tbody><tr><td><b>질문 임베딩</b></td><td>같은 모델</td></tr><tr><td><b>검색</b></td><td>가까운 청크</td></tr><tr><td><b>근거 전달</b></td><td>원문 · 출처 + 질문</td></tr><tr><td><b>생성</b></td><td>LLM이 답변</td></tr></tbody></table></div></div><div class="note red"><span class="nk">Context Window</span><span class="nt">저장소 전체가 들어가지 않음 · 선택한 원문 + 질문 + 지침이 입력</span></div></div></section>
+
+<section class="slide labcover" data-title="[실습 1] naive RAG 직접 실행"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="labwrap"><div class="labl"><div class="lflag">실습 1</div><h2>naive RAG 직접 실행</h2><p class="goal">AN4750 문서 한 편으로 RAG의 다섯 단계를 화면에서 직접 확인</p><div class="lout"><span>산출물</span>단계별 숫자 기록 · 답변과 근거 대조</div></div><div class="labr"><div class="lh">순서</div><ol><li>① PDF 업로드 · 파싱</li><li>② 청킹 · 고정 길이</li><li>③ 임베딩 · 적재</li><li>④ 의미 검색 · 한국어 / 영어</li><li>⑤ 답변 생성 · 근거 대조</li></ol></div></div></section>
+
+<section class="slide" data-title="① 파싱: 글자 꺼내기"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">실습 1</div><h2 class="s-title">① 파싱: 글자 꺼내기</h2><div class="rule"></div><div class="body"><div class="twocol w"><div><figure class="realshot light"><img src="img/s1/screen2_parse.png" alt="막대 하나가 한 페이지 · 높이가 추출된 글자 수"><div class="cap">막대 하나가 한 페이지 · 높이가 추출된 글자 수</div></figure></div><div><ul class='ul'><li><b>02_st_an4750_soft_errors_rev2_en.pdf</b> 업로드</li><li>파일 크기 · 추출 글자 수 기록</li><li>붉은 칸 → 원본 PDF 해당 쪽과 비교</li><li>그림 · 표 내용이 글자로 나왔는지 · 깨진 글자 찾기</li></ul></div></div></div></section>
+
+<section class="slide" data-title="② 청킹: 정해진 길이로 자르기"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">실습 1</div><h2 class="s-title">② 청킹: 정해진 길이로 자르기</h2><div class="rule"></div><div class="body"><div class="twocol w"><div><figure class="realshot light"><img src="img/s1/screen3_chunk.png" alt="자른 조각이 카드로 · 눌러서 전문 보기"><div class="cap">자른 조각이 카드로 · 눌러서 전문 보기</div></figure></div><div><ul class='ul'><li><b>고정 길이</b> 선택 → 미리보기</li><li>청크 개수 · 가장 긴 · 가장 짧은 조각</li><li>문장 · 절이 중간에서 끊긴 조각 찾기</li><li>다른 기준은 2교시에서 비교</li></ul></div></div></div></section>
+
+<section class="slide" data-title="③ 임베딩 · 적재"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">실습 1</div><h2 class="s-title">③ 임베딩 · 적재</h2><div class="rule"></div><div class="body"><div class="twocol w"><div><figure class="realshot light"><img src="img/s1/screen4_embed.jpg" alt="적재 후 청크 수와 임베딩 모델 표시"><div class="cap">적재 후 청크 수와 임베딩 모델 표시</div></figure></div><div><ul class='ul'><li><b>적재</b> 누르기</li><li>상태 표시줄의 청크 수 확인</li><li>청크 번호 입력 → <b>숫자 배열 보기</b></li><li>업로드 → 청킹 → 적재 = 저장 3단계</li></ul></div></div></div></section>
+
+<section class="slide" data-title="④ 의미 검색"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">실습 1</div><h2 class="s-title">④ 의미 검색</h2><div class="rule"></div><div class="body"><div class="twocol w"><div><figure class="realshot light"><img src="img/s1/screen5_search.jpg" alt="질문과 가까운 순 · 점수는 가까운 정도"><div class="cap">질문과 가까운 순 · 점수는 가까운 정도</div></figure></div><div><div class="code prompt"><div class="bar"><span class="plabel">한국어로</span></div><pre><code>1 FIT 는 무엇을 뜻하나요?</code></pre></div><div class="code prompt"><div class="bar"><span class="plabel">영어로</span></div><pre><code>What does 1 FIT (Failure in Time) mean?</code></pre></div><ul class='ul'><li>상위 5개의 점수 · 출처</li><li>1위 카드에 답이 실제로 있는지</li><li>두 결과 비교 → 영어 원문을 쓸지, 번역본을 만들지 판단</li></ul></div></div></div></section>
+
+<section class="slide" data-title="⑤ 생성: 꺼낸 조각으로 답변"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">실습 1</div><h2 class="s-title">⑤ 생성: 꺼낸 조각으로 답변</h2><div class="rule"></div><div class="body"><div class="twocol "><div><ul class='ul'><li><b>답변 생성</b> 켜고 같은 질문 다시</li><li>프롬프트 글자 수 vs 저장소 전체 글자 수 기록</li><li>「문서 전체를 매번 넣기」였다면?</li></ul><div class="note "><span class="nk">기록</span><span class="nt">전달된 프롬프트 글자 수 ____ / 저장소 전체 ____</span></div></div><div><div class="code prompt"><div class="bar"><span class="plabel">문서에 없는 질문</span></div><pre><code>우리 공장의 오늘 야간조 생산 목표는 몇 장인가요?</code></pre></div><div class="code prompt"><div class="bar"><span class="plabel">글자로 추출되지 않은 그림에 대한 질문</span></div><pre><code>AN4750 의 RAM 스크러빙 알고리즘(Figure 4)의 흐름을 단계별로 설명해 주세요.</code></pre></div><div class="note red"><span class="nk">확인</span><span class="nt">답변의 내용이 근거 조각에 실제로 있는지 대조</span></div></div></div></div></section>
+
+<section class="slide" data-title="Agent 아키텍처에서 이번 실습의 위치"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">정리</div><h2 class="s-title">Agent 아키텍처에서 이번 실습의 위치</h2><div class="rule"></div><div class="body"><div class="twocol "><div><ul class='ul'><li>청크와 벡터는 검색용 <b>저장 자료</b></li><li>질문마다 일부 원문만 골라 입력에</li><li>저장소가 커지는 것 ≠ 한 요청의 Context가 커지는 것</li></ul></div><div><ul class='ul'><li>프롬프트 글자 수는 전달 범위의 단서 · 토큰 수와 같은 단위는 아님</li><li>지금은 <b>코드가 정한 순서</b>로 검색 · 답변</li><li>4 · 5교시: 검색을 <b>모델이 고르는 도구</b>로</li></ul></div></div></div></section>
+
+<section class="slide" data-title="정리"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><h2 class="s-title">정리</h2><div class="rule"></div><div class="body"><div class="biglist"><div class="li"><span class="num">1</span><div class="tx"><h4>정보를 전달하는 방법</h4><p>User Input Prompt · 첨부파일 → 자료가 많아지면 Naive RAG</p></div></div><div class="li"><span class="num">2</span><div class="tx"><h4>RAG의 핵심 과제</h4><p>대량의 자료에서 필요한 근거를 저렴하고 빠르게 전달</p></div></div><div class="li"><span class="num">3</span><div class="tx"><h4>검색 단위와 방식</h4><p>자료의 특성에 맞춰 선택 (2교시)</p></div></div><div class="li"><span class="num">4</span><div class="tx"><h4>보안</h4><p>API Key와 대화 기록은 PC와 서버에 남을 수 있음 · 입력부터 관리</p></div></div></div></div></section>
+
+<section class="slide section" data-title="다음. 2교시 · naive RAG 완성"><div class="ghost">다음</div><div class="sno">다음</div><h2>2교시 · naive RAG 완성</h2><p>임베딩을 더 깊게 보고, 청크 크기와 검색 방식을 직접 고르기</p></section>
+
+    </div>
+  </div>
+</main>
+<div class="overview" id="overview">
+  <div class="head"><h3>슬라이드 목차</h3><button id="ovClose">닫기 ✕</button></div>
+  <div class="ovgrid" id="ovgrid"></div>
+</div>
+
+<div class="controlbar">
+  <button class="ico" id="btnMenu" title="목차"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+  <span class="sep"></span>
+  <button class="ico" id="btnPrev" title="이전"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+  <span class="count"><b id="cur">1</b> / <span id="tot2">75</span></span>
+  <button class="ico" id="btnNext" title="다음"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg></button>
+  <span class="sep"></span>
+  <button class="zoom" id="btnOut" title="축소"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14"/></svg></button>
+  <button class="zoom" id="btnIn" title="확대"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button class="zoom" id="btnFit" title="화면 맞춤"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 4H5a1 1 0 0 0-1 1v4M15 4h4a1 1 0 0 1 1 1v4M9 20H5a1 1 0 0 1-1-1v-4M15 20h4a1 1 0 0 0 1-1v-4"/></svg></button>
+  <button class="pdf" id="btnPdf" title="PDF로 저장 (인쇄 → PDF로 저장)">PDF</button>
+</div>
+
+<div class="hint">← → 또는 Space · 목차(≡) · 줌(−/+) · 숫자 입력 후 Enter로 이동</div>
+<div id="jumpHint"></div>
+<style>
+  #jumpHint{position:fixed; left:50%; bottom:74px; transform:translateX(-50%) translateY(6px); z-index:75;
+    background:#2B2B2E; color:#fff; font-family:Georgia,'Times New Roman',serif; font-style:italic;
+    font-size:20px; letter-spacing:.04em; padding:8px 20px; border-radius:999px;
+    box-shadow:0 12px 28px -10px rgba(0,0,0,.55); opacity:0; pointer-events:none;
+    transition:opacity .12s ease, transform .12s ease;}
+  #jumpHint.on{opacity:1; transform:translateX(-50%) translateY(0);}
+  @media print{ #jumpHint{display:none !important;} }
+</style>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const scaler = document.getElementById('scaler');
+  const sizer  = document.getElementById('sizer');
+  const stage  = document.getElementById('stage');
+  const total  = slides.length;
+  let idx = 0, userZoom = 1;
+  const BW = 1280, BH = 720;
+
+  document.getElementById('tot2').textContent = total;
+  slides.forEach((s, i) => {
+    const c = s.querySelector('.coord b');     if (c) c.textContent = String(i + 1).padStart(2, '0');
+    const t = s.querySelector('.coord .tot');  if (t) t.textContent = total;
+  });
+
+  const ovgrid = document.getElementById('ovgrid');
+  slides.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.className = 'ovcard';
+    b.innerHTML = '<div class="ovn">' + String(i + 1).padStart(2, '0') + '</div><div class="ovt">' + (s.dataset.title || '') + '</div>';
+    b.addEventListener('click', () => { go(i); closeOverview(); });
+    ovgrid.appendChild(b);
+  });
+  const overview = document.getElementById('overview');
+  function openOverview(){ overview.classList.add('on'); }
+  function closeOverview(){ overview.classList.remove('on'); }
+  document.getElementById('btnMenu').addEventListener('click', openOverview);
+  document.getElementById('ovClose').addEventListener('click', closeOverview);
+  overview.addEventListener('click', (e) => { if (e.target === overview) closeOverview(); });
+
+  function fitScale(){
+    const availW = stage.clientWidth  - 60;
+    const availH = stage.clientHeight - 60;
+    return Math.min(availW / BW, availH / BH);
+  }
+  function applyScale(){
+    const eff = fitScale() * userZoom;
+    scaler.style.transform = 'scale(' + eff + ')';
+    sizer.style.width  = (BW * eff) + 'px';
+    sizer.style.height = (BH * eff) + 'px';
+  }
+  window.addEventListener('resize', applyScale);
+
+  function go(n){
+    idx = Math.max(0, Math.min(total - 1, n));
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    document.getElementById('cur').textContent = idx + 1;
+    document.getElementById('btnPrev').disabled = idx === 0;
+    document.getElementById('btnNext').disabled = idx === total - 1;
+    document.getElementById('pfill').style.width = (idx / (total - 1) * 100) + '%';
+    applyScale();
+    stage.scrollTop = 0; stage.scrollLeft = 0;
+  }
+  document.getElementById('btnPrev').addEventListener('click', () => go(idx - 1));
+  document.getElementById('btnNext').addEventListener('click', () => go(idx + 1));
+  document.getElementById('btnIn').addEventListener('click',  () => { userZoom = Math.min(2.4, userZoom + 0.15); applyScale(); });
+  document.getElementById('btnOut').addEventListener('click', () => { userZoom = Math.max(0.5, userZoom - 0.15); applyScale(); });
+  document.getElementById('btnFit').addEventListener('click', () => { userZoom = 1; applyScale(); });
+  document.getElementById('btnPdf').addEventListener('click', () => window.print());
+
+  // ---- 슬라이드 번호 입력 → Enter 로 점프 ----
+  let jumpBuf = '', jumpTimer = null;
+  const jumpHint = document.getElementById('jumpHint');
+  function showJump(){
+    if (!jumpHint) return;
+    if (jumpBuf){ jumpHint.textContent = '→ ' + jumpBuf; jumpHint.classList.add('on'); }
+    else { jumpHint.classList.remove('on'); }
+  }
+  function clearJump(){ jumpBuf = ''; if (jumpTimer) clearTimeout(jumpTimer); showJump(); }
+  function commitJump(){
+    if (jumpBuf){ const n = parseInt(jumpBuf, 10); if (!isNaN(n)) go(n - 1); }
+    clearJump();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (overview.classList.contains('on')) { if (e.key === 'Escape') closeOverview(); return; }
+    if (/^[0-9]$/.test(e.key)){
+      e.preventDefault();
+      jumpBuf = (jumpBuf + e.key).slice(0, 3);
+      showJump();
+      if (jumpTimer) clearTimeout(jumpTimer);
+      jumpTimer = setTimeout(clearJump, 1600);
+      return;
+    }
+    if (e.key === 'Enter'){ e.preventDefault(); commitJump(); return; }
+    if (e.key === 'Escape'){ clearJump(); }
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){ e.preventDefault(); clearJump(); go(idx + 1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'PageUp'){ e.preventDefault(); clearJump(); go(idx - 1); }
+    if (e.key === 'Home'){ clearJump(); go(0); } if (e.key === 'End'){ clearJump(); go(total - 1); }
+    if (e.key === '+' || e.key === '='){ userZoom = Math.min(2.4, userZoom + 0.15); applyScale(); }
+    if (e.key === '-'){ userZoom = Math.max(0.5, userZoom - 0.15); applyScale(); }
+  });
+
+  applyScale(); go(0);
+</script>
+<script>
+// 코드 블록마다 「복사」 버튼
+document.querySelectorAll('.code').forEach(function (box) {
+  var bar = box.querySelector('.bar'), code = box.querySelector('pre');
+  if (!bar || !code) return;
+  var b = document.createElement('button');
+  b.className = 'copybtn'; b.type = 'button'; b.textContent = '복사';
+  b.addEventListener('click', function (ev) {
+    ev.stopPropagation();
+    var text = code.innerText.replace(/\n$/, '');
+    var ok = function () { b.textContent = '복사됨'; b.classList.add('done'); setTimeout(function () { b.textContent = '복사'; b.classList.remove('done'); }, 1500); };
+    if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text).then(ok); }
+    else { var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); ok(); } catch (e) {} ta.remove(); }
+  });
+  bar.appendChild(b);
+  if (box.dataset.file) {                       // 템플릿은 파일로 바로 저장
+    var sv = document.createElement('button');
+    sv.className = 'savebtn'; sv.type = 'button'; sv.textContent = '파일로 저장';
+    sv.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      var blob = new Blob([code.innerText.replace(/\n$/, '') + '\n'], {type: 'text/plain;charset=utf-8'});
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = box.dataset.file;
+      document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    });
+    bar.appendChild(sv);
+  }
+});
+</script>
+
+</body>
+</html>
