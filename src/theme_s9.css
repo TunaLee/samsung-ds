@@ -12,3 +12,6 @@
   .ctable.s9-t td:nth-child(3){color:var(--ink-soft); font-size:14.5px;}
   .ctable.s9-t.s9-wrap td:first-child{white-space:normal;}
   .s9-mb{margin-bottom:12px;}
+
+  .s9-ex{display:flex; flex-direction:column; gap:12px;}
+  .s9-ex .code.prompt pre code{white-space:pre-wrap; font-size:15px; line-height:1.6;}
