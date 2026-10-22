@@ -96,7 +96,7 @@ def walk(bid, depth, lines, imgs):
         lines.append("\n---")
     elif t in ("table_of_contents", "breadcrumb"):
         pass
-    elif t == "page" and depth > 0:
+    elif t == "page":
         lines.append(f"\n[하위 페이지] {title}")
         return
     elif title:

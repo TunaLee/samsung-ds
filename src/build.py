@@ -7,7 +7,7 @@ import art
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
-DECKS = [f"s{i}" for i in range(1, 9) if (SRC / f"s{i}.py").exists()]
+DECKS = [f"s{i}" for i in range(0, 10) if (SRC / f"s{i}.py").exists()]
 
 
 def render(title, parts):
@@ -25,7 +25,8 @@ def main():
         mod = importlib.import_module(name)
         parts = mod.slides()
         (out / f"{name}.html").write_text(render(mod.TITLE, parts), encoding="utf-8")
-        rows.append(f'<a class="row" href="{name}.html"><b>{name[1:]}교시 · {mod.TITLE}</b><span>{len(parts)}장 →</span></a>')
+        label = {'s0': '과정 소개', 's9': '부록'}.get(name, f'{name[1:]}교시')
+        rows.append(f'<a class="row" href="{name}.html"><b>{label} · {mod.TITLE}</b><span>{len(parts)}장 →</span></a>')
         print(name, len(parts), "장")
     (out / "index.html").write_text(INDEX.replace("{{ROWS}}", "\n".join(rows)), encoding="utf-8")
 

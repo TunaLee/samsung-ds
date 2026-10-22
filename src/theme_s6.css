@@ -1,0 +1,53 @@
+  /* ===== 6교시 도식 ===== */
+  .s6svg{width:100%; height:auto; max-height:420px; display:block;}
+  .s6svg .st{font:900 21px var(--serif);}
+  .s6svg .ss{font:600 15.5px var(--serif); fill:#6B6B73;}
+  .s6svg .sk{font:700 13px var(--mono); fill:#8C8C94;}
+  .s6svg .sl{font:800 15px var(--serif); fill:#E8002D;}
+  .s6svg .sb{font:900 18px var(--serif); fill:#111;}
+  .s6svg .sg{font:800 15px var(--serif); fill:#6B6B73;}
+  .cost{display:flex; flex-direction:column; gap:14px;}
+  .cost .cr{display:grid; grid-template-columns:220px 1fr; align-items:center; gap:18px;}
+  .cost .cl b{display:block; font-size:19px; font-weight:900;} .cost .cl span{font-size:15px; color:var(--ink-soft);}
+  .cost .cl.r b{color:var(--violet);}
+  .cost .cc{display:grid; grid-template-columns:repeat(12,1fr); gap:10px;}
+  .cost .cc i{height:46px; border-radius:8px; background:var(--wash); border:1px solid var(--line); display:flex; align-items:center; justify-content:center;}
+  .cost .cc i.on{background:#FFF5F7; border:2px solid var(--violet);}
+  .cost .cc .ico{width:24px; height:24px; color:#9A9AA2;} .cost .cc i.on .ico{color:var(--violet);}
+  .cost .cc.inv{display:flex; gap:10px;} .cost .cc.inv i{width:calc((100% - 110px)/12);}
+  .cost .cf{margin-top:6px; border-top:2px solid var(--ink); padding-top:14px; font-size:22px; font-weight:800;}
+  .cost .cf b.r{color:var(--violet);}
+  .lns{display:grid; grid-template-columns:1fr 130px 1fr; gap:14px; align-items:stretch;}
+  .ln{border:1px solid var(--line); border-top:4px solid var(--ink); border-radius:12px; padding:18px 20px; display:flex; flex-direction:column; gap:12px;}
+  .ln.r{border-top-color:var(--violet);}
+  .ln .lh{display:flex; align-items:center; gap:10px;} .ln .lh .ico{width:30px; height:30px;} .ln .lh b{font-size:20px;}
+  .ln .lb{display:flex; flex-direction:column; gap:8px;}
+  .ln .lb span{background:var(--wash); border-radius:8px; padding:10px 14px; font-size:16.5px;}
+  .lq{align-self:center; text-align:center; border:2px dashed var(--violet); border-radius:12px; padding:18px 8px; font-weight:900; font-size:18px; color:var(--violet);}
+  .lq small{font-size:13.5px; color:var(--ink-soft); font-weight:600;}
+  .wfw .wbody{padding:16px;}
+  .wf{display:flex; flex-direction:column; gap:12px;}
+  .wf .wt{display:flex; align-items:center; gap:14px;}
+  .wf .btn{background:#111; color:#fff; font-weight:800; font-size:14px; border-radius:7px; padding:7px 14px;}
+  .wf .m{color:var(--mut); font-size:14px;}
+  .wtab{border-collapse:collapse; width:100%; font-size:14.5px;}
+  .wtab th{text-align:left; font-size:13px; color:var(--ink); border-bottom:2px solid var(--ink); padding:6px 10px;}
+  .wtab th:nth-child(4){color:var(--violet);}
+  .wtab td{border-bottom:1px solid var(--line); padding:7px 10px;} .wtab td.m{color:#B4B4BB;}
+  .wf .wd{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  .wf .wd div{border:1px solid var(--line); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:2px;}
+  .wf .wd div.r{border-color:var(--violet); background:#FFF5F7;}
+  .wf .wd b{font-size:15px;} .wf .wd span{font-size:13px; color:var(--ink-soft);}
+  .kws{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px;}
+  .kws span{border:1.5px solid var(--ink); border-radius:999px; padding:6px 14px; font-size:15.5px; font-weight:700;}
+  .kws span:first-child{background:var(--ink); color:#fff;}
+  .tags{display:flex; gap:10px; flex-wrap:wrap;}
+  .tags span{border:2px solid var(--ink); border-radius:8px; padding:8px 14px; font-weight:800; font-size:17px;}
+  .code.prompt.full pre{display:none;}
+  .code.prompt.full .fsum{padding:14px 18px; color:#F1F1F4; font-size:16px; line-height:1.7;}
+  .code.prompt.full .fsum b{color:#FF5B7A;}
+  .code.prompt.xs code{font-size:13px; line-height:1.5;} .code.prompt.xs pre{max-height:540px; padding:10px 16px;}
+  .code.prompt.c2 pre{max-height:none; column-count:2; column-gap:34px; column-rule:1px solid #2B2B31; padding:12px 18px;}
+  .code.prompt.c2 code{font-size:14.5px; line-height:1.5;}
+  .ctable.s6trb{font-size:15.5px;} .ctable.s6trb th,.ctable.s6trb td{padding:9px 14px;}
+  .ctable.s6trb td:first-child{white-space:nowrap;}
