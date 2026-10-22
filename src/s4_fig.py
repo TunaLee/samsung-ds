@@ -219,3 +219,14 @@ def blanks(items):
     """기록 칸."""
     out = "".join(f'<div class="bl-r"><span>{q}</span><i></i></div>' for q in items)
     return f'<div class="bl"><div class="bl-h">기록</div>{out}</div>'
+
+
+def tool_vs_none():
+    """도구 없이 vs 계산기 도구가 있을 때."""
+    def box(title, rows, cls):
+        li = "".join(f'<div class="tv-r"><b>{a}</b><span>{b}</span></div>' for a, b in rows)
+        return f'<div class="tv-c {cls}"><div class="tv-h">{title}</div>{li}</div>'
+    a = box("도구 없이", [("LLM", "4,817 × 293 = 다음 토큰을 확률로 고름"), ("답", "「1,411,281입니다.」 · 그럴듯하지만 틀릴 수 있음")], "no")
+    b = box("계산기 도구가 있으면", [("LLM", "calculator 도구를 (4817 × 293)로 부르기로 결정"), ("앱", "실제로 계산 → 1,411,381"),
+                                  ("LLM", "결과를 받아 「1,411,381입니다.」")], "yes")
+    return f'<div class="tv">{a}<div class="tv-arr">→</div>{b}</div>'

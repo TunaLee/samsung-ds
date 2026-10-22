@@ -381,3 +381,75 @@ def kg_answer():
         s += (f'<g {d.a([(0, "opacity:0"), (t, "opacity:0"), (t + 2, "opacity:1"), (96, "opacity:1"), (99, "opacity:0")])}>'
               + _t(X + 18, y, k, "tn", "start") + _t(X + 128, y, v, "tx", "start") + "</g>")
     return d.svg(1160, 456, s, _KG_CSS)
+
+
+# ── 다음 토큰 예측 (posco-dx explain.e2에서 가져와 이 덱 색으로) ─────────────
+def next_token(prefix, steps, end_label, uid="nt"):
+    """단계마다 (후보, 확률) 목록 · 첫 후보를 골라 문장에 붙인다. 값은 설명용."""
+    import json
+    data = json.dumps({"prefix": prefix, "steps": steps}, ensure_ascii=False)
+    full = "".join([prefix] + [st[0][0] for st in steps])
+    last = steps[-1]
+    rows = "".join(
+        f'<div class="gar{" pick" if i == 0 else ""}"><span class="gaw">{w}</span><span class="gab"><i style="width:{p*100:.0f}%"></i></span><span class="gap">{p:.2f}</span></div>'
+        for i, (w, p) in enumerate(last + [("", 0)] * (max(len(st) for st in steps) - len(last))))
+    css = ("<style>.ga{background:#F6F6F8;border:1px solid #E4E4E9;border-radius:14px;padding:22px 24px;display:flex;flex-direction:column;gap:14px}"
+           ".ga .gas{font-size:26px;font-weight:800;color:#26262B;min-height:40px;line-height:1.4;word-break:keep-all}"
+           ".ga .gacur{display:inline-block;width:3px;height:26px;background:#E8002D;margin-left:4px;vertical-align:-4px;animation:gablink 1s steps(1) infinite}"
+           "@keyframes gablink{50%{opacity:0}}"
+           ".ga .galab{font-size:13px;font-weight:800;color:#6B6B73}.ga .galab span{font-weight:400}"
+           ".ga .garows{display:flex;flex-direction:column;gap:8px}"
+           ".ga .gar{display:grid;grid-template-columns:120px 1fr 48px;align-items:center;gap:10px;font-size:18px;color:#26262B}"
+           ".ga .gaw{text-align:right;font-weight:800;font-family:var(--mono,monospace)}"
+           ".ga .gab{height:22px;background:#fff;border-radius:5px;overflow:hidden}"
+           ".ga .gab i{display:block;height:100%;background:#DCDCE1;border-radius:5px;transition:width .5s ease,background .3s}"
+           ".ga .gar.pick .gab i{background:#E8002D}.ga .gar.pick .gaw{color:#E8002D}"
+           ".ga .gap{font-family:var(--mono,monospace);font-size:14px;color:#55555C}"
+           ".ga .gaend{display:inline-block;vertical-align:5px;margin-left:12px;font-size:13px;font-weight:800;color:#fff;background:#26262B;border-radius:999px;padding:5px 12px;opacity:0;transition:opacity .3s}"
+           ".ga .gaend.on{opacity:1}@media print{.ga .gaend{opacity:1}.ga .gacur{display:none}}</style>")
+    js = '''<script>
+(function () {
+  const box = document.getElementById('%s');
+  if (!box) return;
+  const D = JSON.parse(box.dataset.gen);
+  const txt = box.querySelector('.gatxt'), rows = box.querySelectorAll('.gar'), end = box.querySelector('.gaend');
+  let step = 0, words = [D.prefix], phase = 0, timer = null;
+  function show(i) {
+    const st = D.steps[i];
+    rows.forEach((r, k) => {
+      const c = st[k];
+      r.classList.remove('pick');
+      r.style.visibility = c ? 'visible' : 'hidden';
+      if (!c) return;
+      r.querySelector('.gaw').textContent = c[0];
+      r.querySelector('.gap').textContent = c[1].toFixed(2);
+      r.querySelector('i').style.width = (c[1] * 100) + '%%';
+    });
+  }
+  function tick() {
+    if (box.offsetParent === null) return;
+    if (step >= D.steps.length) {
+      end.classList.add('on');
+      if (++phase > 4) { step = 0; phase = 0; words = [D.prefix]; txt.textContent = D.prefix; end.classList.remove('on'); show(0); }
+      return;
+    }
+    if (phase === 0) { show(step); phase = 1; return; }
+    if (phase === 1) { rows[0].classList.add('pick'); phase = 2; return; }
+    words.push(D.steps[step][0][0]); txt.textContent = words.join('');
+    step += 1; phase = 0;
+  }
+  window.addEventListener('beforeprint', () => {
+    clearInterval(timer); const n = D.steps.length - 1;
+    txt.textContent = [D.prefix].concat(D.steps.map(st => st[0][0])).join('');
+    show(n); rows[0].classList.add('pick'); end.classList.add('on');
+  });
+  txt.textContent = D.prefix; show(0);
+  rows.forEach(r => r.querySelector('i').style.width = '0%%');
+  timer = setInterval(tick, 900);
+})();
+</script>''' % uid
+    return (css + f'''<div class="ga" id="{uid}" data-gen='{data}'>
+  <div class="gas"><span class="gatxt">{full}</span><span class="gacur"></span><span class="gaend">{end_label}</span></div>
+  <div class="galab">다음 토큰 후보 <span>(설명용 확률)</span></div>
+  <div class="garows">{rows}</div>
+</div>''' + js)

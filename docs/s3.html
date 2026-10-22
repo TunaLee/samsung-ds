@@ -1140,6 +1140,13 @@
   .tp-r b{font-size:17px;} .tp-r em{font-style:normal; font-size:14.5px; color:var(--ink-soft);}
   .tp-loop{grid-column:2; grid-row:2 / span 3; border:2px dashed var(--violet); border-left:none; border-radius:0 14px 14px 0; display:flex; flex-direction:column; justify-content:center; padding-left:18px; font-size:15px; color:var(--ink-soft); line-height:1.5;}
   .tp-loop b{color:var(--violet); font-size:18px;}
+  /* 도구 없이 vs 도구 */
+  .tv{display:grid; grid-template-columns:1fr 40px 1fr; gap:12px; align-items:stretch;}
+  .tv-arr{display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:900; color:var(--mut);}
+  .tv-c{border-radius:14px; padding:14px 18px; display:flex; flex-direction:column; gap:10px;} .tv-c.no{background:#F6F6F8;} .tv-c.yes{border:2px solid var(--violet);}
+  .tv-h{font-size:18px; font-weight:900;} .tv-c.yes .tv-h{color:var(--violet);}
+  .tv-r{display:grid; grid-template-columns:44px 1fr; gap:10px; font-size:17px; line-height:1.4;} .tv-r b{font-weight:900; color:var(--mut);}
+  .tv-c.yes .tv-r:nth-child(3) b{color:var(--violet);}
 
   /* ===== 5교시 도해 · 요청문 가이드 ===== */
   .g5{display:grid; grid-template-columns:1fr 1.05fr; gap:26px; align-items:start;}
