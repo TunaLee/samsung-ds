@@ -2,6 +2,7 @@
 import fig
 import s6_fig as sf
 from kit import (big, cards, cover, esc, flow, ill, lab, note, page, pane, prompt, section, steps, table, two, ul)
+import vizanim
 
 TITLE = "Multi-Agent · Decisions와 조사 Agent"
 DOC = "https://developers.openai.com/api/docs/guides/decisions"
@@ -211,13 +212,8 @@ def block_patterns():
 def block_split():
     return [
         section("02", "자주 하는 판정과 필요한 조사 나누기", "Decisions API가 고르고, 조사 Agent가 설명"),
-        page("판정과 조사의 역할 분리", flow([
-            ("생산라인 이벤트", "시작 · 종료 · 센서 값 · 알람"),
-            ("Decisions API", "조사 필요성 판정"),
-            ("조사 Agent", "보고된 이벤트 받기"),
-            ("도구 조회", "Lot 이력 · 정비 기록"),
-            ("설명", "원인 가설 · 추가 확인"),
-        ], hl=1) + note("분류기 + 조사 Agent", "서로 다른 일을 맡는 구조 · 조사를 여러 Agent로 나누기 전에 <b>판단과 실행을 잇는 기본 흐름</b>부터", "red"),
+        page("이번 실습의 구조", vizanim.decide_investigate()
+             + note("나누는 이유", "판정 13회 · 빠르고 저렴 → 조사 4회 · 도구 호출 · 느리고 비쌈 · 확률은 설명용", "red"),
              kick="판정과 조사"),
         page("predicate가 추정하는 것", two(
             pane("이 실습의 조건", ul(["「제공한 이벤트에 <b>추가 조사가 필요한 이상 징후</b>가 있는가」",

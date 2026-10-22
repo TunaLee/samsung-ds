@@ -453,3 +453,56 @@ def next_token(prefix, steps, end_label, uid="nt"):
   <div class="galab">다음 토큰 후보 <span>(설명용 확률)</span></div>
   <div class="garows">{rows}</div>
 </div>''' + js)
+
+
+def decide_investigate():
+    """생산라인 이벤트 → Decisions 판정(이벤트마다) → 기준값 넘은 것만 조사 Agent → 도구 조회 → 원인 가설.
+    이벤트 · 정비 기록은 line-sim 실습 데이터, 확률은 설명용."""
+    d = _D("di", 16)
+    ev = [(1, "EQ-A CH2 · LOT-001 투입 · 레시피 R-17", .03), (2, "EQ-A CH2 · 압력 2.01 Torr (범위 안)", .04),
+          (3, "EQ-A CH2 · 온도 412℃ (상한 405℃) 1회", .58), (4, "EQ-A CH2 · 온도 398℃ (범위 안)", .06),
+          (7, "EQ-B · 히터 보정량 +6.8% (경고 +5.0%)", .74), (9, "MET · 막 두께 평균 1,046 nm (목표 안)", .12),
+          (10, "MET · 가장자리 1,063 nm (상한 초과)", .81), (11, "VIS · 가장자리 불량률 3.8% (기준 1.0%)", .86)]
+    s = ""
+    s += _t(20, 40, "① 이벤트가 계속 들어옴 · 13개 중 8개", "tn", "start") + _t(490, 40, "② Decisions · 이벤트마다", "tn", "start")
+    s += _t(668, 40, "③ ≥ 0.5 ?", "tn", "start")
+    Y0, DY = 78, 40
+    for i, (seq, msg, p) in enumerate(ev):
+        y, t = Y0 + i * DY, 2 + i * 6
+        hi = p >= .5
+        app = d.a([(0, "opacity:0"), (t, "opacity:0"), (t + 1, "opacity:1"), (96, "opacity:1"), (100, "opacity:0")])
+        s += (f'<g {app}><rect x="20" y="{y - 16}" width="452" height="32" rx="8" fill="{W}" stroke="{G}" stroke-width="2"/>'
+              + _t(32, y + 1, f"#{seq}", "tk", "start") + _t(70, y + 1, msg, "tx", "start") + "</g>")
+        bw = 110 * p
+        s += f'<rect x="490" y="{y - 9}" width="110" height="18" rx="4" fill="{G}" fill-opacity=".5" {app}/>'
+        s += (f'<rect x="490" y="{y - 9}" width="{bw:.0f}" height="18" rx="4" fill="{O if hi else S}" '
+              + d.a([(0, "width:0px"), (t + 1, "width:0px"), (t + 3, f"width:{bw:.0f}px"), (96, f"width:{bw:.0f}px"), (100, "width:0px")]) + "/>")
+        s += f'<g {d.a([(0, "opacity:0"), (t + 2, "opacity:0"), (t + 3, "opacity:1"), (96, "opacity:1"), (100, "opacity:0")])}>' + _t(608, y + 1, f"{p:.2f}", "tk", "start")
+        if hi:
+            s += (f'<rect x="668" y="{y - 13}" width="62" height="26" rx="13" fill="{O}"/>' + _t(699, y + 1, "조사", "tw", extra='style="font-size:14px"')
+                  + f'<line x1="732" y1="{y}" x2="756" y2="{y}" stroke="{O}" stroke-width="2.5" marker-end="url(#{d.id("aho")})"/>')
+        else:
+            s += _t(668, y + 1, "기록만", "tk", "start")
+        s += "</g>"
+    # 조사 Agent 패널 (#11 예시)
+    X, w = 768, 382
+    s += f'<rect x="{X}" y="22" width="{w}" height="398" rx="14" fill="{W}" stroke="{N}" stroke-width="2.5"/>'
+    s += _t(X + 16, 46, "④ 조사 Agent · 넘은 것만", "tn", "start") + _t(X + w - 14, 46, "#11 예시", "tk", "end")
+
+    def show(t, body):
+        return f'<g {d.a([(0, "opacity:0"), (t, "opacity:0"), (t + 2, "opacity:1"), (96, "opacity:1"), (100, "opacity:0")])}>{body}</g>'
+    yy = 78
+    s += show(54, f'<rect x="{X + 12}" y="{yy - 16}" width="{w - 24}" height="34" rx="8" fill="#F6F6F8"/>'
+              + _t(X + 22, yy + 1, "받은 입력 · #11 + 판정할 때 보낸 입력 그대로", "tx", "start"))
+    s += show(60, _t(X + 16, 124, "도구 · Lot 이력 조회 (LOT-001)", "to", "start"))
+    for k, line in enumerate(["#3 EQ-A CH2 온도 412℃", "#7 EQ-B 보정량 +6.8%", "#10 MET 가장자리 1,063 nm"]):
+        s += show(63 + k * 2, _t(X + 30, 148 + k * 22, line, "tx", "start"))
+    s += show(72, _t(X + 16, 228, "도구 · 정비 기록 조회 (EQ-A CH2)", "to", "start"))
+    s += show(75, _t(X + 30, 252, "PM-001 상부 전극 교체 · 시험 가동 1회 생략", "tx", "start"))
+    s += show(82, f'<rect x="{X + 12}" y="276" width="{w - 24}" height="134" rx="10" fill="#FFF0F3" stroke="{O}" stroke-width="2"/>'
+              + _t(X + 24, 298, "원인 가설", "to", "start")
+              + _t(X + 24, 322, "CH2 전극 교체 직후 시험 가동 없이 투입", "tx", "start")
+              + _t(X + 24, 344, "→ 가장자리 막 두께 · 불량 증가와 연관 가능성", "tx", "start")
+              + _t(X + 24, 372, "추가 확인", "to", "start")
+              + _t(X + 24, 396, "CH2 시험 가동 데이터 · 가장자리 두께 분포", "tx", "start"))
+    return d.svg(1160, 424, s, "& .tk{font-size:13px;font-weight:700;fill:#55555C}& .tx{font-size:14px;fill:#26262B}")
