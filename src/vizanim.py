@@ -407,6 +407,151 @@ def cut_space():
               + _t(x, y + 1, str(i + 1), "tn", "middle", 'style="font-size:12px"') + "</g>")
     return d.svg(1160, 460, s)
 
+def _near(chunks, q, k):
+    import math
+    return sorted(chunks, key=lambda c: math.hypot(c[2] - q[0], c[3] - q[1]))[:k]
+
+
+def query_shift(prefix, groups, chunks, before, after, k=3, dur=20, verdict=("근거 없음", "근거 확보")):
+    """벡터 공간에서 질문 점이 옮겨 가며 고르는 k개가 바뀜. 실패 장면 → 고친 장면.
+    chunks: [(id, 글, x, y, 정답?)] · before/after: (제목, 질문 글, x, y) · groups: [(이름, x, y)]."""
+    d = _D(prefix, dur)
+    P, OK = "#FFF0F3", "#2E7D4F"
+    X0, Y0, X1, Y1 = 40, 70, 790, 450
+
+    def vis(a, b=97):
+        return d.a([(0, "opacity:0"), (a, "opacity:0"), (a + 1.5, "opacity:1"), (b, "opacity:1"), (b + 1.5, "opacity:0"), (100, "opacity:0")])
+
+    A, B = 8, 50  # 실패 장면 · 고친 장면 시작
+    s = ""
+    # 질문 카드 (장면마다)
+    for (title, q, qx, qy), t0, t1, col in ((before, A, B - 3, N), (after, B, 97, O)):
+        s += (f'<g {vis(t0, t1)}><rect x="{X0}" y="12" width="{X1 - X0}" height="44" rx="10" fill="{col}"/>'
+              + _t(X0 + 18, 35, title, "tw", "start") + _t(X0 + 190, 35, q, "tw", "start", 'style="font-weight:400"') + "</g>")
+    # 공간
+    s += f'<rect x="{X0}" y="{Y0}" width="{X1 - X0}" height="{Y1 - Y0}" rx="12" fill="#FAFAFB" stroke="{G}" stroke-width="2"/>'
+    s += _t(X1 - 14, Y1 - 14, "2차원으로 줄여 표시 · 위치는 설명용", "ts", "end", 'style="font-size:12.5px"')
+    for g, gx, gy in groups:
+        s += _t(gx, gy, g, "ts", "middle", 'style="font-size:13px;fill:#9A9AA3;font-weight:700"')
+    for cid, txt, x, y, good in chunks:
+        s += (f'<g {vis(1 + chunks.index((cid, txt, x, y, good)) * .6)}><circle cx="{x}" cy="{y}" r="8" fill="{N}"/>'
+              + _t(x + 12, y + 1, txt, "ts", "start", 'style="font-size:12.5px"') + "</g>")
+
+    def pick(q, t0, t1, ok):
+        qx, qy = q[2], q[3]
+        near = _near(chunks, (qx, qy), k)
+        import math
+        r = max(math.hypot(c[2] - qx, c[3] - qy) for c in near) + 16
+        out = (f'<circle cx="{qx}" cy="{qy}" r="{r:.0f}" fill="{O if not ok else OK}" fill-opacity=".07" stroke="{O if not ok else OK}" '
+               f'stroke-width="2" stroke-dasharray="6 5" {vis(t0 + 8, t1)}/>')
+        for c in near:
+            out += f'<line x1="{qx}" y1="{qy}" x2="{c[2]}" y2="{c[3]}" stroke="{O if not ok else OK}" stroke-width="2.5" stroke-dasharray="5 4" {vis(t0 + 10, t1)}/>'
+            out += f'<circle cx="{c[2]}" cy="{c[3]}" r="10" fill="{O if not c[4] else OK}" {vis(t0 + 11, t1)}/>'
+        # 오른쪽 목록
+        RX = 815
+        out += f'<g {vis(t0 + 13, t1)}>' + _t(RX, 92, "LLM에게 가는 조각", "tn", "start") + "</g>"
+        for j, c in enumerate(near):
+            yy = 108 + j * 62
+            mark, col = ("✓", OK) if c[4] else ("✗", O)
+            out += (f'<g {vis(t0 + 14 + j * 2, t1)}><rect x="{RX}" y="{yy}" width="325" height="50" rx="8" fill="{W}" stroke="{col}" stroke-width="2"/>'
+                    + _t(RX + 14, yy + 25, mark, "tn", "start", f'style="font-size:20px;fill:{col}"')
+                    + _t(RX + 42, yy + 25, c[1], "ts", "start", 'style="font-size:13px"') + "</g>")
+        vy = 108 + k * 62 + 8
+        vt = verdict[1] if ok else verdict[0]
+        out += (f'<g {vis(t0 + 22, t1)}><rect x="{RX}" y="{vy}" width="325" height="54" rx="10" fill="{OK if ok else O}"/>'
+                + _t(RX + 162, vy + 28, vt, "tw", "middle", 'style="font-size:17px"') + "</g>")
+        return out
+    s += pick(before, A, B - 3, False) + pick(after, B, 97, True)
+    # 질문 점
+    dia = f'<path d="M0 -14 L14 0 L0 14 L-14 0 Z" fill="{O}" stroke="{W}" stroke-width="2.5"/>'
+    bx, by, ax, ay = before[2], before[3], after[2], after[3]
+    s += _move(d, [(0, 415, 60, 0), (A + 1, 415, 60, 0), (A + 2, 415, 60, 1), (A + 7, bx, by, 1), (B, bx, by, 1),
+                   (B + 7, ax, ay, 1), (97, ax, ay, 1), (100, ax, ay, 0)], shape=dia)
+    s += f'<g {vis(B + 1, B + 8)}>' + _t((bx + ax) / 2, (by + ay) / 2 - 18, "질문 점이 이동", "to") + "</g>"
+    return d.svg(1160, 470, s)
+
+
+def rewrite_space():
+    """Query Rewriting · 「박리」 한 단어는 영어 문서와 멀어 엉뚱한 조각 → 재작성하면 delamination 무리로."""
+    chunks = [("A1", "die paddle delamination", 580, 160, True), ("A2", "mold-to-pad delamination", 545, 215, True),
+              ("A3", "SAM after MSL test", 600, 262, True),
+              ("B1", "alpha particles flip memory bits", 150, 340, False), ("B2", "ECC corrects single-bit errors", 215, 390, False),
+              ("C1", "PCCB controls process changes", 250, 150, False), ("C2", "FMEA risk analysis", 300, 205, False),
+              ("C3", "RMA customer returns", 215, 255, False)]
+    return query_shift("qr", [("MSL · 패키지", 620, 110), ("품질 시스템", 260, 110), ("소프트 에러", 190, 300)], chunks,
+                       ("원래 질문", "박리", 300, 272), ("재작성한 질문", "die paddle delamination after MSL testing", 575, 215),
+                       verdict=("엉뚱한 조각 · 근거 없음", "박리 근거 3개 확보"))
+
+
+def hyde_space():
+    """HyDE · 짧은 질문은 비슷한 숫자 조각으로 빗나감 → 가상 답변 문단은 답 문장 근처로."""
+    chunks = [("A1", "baked 24 h at 125 °C", 590, 160, True), ("A2", "remove moisture", 550, 215, True),
+              ("A3", "moisture soak per MSL", 610, 262, True),
+              ("B1", "1000 temperature cycles −65 ~ 150 °C", 300, 300, False), ("B2", "unbiased HAST 130 °C / 85%RH", 360, 355, False),
+              ("B3", "96 hours of autoclave", 250, 375, False), ("C1", "alpha particles flip memory bits", 140, 160, False),
+              ("C2", "ECC corrects single-bit errors", 200, 205, False)]
+    return query_shift("hy", [("베이크 · 수분 제거", 630, 110), ("온도 · 신뢰성 시험", 300, 255), ("소프트 에러", 170, 115)], chunks,
+                       ("짧은 질문", "MSL 시험 전 몇 도에서 굽나요?", 360, 290),
+                       ("가상 답변 문단", "샘플을 125 °C에서 24시간 구워 패키지 수분을 제거한다…", 585, 215),
+                       verdict=("온도 숫자만 비슷 · 다른 시험", "베이크 조건 근거 확보"))
+
+
+def always_k():
+    """관계없는 질문에도 K개 → 그대로 답 생성 · Reranking으로 다시 평가해 기준 미만 버리기. 22초."""
+    import math
+    d = _D("ak", 22)
+    P, OK = "#FFF0F3", "#2E7D4F"
+    X0, Y0, X1, Y1 = 40, 70, 650, 450
+    chunks = [("baked 24 h at 125 °C", 520, 160), ("die paddle delamination", 580, 220), ("HAST 130 °C / 85%RH", 470, 300),
+              ("alpha particles flip bits", 300, 380), ("ECC single-bit correction", 360, 410), ("PCCB process change", 420, 200),
+              ("FMEA risk analysis", 360, 250), ("RMA customer returns", 250, 300), ("SRAM SER FIT/Mbit", 200, 410)]
+    q = (110, 120)
+    near = sorted(chunks, key=lambda c: math.hypot(c[1] - q[0], c[2] - q[1]))[:5]
+    R = math.hypot(near[-1][1] - q[0], near[-1][2] - q[1]) + 18
+
+    def vis(a, b=97):
+        return d.a([(0, "opacity:0"), (a, "opacity:0"), (a + 1.5, "opacity:1"), (b, "opacity:1"), (b + 1.5, "opacity:0"), (100, "opacity:0")])
+
+    s = (f'<rect x="{X0}" y="12" width="{X1 - X0}" height="44" rx="10" fill="{N}"/>'
+         + _t(X0 + 18, 35, "관계없는 질문", "tw", "start") + _t(X0 + 170, 35, "김치찌개를 맛있게 끓이는 방법은?", "tw", "start", 'style="font-weight:400"'))
+    s += f'<rect x="{X0}" y="{Y0}" width="{X1 - X0}" height="{Y1 - Y0}" rx="12" fill="#FAFAFB" stroke="{G}" stroke-width="2"/>'
+    for txt, x, y in chunks:
+        s += f'<g {vis(1)}><circle cx="{x}" cy="{y}" r="8" fill="{N}"/>' + _t(x + 12, y + 1, txt, "ts", "start", 'style="font-size:12.5px"') + "</g>"
+    # 범위 원이 커지며 억지로 5개
+    s += f'<clipPath id="{d.id("clip")}"><rect x="{X0}" y="{Y0}" width="{X1 - X0}" height="{Y1 - Y0}" rx="12"/></clipPath>'
+    s += (f'<g clip-path="url(#{d.id("clip")})"><circle cx="{q[0]}" cy="{q[1]}" r="{R:.0f}" fill="{O}" fill-opacity=".06" stroke="{O}" stroke-width="2" stroke-dasharray="6 5" '
+          + d.a([(0, "opacity:0;transform:scale(.1)"), (14, "opacity:0;transform:scale(.1)"), (15, "opacity:1;transform:scale(.15)"),
+                 (30, "opacity:1;transform:scale(1)"), (97, "opacity:1;transform:scale(1)"), (100, "opacity:0;transform:scale(1)")],
+                extra="transform-box:fill-box;transform-origin:center") + "/></g>")
+    s += f'<g {vis(20, 46)}>' + _t(q[0] + 30, q[1] - 30, "가까운 게 없어도 K=5개를 채울 때까지", "to", "start") + "</g>"
+    for i, (txt, x, y) in enumerate(near):
+        s += f'<circle cx="{x}" cy="{y}" r="10" fill="{O}" {vis(18 + i * 3)}/>'
+    dia = f'<path d="M0 -14 L14 0 L0 14 L-14 0 Z" fill="{O}" stroke="{W}" stroke-width="2.5"/>'
+    s += _move(d, [(0, 345, 60, 0), (5, 345, 60, 0), (6, 345, 60, 1), (12, q[0], q[1], 1), (97, q[0], q[1], 1), (100, q[0], q[1], 0)], shape=dia)
+
+    # 오른쪽 · 후보 목록과 점수
+    RX = 680
+    s += f'<g {vis(32)}>' + _t(RX, 82, "검색 결과 K=5", "tn", "start") + _t(RX + 255, 82, "유사도", "ts", "end", 'style="font-size:13px"') + _t(RX + 450, 82, "재정렬 점수", "ts", "end", 'style="font-size:13px"') + "</g>"
+    sims = [.31, .29, .27, .26, .24]
+    rr = [.04, .03, .02, .02, .01]
+    BX, BW = RX + 300, 150
+    s += f'<g {vis(56)}><line x1="{BX + BW * .5}" y1="94" x2="{BX + BW * .5}" y2="404" stroke="{N}" stroke-width="2" stroke-dasharray="4 4"/>' + _t(BX + BW * .5 + 6, 60, "기준 0.5", "tn", "start", 'style="font-size:13px"') + "</g>"
+    for i, (txt, x, y) in enumerate(near):
+        yy = 100 + i * 62
+        s += (f'<g {vis(32 + i * 2)}><rect x="{RX}" y="{yy}" width="470" height="50" rx="8" fill="{W}" stroke="{G}" stroke-width="2"/>'
+              + _t(RX + 14, yy + 25, txt, "ts", "start", 'style="font-size:13px"') + _t(RX + 255, yy + 25, f"{sims[i]:.2f}", "tn", "end") + "</g>")
+        s += (f'<rect x="{BX}" y="{yy + 17}" width="{BW * rr[i]:.0f}" height="16" rx="3" fill="{O}" {vis(58 + i * 2)}/>'
+              + f'<g {vis(58 + i * 2)}>' + _t(BX + BW * rr[i] + 8, yy + 25, f"{rr[i]:.2f}", "to", "start", 'style="font-size:13px"') + "</g>")
+        s += f'<line x1="{RX + 8}" y1="{yy + 25}" x2="{RX + 280}" y2="{yy + 25}" stroke="{O}" stroke-width="2.5" {vis(70 + i)}/>'
+    # 결과 상자 둘
+    s += (f'<g {vis(40, 54)}><rect x="{RX}" y="414" width="470" height="44" rx="10" fill="{O}"/>'
+          + _t(RX + 235, 436, "그대로 넣으면 · 관계없는 근거로 그럴듯한 답", "tw") + "</g>")
+    s += (f'<g {vis(76)}><rect x="{RX}" y="414" width="470" height="44" rx="10" fill="{OK}"/>'
+          + _t(RX + 235, 436, "모두 기준 미만 → 「문서에서 근거를 찾지 못했습니다」", "tw") + "</g>")
+    s += f'<g {vis(56)}>' + _t(RX, 35, "재정렬 · 질문과 후보를 함께 읽고 다시 점수", "to", "start") + "</g>"
+    return d.svg(1160, 480, s)
+
+
 # ── 지식 그래프 (3교시 GraphRAG) ─────────────────────────────────────
 # 설명용 예시: 소프트 에러 문서의 세 청크. 페이지 · 문장은 설명용.
 KG_NODES = {

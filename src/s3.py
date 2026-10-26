@@ -58,6 +58,7 @@ def block_pre():
             ("방법", "생략된 문맥 보완 · 문서의 전문 용어 함께 넣기 · 규칙 · 사전 또는 언어 모델", "02"),
             ("실습 구성", "gpt-5.6-luna에 원래 질의 + 문서 목록 + 지시문 → 검색 질의 → 임베딩", "03"),
         ]) + note("배부 앱", "재작성 기능 없음 → Claude Code로 <b>직접 추가</b>", "red"), kick="Pre-retrieval"),
+        page("표현이 다르면 엉뚱한 조각을 집는다", vizanim.rewrite_space(), kick="Pre-retrieval"),
         page("「박리」 재작성 흐름", xf.rewrite_bakri()
              + note("금지", "묻지 않은 온도 · 시험 시간 · 원인을 붙이면 질문의 뜻이 바뀜 · 문서 목록은 분야를 아는 단서일 뿐 · 검색 결과는 설명용", "red"),
              kick="Query Rewriting"),
@@ -98,6 +99,7 @@ def block_pre():
              + note("대가", "검색 횟수가 검색어 수만큼 · 관계없는 결과가 섞임(취소선) · 결과는 설명용", "red"), kick="Pre-retrieval"),
         page("HyDE · 가상 답변으로 검색", xf.hyde_ex()
              + note("HyDE", "Hypothetical Document Embeddings · 짧은 의문문보다 <b>답변 문단</b>이 문서 속 설명과 형태가 비슷 · 결과는 설명용", "red"), kick="Pre-retrieval"),
+        page("HyDE를 벡터 공간에서", vizanim.hyde_space(), kick="Pre-retrieval"),
         page("세 방법 비교", table(["방법", "무엇을 바꾸나", "추가 비용", "주의할 점"], [
             ["<b>Query Rewriting</b>", "질문 하나 → 검색에 맞는 문장 하나", "LLM 호출 1회", "질문에 없던 조건을 붙이면 뜻이 바뀜"],
             ["<b>Query Expansion</b>", "질문 하나 → 여러 질의", "LLM 호출 1회 + 검색 여러 번", "관계없는 결과가 섞임"],
@@ -117,6 +119,7 @@ def block_rerank():
                 "관련 있는 질문의 1위 점수와 비교"])
             + table(["기록", ""], [["관련 있는 질문의 1위 점수", "______"], ["관계없는 질문의 1위 점수", "______"], ["차이", "______"]], "x3rec")),
              kick="Reranking"),
+        page("관계없는 질문에도 K개를 집는다", vizanim.always_k(), kick="Reranking"),
         page("유사도 검색은 항상 K개를 돌려줌", two(
             pane("유사도 검색이 하는 일", ul(["저장소에서 <b>가장 가까운 K개</b>를 돌려줄 뿐", "그 조각이 질문과 관련 있는지는 판단하지 않음", "관계없는 질문에도 항상 K개"]), "bad"),
             pane("점수만으로 구분하기 어려운 이유", ul(["같은 분야 문서는 공통 용어 · 주제가 많아 비슷한 벡터가 될 수 있음",
