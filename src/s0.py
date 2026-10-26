@@ -72,7 +72,7 @@ def block_way():
 def block_project():
     return [
         section("02", "오늘의 프로젝트", "RAG 앱 · Agent 앱 · 캡스톤"),
-        page("오늘 만드는 세 가지", '<div class="parts">'
+        page("오늘의 결과물", '<div class="parts">'
              + fig._tile("search", "RAG 앱", "학습하지 않은 기술 문서를<br>AI가 참조해 답변")
              + '<div class="plus">→</div>'
              + fig._tile("tool", "Agent 앱", "Tool Calling으로<br>AI에 도구 제공")

@@ -29,11 +29,11 @@ def opening():
 def block_agent():
     return [
         section("02", "AI Agent의 구조", "요청을 받은 뒤 다음 행동을 정하는 프로그램"),
-        page("요청 하나를 처리하는 과정", fig.agent_loop(
+        page("요청 처리 과정", fig.agent_loop(
             "「시험 조건과 근거 페이지를 정리해 줘」", "조건 · 출처가 달린 답변",
             [("판단", "어떤 문서가 필요한가"), ("검색 실행", "앱이 문서 검색"), ("결과 확인", "원문 · 출처"), ("추가 검색", "부족하면 다시")])
              + note("AI Agent", "목표에 따라 필요한 행동을 판단하고, 도구 실행 결과로 다음 행동이나 답변을 이어 가는 프로그램"), kick="구조"),
-        page("모델은 고르고, 앱은 실행", two(
+        page("모델의 선택 · 앱의 실행", two(
             pane("LLM (모델)", ul(["질문과 자료를 읽고 판단", "사용할 <b>도구와 입력값</b>을 선택", "결과를 받아 다음 판단"]), "good"),
             pane("앱", ul(["모델이 고른 도구의 <b>실행 코드</b>를 호출", "쓸 수 있는 도구 · 접근할 자료 관리", "호출 횟수 · 종료 조건 관리"]), "bad"))
              + note("Tool", "앱에 연결해 모델이 선택할 수 있게 제공한 기능 · 문서 검색 · 메모 저장 등"), kick="구조"),
@@ -87,7 +87,7 @@ def block_setup():
             ["<b>경량</b> (Haiku)", "포맷 변환 · 일괄 치환 · 로그 요약 · 간단한 분류"],
         ]) + note("실전 기본값", "기본 등급으로 시작 → 막히면 올리고 → 단순 반복이면 내리기 · <b>작업 단위로</b> 바꾸기", "red")
              + note("가격 · 모델명", "교육 시점의 공식 문서로 확인"), kick="실습 준비"),
-        page("토큰을 아끼는 습관", cards([
+        page("토큰 절약", cards([
             ("/context", "먼저 무엇이 토큰을 쓰는지 확인", "1"), ("/clear", "작업이 바뀌면 대화 비우기", "2"),
             ("/compact", "한도 경고 전에 미리 압축", "3"), ("@파일:줄", "탐색시키지 말고 위치 지정", "4"),
             ("서브에이전트", "조사는 맡기고 요약만 받기", "5"), ("CLAUDE.md", "짧게 유지 · 매번 읽힘", "6"),
@@ -101,17 +101,17 @@ def block_setup():
 
 def block_security():
     return [
-        page("API Key가 하는 일", flow([("앱", "질문 · 문서"), ("API 요청", "API Key 포함"), ("서비스", "요청자 확인"), ("사용량 기록", "계정별 청구")], hl=1)
+        page("API Key의 역할", flow([("앱", "질문 · 문서"), ("API 요청", "API Key 포함"), ("서비스", "요청자 확인"), ("사용량 기록", "계정별 청구")], hl=1)
              + note("유출되면", "다른 사람이 내 계정으로 요청 · 비용은 내 계정에 청구", "red")
              + note("실습", "코드에 직접 적지 않고 <b>.env</b> 파일에 보관 · 실행할 때 읽음"), kick="보안"),
-        page(".env가 막는 것과 못 막는 것", two(
+        page(".env의 보호 범위", two(
             pane("막는 것", ul(["Key를 <b>코드 · Git</b>에서 분리", "저장소에 올릴 때 함께 공개되는 것 방지"]), "good"),
             pane("못 막는 것", ul(["Claude Code가 프로젝트 파일 · 셸에 접근하면", ".env나 환경 변수의 Key를 읽을 수 있음"]), "bad"))
              + table(["수준", "방법"], [
                  ["<b>개인 실습</b>", ".env + .gitignore + 프로젝트별 Key + 사용량 · 권한 제한"],
                  ["<b>강화</b>", "OS Keychain · Credential Manager · Secret Manager"],
                  ["<b>운영 · 기업</b>", "Agent에는 Key를 주지 않고 API Proxy · Gateway가 대신 호출"]]), kick="보안"),
-        page("대화 기록이 남는 곳", table(["위치", "내용", "보관"], [
+        page("대화 기록 위치", table(["위치", "내용", "보관"], [
             ["<b>내 PC</b><br><code>%USERPROFILE%\\.claude\\projects</code>", "요청 · 답변 · 읽은 파일 · 명령 결과가 <b>암호화 없이</b> .jsonl로", "기본 30일 · settings.json의 cleanupPeriodDays"],
             ["<b>서비스 서버</b>", "답변 생성을 위해 전송", "계정 유형 · 데이터 사용 설정에 따라 다름"],
         ]) + note("원칙", "API Key · 사번 · 미공개 자료는 대화창에 붙여 넣지 않기 · 회사 PC는 사내 보안 규정 따르기", "red"), kick="보안"),
@@ -137,27 +137,27 @@ def block_rag():
         ]) + note("설계 질문", "우리 팀 자료라면? 문서의 양 · 바뀌는 빈도 · 하루 질문 수로 판단", "red"), kick="RAG"),
         page("RAG: 검색 · 증강 · 생성", flow([("검색 Retrieval", "질문과 관련된 자료 찾기"), ("증강 Augmented", "찾은 자료를 질문과 함께 전달"), ("생성 Generation", "자료를 근거로 답변")], hl=0)
              + note("Naive RAG", "벡터 검색을 쓰는 RAG · 대량 자료에서 필요한 근거를 <b>저렴하고 빠르게</b> 전달", "red"), kick="RAG"),
-        page("글자 비교만으로는 못 찾는 질문", ba(
+        page("글자 비교의 한계", ba(
             "질문: 반도체 패키지의 박리\n문서: package delamination\n\n→ 글자가 달라 연결하기 어려움",
             "의미를 비교할 수 있는 형태로 미리 바꿔 두기\n\n→ 표현이 달라도 관련 자료를 찾음",
             "글자 일치 비교", "의미 비교"), kick="임베딩"),
-        page("문장을 숫자 배열로: 임베딩", ef.embed2()
+        page("임베딩", ef.embed2()
              + note("임베딩", "글을 벡터(순서가 있는 숫자 배열)로 표현 · 색 띠는 설명용", "red"), kick="임베딩"),
-        page("축 하나 = 특징 하나", two(ef.line1d(), '<div class="ef-key"><div><b style="background:#E8002D">S1</b>웨이퍼 식각 레시피</div><div><b style="background:#FF7A93">S2</b>박막 증착 레시피</div><div><b style="background:#26262B">S3</b>김치찌개 레시피</div></div>' + ul(["숫자 하나 = 문장이 그 특징을 얼마나 가졌는지", "<b>반도체 관련도</b>만 보면 S1 · S2가 겹침"]), "w"), kick="임베딩"),
-        page("특징이 둘이면 평면", two(ef.plane2d(), '<div class="ef-key"><div><b style="background:#E8002D">S1</b>웨이퍼 식각 레시피</div><div><b style="background:#FF7A93">S2</b>박막 증착 레시피</div><div><b style="background:#26262B">S3</b>김치찌개 레시피</div></div>' + ul(["<b>요리 관련도</b> 축 추가 → S3가 떨어짐", "S1 · S2는 아직 가까움"]), "w"), kick="임베딩"),
-        page("특징이 셋이면 공간", two(ef.space3d(), '<div class="ef-key"><div><b style="background:#E8002D">S1</b>웨이퍼 식각 레시피</div><div><b style="background:#FF7A93">S2</b>박막 증착 레시피</div><div><b style="background:#26262B">S3</b>김치찌개 레시피</div></div>' + ul(["<b>식각 ↔ 증착</b> 축 추가 → S1 · S2도 구분", "축(특징)이 늘수록 더 세밀하게 구분"]), "w"), kick="임베딩"),
-        page("특징이 많을수록 표현이 정교", ef.dims()
+        page("축과 특징", two(ef.line1d(), '<div class="ef-key"><div><b style="background:#E8002D">S1</b>웨이퍼 식각 레시피</div><div><b style="background:#FF7A93">S2</b>박막 증착 레시피</div><div><b style="background:#26262B">S3</b>김치찌개 레시피</div></div>' + ul(["숫자 하나 = 문장이 그 특징을 얼마나 가졌는지", "<b>반도체 관련도</b>만 보면 S1 · S2가 겹침"]), "w"), kick="임베딩"),
+        page("2차원 평면", two(ef.plane2d(), '<div class="ef-key"><div><b style="background:#E8002D">S1</b>웨이퍼 식각 레시피</div><div><b style="background:#FF7A93">S2</b>박막 증착 레시피</div><div><b style="background:#26262B">S3</b>김치찌개 레시피</div></div>' + ul(["<b>요리 관련도</b> 축 추가 → S3가 떨어짐", "S1 · S2는 아직 가까움"]), "w"), kick="임베딩"),
+        page("3차원 공간", two(ef.space3d(), '<div class="ef-key"><div><b style="background:#E8002D">S1</b>웨이퍼 식각 레시피</div><div><b style="background:#FF7A93">S2</b>박막 증착 레시피</div><div><b style="background:#26262B">S3</b>김치찌개 레시피</div></div>' + ul(["<b>식각 ↔ 증착</b> 축 추가 → S1 · S2도 구분", "축(특징)이 늘수록 더 세밀하게 구분"]), "w"), kick="임베딩"),
+        page("고차원 표현", ef.dims()
              + note("실제 임베딩", "축이 수백 ~ 수천 개 · 사람이 이름 붙인 특징이 아니라 <b>학습으로 정해진 특징</b> · 숫자 하나에 「반도체」 같은 뜻이 붙어 있지는 않음", "red"), kick="임베딩"),
-        page("의미가 가까우면 방향도 비슷", two(ef.space2(),
+        page("의미와 방향", two(ef.space2(),
              ul(["식각 · 증착 레시피: <b>반도체 공정</b> 문맥 공유 → 화살표 방향이 비슷", "김치찌개 레시피: 같은 「레시피」, 다른 문맥 → 방향이 크게 다름", "가깝다 ≠ 정답 · 모든 조건 충족은 별도 확인"]), "w"), kick="임베딩"),
-        page("거리와 각도는 다른 기준", two(af.cosine(), table(["기준", "읽는 법"], [
+        page("거리와 각도", two(af.cosine(), table(["기준", "읽는 법"], [
             ["<b>유클리드 거리</b>", "끝점 사이 직선거리 · 작을수록 가까움"],
             ["<b>코사인 유사도</b>", "사이 각도 · 클수록 방향이 비슷 (−1 ~ 1)"],
             ["<b>코사인 거리</b>", "1 − 코사인 유사도 · 작을수록 비슷 (0 ~ 2)"]]), "w2")
              + note("A와 B", "같은 방향 → 코사인 유사도 1 · 거리는 1 · 길이를 1로 맞추는 정규화로 비교가 단순해짐"), kick="임베딩"),
         page("실습 앱의 임베딩", big([("text-embedding-3-small", "OpenAI 임베딩 모델 · .env의 Key 사용"), ("1,536", "벡터 하나의 숫자 개수"), ("같은 모델", "문서와 질문 모두")])
              + note("섞지 않기", "차원이 같아도 다른 모델의 벡터는 같은 의미 공간이라는 보장 없음 · 확인은 lab/llm.py"), kick="임베딩"),
-        page("점 하나와 여러 점", two(img(IMG + "doc_vs_sentences.png", "같은 공간 · 문서 전체 1점 vs 문장별 36점 (설명용)", light=True),
+        page("단일 벡터와 여러 벡터", two(img(IMG + "doc_vs_sentences.png", "같은 공간 · 문서 전체 1점 vs 문장별 36점 (설명용)", light=True),
              ul(["전체를 하나로: 여러 주제가 섞임", "문장 · 문단별로: 주제마다 따로 찾을 수 있음", "너무 잘게: 적용 대상 · 앞 문장의 조건을 잃음", "→ 찾을 수 있으면서 문맥이 남게 나누기 = <b>청킹</b>"]), "w")
              + note("청크", "나뉜 조각 하나 · 벡터 + 원문 + 출처를 함께 저장 · 크기 비교는 2교시"), kick="임베딩"),
     ]
@@ -168,7 +168,7 @@ def block_lab():
         section("06", "naive RAG 직접 실행", "PDF 한 편으로 파싱부터 생성까지"),
         page("인덱싱 타임과 쿼리 타임", vizanim.index_query()
              + note("순서", "임베딩을 먼저 배웠지만 실제로는 <b>청킹이 먼저</b> · 검색할 단위가 정해져야 벡터를 계산"), kick="naive RAG"),
-        page("벡터 공간에서 보는 두 시점", vizanim.vector_space(), kick="naive RAG"),
+        page("벡터 공간의 두 시점", vizanim.vector_space(), kick="naive RAG"),
         lab("1", "naive RAG 직접 실행", "AN4750 문서 한 편으로 RAG의 다섯 단계를 화면에서 직접 확인",
             ["① PDF 업로드 · 파싱", "② 청킹 · 고정 길이", "③ 임베딩 · 적재", "④ 의미 검색 · 한국어 / 영어", "⑤ 답변 생성 · 근거 대조"],
             "단계별 숫자 기록 · 답변과 근거 대조"),
@@ -192,7 +192,7 @@ def block_lab():
 
 def closing():
     return [
-        page("Agent 아키텍처에서 이번 실습의 위치", two(
+        page("아키텍처 내 위치", two(
             ul(["청크와 벡터는 검색용 <b>저장 자료</b>", "질문마다 일부 원문만 골라 입력에", "저장소가 커지는 것 ≠ 한 요청의 Context가 커지는 것"]),
             ul(["프롬프트 글자 수는 전달 범위의 단서 · 토큰 수와 같은 단위는 아님", "지금은 <b>코드가 정한 순서</b>로 검색 · 답변", "4 · 5교시: 검색을 <b>모델이 고르는 도구</b>로"])), kick="정리"),
         page("정리", steps([

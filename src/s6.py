@@ -180,7 +180,7 @@ def opening():
 def block_patterns():
     return [
         section("01", "멀티에이전트의 구성 방식과 설계 요소", "Agent 사이의 연결 → 도구와 사람 개입의 통제"),
-        page("역할을 여러 Agent로 나눌 때", two(
+        page("역할 분리 기준", two(
             pane("Agent 하나", ul(["모든 일을 한 Agent가", "Context · Tool이 계속 늘어남", "잘못된 판단이 다음 단계로 전달"]), "bad"),
             pane("역할별 Agent", ul(["Agent마다 맡는 <b>범위를 좁힘</b>", "필요한 <b>Context와 Tool을 구분</b>", "역할마다 다른 구성"]), "good"))
              + note("먼저 정할 두 가지", "① Agent 사이의 작업을 <b>어떻게 연결</b>할지 → ② 도구와 사람의 개입을 <b>어떻게 통제</b>할지", "red"), kick="설계 요소"),
@@ -199,11 +199,11 @@ def block_patterns():
 
 def block_split():
     return [
-        section("02", "자주 하는 판정과 필요한 조사 나누기", "Decisions API가 고르고, 조사 Agent가 설명"),
+        section("02", "판정과 조사 분리", "Decisions API가 고르고, 조사 Agent가 설명"),
         page("이번 실습의 구조", vizanim.decide_investigate()
              + note("나누는 이유", "판정 13회 · 빠르고 저렴 → 조사 4회 · 도구 호출 · 느리고 비쌈 · 확률은 설명용", "red"),
              kick="판정과 조사"),
-        page("predicate가 추정하는 것", two(
+        page("predicate의 추정 대상", two(
             pane("이 실습의 조건", ul(["「제공한 이벤트에 <b>추가 조사가 필요한 이상 징후</b>가 있는가」",
                                      "조건을 만족할 가능성을 <b>0~1</b>로 추정"]), "good"),
             pane("확률이 아닌 것", ul(["실제 공정의 <b>불량 발생률</b>을 측정한 값 아님", "같은 입력에서도 추정값은 달라질 수 있음"]), "bad"))
@@ -228,8 +228,8 @@ def block_split():
         page("N회 판정 + M회 조사", sf.cost()
              + note("판정 뒤", "도구 호출과 설명이 필요하면 <b>Responses API</b>를 쓰는 조사 Agent로 · 기준값이 조사 횟수와 놓치는 이벤트에 주는 영향 확인", "red"),
              kick="비용 구조"),
-        page("판정에서 조사까지", sf.decision_flow(), kick="전체 흐름"),
-        ill("scenes_ch2", "gauges", "top20", "기준값 0.5는 시작값",
+        page("판정 → 조사 흐름", sf.decision_flow(), kick="전체 흐름"),
+        ill("scenes_ch2", "gauges", "top20", "기준값 0.5",
             ["추정값 ≥ 기준값 → 이벤트마다 조사 Agent", "낮추면 조사 대상 · 비용 증가 · 높이면 놓칠 수 있음"]),
     ]
 
@@ -253,7 +253,7 @@ def block_line():
             ["<b>[끝까지 보기]</b>", "나머지 즉시 공개"],
             ["<b>[처음부터]</b>", "재생 초기화"],
         ]), kick="실습 1"),
-        page("가상의 LOT-001이 지나는 장비", flow([
+        page("LOT-001 경로", flow([
             ("EQ-A", "박막 증착 · 챔버 CH1 · CH2"), ("EQ-B", "열처리"), ("MET", "막 두께 계측"), ("VIS", "비전 검사"),
         ]) + note("합성 데이터", "교육용으로 만든 이름 · 수치 · 실제 공정의 물리적 인과관계를 재현하지 않음", "red")
              + note("보는 법", "이벤트 · 정비 기록만으로 원인 확정 X → <b>확인할 가설 · 추가 점검 사항</b> 찾기"), kick="3-2 · 데이터"),
@@ -278,7 +278,7 @@ def block_decisions():
              + note("붙여 넣기", "위 상자의 <b>복사</b> → Claude Code에 그대로", "red")
              + note("핵심 조건", "실제 API 호출 · 실제 Request / Response 기록 · 가짜 확률 · 가상 JSON 금지 · 조사 Agent는 아직 연결하지 않음"),
              kick="4-1 · 완성형 Prompt"),
-        page("감시와 판정은 따로 동작", sf.lanes()
+        page("감시와 판정의 분리", sf.lanes()
              + note("종료", "감시는 최대 180초 · 종료 후 새 판정 호출 없음 · 이미 시작한 요청은 완료 · 남은 이벤트는 <b>미호출</b> 표시", "red"),
              kick="4-1 · 동작 구조"),
         page("[decisions] 탭의 최소 화면", two(sf.wire(),
@@ -339,13 +339,13 @@ def block_agent():
 def block_check():
     return [
         section("06", "연결된 동작 확인", "이벤트 → 판정 → 기준값 초과 → 도구 조회 → 조사 결과"),
-        page("확인할 장면", steps([
+        page("확인 장면", steps([
             ("판정", "Decisions가 이벤트마다 판정한 확률이 표에"),
             ("연결", "기준값을 넘은 이벤트와 그 판정 입력이 조사 Agent의 입력에"),
             ("도구 호출", "Lot 이력 · 정비 기록 조회 같은 도구 호출"),
             ("조사 결과", "조회 결과를 읽은 뒤 원인 가설 · 추가 확인 사항"),
         ]), kick="6 · 확인"),
-        ill("scenes_extra", "fact_hypothesis", "left40", "기록 발견과 원인 확정은 별개",
+        ill("scenes_extra", "fact_hypothesis", "left40", "기록 발견 ≠ 원인 확정",
             ["정비 기록을 찾았다 ≠ 원인을 확정했다", "근거로 쓴 이벤트 · 기록 확인", "더 확인해야 할 사항 읽기"]),
     ]
 

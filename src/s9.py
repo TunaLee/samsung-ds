@@ -201,7 +201,7 @@ def block_close():
             [k("/extra-usage"), "→ <code>/usage-credits</code>"],
             [k("--enable-auto-mode"), "제거 → 지원 환경에서 <code>--permission-mode auto</code>"],
         ], ("과거 안내", "현행"), "s9-wrap"), kick=kk),
-        page("Unknown command가 나오면", T([
+        page("Unknown command 대처", T([
             ["입력 위치", "PowerShell인지 대화 입력창인지"],
             ["철자", "명령 이름 다시 확인"],
             ["버전", "<code>claude --version</code> · <code>/release-notes</code>"],

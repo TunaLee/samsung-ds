@@ -37,7 +37,7 @@ def block_api():
                  ["<code>date</code>", "환율 고시일"],
                  ["갱신", "유럽중앙은행 고시 환율 · 하루 한 번 · 주말엔 새 값 없음"]])
              + note("응답", "사람이 보는 화면이 아니라 <b>프로그램이 읽고 처리하는 데이터</b>"), kick="API"),
-        page("도구 실행 중에 API를 부를 때", f5.chain([
+        page("도구 안의 API 호출", f5.chain([
             ("model", "LLM", "「환율 조회 도구를<br>USD로 불러 줘」", False),
             ("window", "앱", "환율 조회<br>함수 실행", False),
             ("globe", "Frankfurter API", "함수 안에서 호출<br>→ 결과", True),
@@ -50,7 +50,7 @@ def block_api():
 def block_mcp():
     return [
         section("02", "MCP: 도구를 연결하는 표준", "목록 조회 · 호출 · 결과 전달의 공통 규격"),
-        page("앱마다 따로 만드는 연결", two(
+        page("규격 없는 연결", two(
             pane("규격이 없으면", ul(["메일 · 문서 저장소 · 지도 · 업무 시스템마다 <b>요청 형식 · 인증</b>이 다름",
                                     "같은 문서 검색도 AI 앱이 바뀔 때마다 목록 전달 · 결과 반환 코드를 새로",
                                     "→ 유지보수가 복잡"]), "bad"),
@@ -69,7 +69,7 @@ def block_mcp():
              + fig._tile("rule", "도구 목록 보내기", "앱이 물으면 도구의<br>이름 · 설명문 · 입력 형식<br><code>tools/list</code>")
              + fig._tile("bolt", "도구 호출 처리하기", "「이 도구를 이 인자로 실행해 줘」<br>→ 실제 실행 · 결과 반환<br><code>tools/call</code>", "core")
              + "</div>" + note("주소", "문서를 읽는 웹페이지 주소 ≠ MCP 요청을 받는 주소 <code>https://learn.microsoft.com/api/mcp</code>"), kick="MCP"),
-        page("등록부터 실제 호출까지", f5.mcp_seq()
+        page("등록 · 호출 순서", f5.mcp_seq()
              + note("통신 주체", "MCP 서버와 통신하는 것은 <b>앱의 MCP 클라이언트</b> · 서버 구현 코드는 서버에 남음", "red"), kick="MCP"),
         page("Microsoft Learn 서버 연결", two(
             prompt("https://learn.microsoft.com/api/mcp", "[MCP] 탭 · MCP 서버 주소") + SP
@@ -84,7 +84,7 @@ def block_mcp():
              + ul(["하단 <b>API 호출 내역</b>: Microsoft 문서 검색 도구의 호출 · 반환값 · 출처 주소",
                    "<b>연결 표시 ≠ 실제 검색 실행</b>",
                    "답변의 출처 주소를 열어 원문 확인"]), kick="MCP 실습"),
-        page("연결을 직접 확인하는 순서", steps([
+        page("연결 확인 순서", steps([
             ("[MCP]", "주소 · 연결 상태"),
             ("[앱에 연결된 도구]", "제공 서버 · 이름 · 설명"),
             ("[도구]", "공통 질문 실행"),
@@ -111,7 +111,7 @@ def block_mcp():
 
 def block_mcp_lab():
     return [
-        section("03", "실습 1 · rag-sim 검색을 MCP 서버로", "rag-sim 검색을 부르는 Tool → MCP 서버 → agent-sim"),
+        section("03", "실습 1 · rag-sim 검색 MCP 서버", "rag-sim 검색을 부르는 Tool → MCP 서버 → agent-sim"),
         page("오늘 만들 전체 구성", f5.arch()
              + note("관리 탭", "rag-sim에 <b>[MCP 관리]</b> 탭 하나 · MCP 서버 On/off와 호출 로그를 같은 화면에서"), kick="실습 1"),
         page("주소와 포트", two(
@@ -196,7 +196,7 @@ def block_mcp_lab():
 
 def block_design():
     return [
-        section("04", "설계 관점에서 다시 보기", "검색 시점 · 연결 방식 · 입력 크기"),
+        section("04", "설계 관점", "검색 시점 · 연결 방식 · 입력 크기"),
         page("검색 여부를 정하는 주체", table(["", "rag-sim 화면", "agent-sim + rag_search"], [
             ["<b>구조</b>", "파이프라인형 RAG", "에이전트형 RAG"],
             ["<b>검색 시점</b>", "질문이 오면 <b>항상</b> 검색", "LLM이 <b>필요하다고 판단할 때</b> 검색"],
@@ -211,7 +211,7 @@ def block_design():
             pane("한 앱에서만 쓴다면", ul(["앱 안의 <b>함수</b>가 단순", "서버를 띄우고 관리할 필요 없음"]), "bad"),
             pane("여러 AI 앱이 같은 기능을 쓴다면", ul(["<b>MCP 서버</b>가 유리", "규격이 같아 한 번 만든 서버를 여러 앱에 연결"]), "good"))
              + note("새 결정 사항", "서버로 내면 <b>누가 이 서버에 접근할 수 있는가</b>", "red"), kick="설계 질문"),
-        page("더 해보기 · 같은 서버를 Claude Code에", prompt("claude mcp add --transport http rag-search http://127.0.0.1:8790/mcp", "[PowerShell] 새 창 · MCP 서버 On 유지") + SP
+        page("더 해보기 · Claude Code 연결", prompt("claude mcp add --transport http rag-search http://127.0.0.1:8790/mcp", "[PowerShell] 새 창 · MCP 서버 On 유지") + SP
              + ul(["Claude Code 실행 → <code>/mcp</code>로 연결 상태 → 반도체 질문",
                    "서버 코드를 한 줄도 바꾸지 않고 다른 AI 앱에 도구가 붙음 = <b>「규격」의 의미</b>",
                    "agent-sim 클라이언트에 맞춰 만든 서버라 연결이 안 될 수도 있음 → 오류 메시지를 Claude Code에 보여 주고 규격에 맞게 수정 요청"]), kick="더 해보기"),
@@ -233,7 +233,7 @@ def block_design():
 
 def block_more():
     return [
-        section("05", "다양한 MCP 서버 둘러보기", "7 · 8교시 캡스톤에서 쓸 만한 서버"),
+        section("05", "MCP 서버 예시", "7 · 8교시 캡스톤에서 쓸 만한 서버"),
         page("한국 MCP 모음 · Awesome MCP Korea", table(["분야", "서버", "쓰임"], [
             ["<b>국가통계</b>", "korea-stats-mcp", "KOSIS 국가통계 자연어 검색 · 분석 · 반도체 수출입 · 생산 통계"],
             ["<b>기업 공시</b>", "DART-mcp-server", "상장기업 공시 · 기업 개황 · 재무 정보 · 고객사 · 공급사 공시"],

@@ -66,12 +66,12 @@ def two_modes():
             ["학습한 범위에서 글로 답함", "사내 규격 문서는 본 적 없음 · 출처 없음"], "문서 찾기 · 대조 · 표 정리를 직접", "그럴듯한 답 한 덩어리")
     b = col("on", "위임형 · 에이전트", "목표를 맡기기", "「사내 규격 문서에서 박리 시험 조건을 찾아 출처 달린 표로」",
             ["문서 검색을 여러 번 · 원문 확인", "조건 · 수치를 표로 정리", "부족하면 다른 말로 다시 검색"], "목표를 정하고 결과를 확인", "출처 달린 결과물")
-    return page("대화형에서 위임형으로", f'<div class="mds">{a}<div class="md-a">→</div>{b}</div>'
+    return page("대화형과 위임형", f'<div class="mds">{a}<div class="md-a">→</div>{b}</div>'
                 + note("바뀐 것", "AI가 <b>답</b>을 주는 데서 → <b>일을 맡아 끝까지</b> 하는 데로 · 사람 역할은 목표 · 확인", "red"), kick="AI 에이전트란")
 
 
 def why_now():
-    return page("에이전트가 나오게 된 계기", cards([
+    return page("에이전트 등장 배경", cards([
         ("도구 호출", "2023.06 Function Calling · 모델이 <b>어떤 함수를 어떤 값으로</b> 부를지 고름 → 검색 · 계산 · 실행을 앱이 대신", "01"),
         ("긴 작업", "맡길 수 있는 작업 길이가 <b>약 105일마다 2배</b> · 몇 분 → 몇 시간짜리 일", "02"),
         ("연결 표준", "2024.11 MCP · 사내 시스템 · 문서 저장소를 <b>같은 방식</b>으로 연결", "03"),
@@ -86,7 +86,7 @@ def tool_use():
             '<div class="tu-s on"><b>② 도구 호출</b><span>검색 · 파일 · 계산 · 연결된 시스템</span></div><i>→</i>'
             '<div class="tu-s"><b>③ 결과 확인</b><span>충분한가 · 맞는가</span></div><i>→</i>'
             '<div class="tu-s"><b>④ 다음 행동</b><span>다시 호출 또는 끝내기</span></div></div>')
-    return page("위임이 가능해진 이유: 스스로 도구 사용", two(
+    return page("도구 사용", two(
         pane("도구 없는 AI", ul(["다음 글자를 확률로 이어 쓰기만", "계산 · 최신 정보 · 사내 문서 · 실행 불가", "결과를 사람이 옮겨서 실행"]), "bad"),
         pane("도구를 쓰는 AI", ul(["필요할 때 도구를 <b>스스로</b> 골라 호출", "도구 결과를 읽고 다음 행동 결정", "여러 단계를 이어서 끝까지"]), "good"))
         + f'<div class="tu-ts">{chips}</div>', kick="AI 에이전트란")
@@ -97,7 +97,7 @@ def horizon():
               '<div class="mtc hl"><b>105<small>일</small></b><span>작업 길이가 2배 되는 기간 (2024년 이후)</span></div>'
               '<div class="mtc"><b>약 2<small>년</small></b><span>무어의 법칙 · 칩 성능 2배 주기</span></div>'
               '<div class="mtc"><b>5.7<small>시간</small> → 54<small>분</small></b><span>GPT-5.4 · 50% 기준 vs 80% 기준</span></div></div>')
-    return page("무어의 법칙처럼 늘어나는 AI 작업 길이", f'<div class="mtwrap">{metr_chart()}{cards_}</div>'
+    return page("AI 작업 길이 · 105일마다 2배", f'<div class="mtwrap">{metr_chart()}{cards_}</div>'
                 + note("읽는 법", "작업 길이 = 사람이 하면 걸리는 시간 · 출처 METR Time Horizons (2026.5)"),
                 kick="AI 에이전트란")
 
@@ -106,7 +106,7 @@ def course_map():
     rows = [("모델 · Context", "1교시 · 무엇을 얼마나 넣을지"), ("자료 · RAG", "2~3교시 · 근거를 찾아 넣기"),
             ("도구 · MCP", "4~5교시 · 고르고 실행하기"), ("여러 에이전트", "6교시 · 판정과 조사 나누기")]
     out = "".join(f'<div class="bgp on"><b>{n}</b><span>{d}</span></div>' for n, d in rows)
-    return page("이 과정에서 다루는 것", f'<div class="bgps">{out}</div>'
+    return page("과정 구성", f'<div class="bgps">{out}</div>'
                 + note("이어서", "에이전트를 이루는 네 가지를 한 교시씩 · 7~8교시 캡스톤에서 하나로", "red"), kick="AI 에이전트란")
 
 
@@ -117,9 +117,9 @@ def intro():
         why_now(),
         tool_use(),
         horizon(),
-        page("에이전트를 이루는 네 가지", fig.agent_parts()
+        page("에이전트 구성 요소", fig.agent_parts()
              + note("핵심", "모델은 엔진 · 나머지 셋은 장비 · <b>같은 모델도 장비에 따라 결과가 달라짐</b>", "red"), kick="AI 에이전트란"),
-        page("채팅에서 에이전트로", fig.timeline(TREND)
+        page("채팅 → 에이전트 연표", fig.timeline(TREND)
              + note("출처", "OpenAI (2023.06 · 2025.05 · 2025.07) · Anthropic (2024.11 · 2025.02 · 2025.10)"), kick="AI 에이전트란"),
         course_map(),
     ]
