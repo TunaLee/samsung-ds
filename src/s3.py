@@ -2,6 +2,7 @@
 import s3_fig as xf
 from kit import (ba, big, cards, cover, flow, ill, lab, note, page, pane, prompt, section, steps, table, two, ul)
 import vizanim
+import s7_fig as sf7
 
 TITLE = "Advanced RAG — 검색 성능 개선"
 
@@ -244,16 +245,36 @@ def block_graph():
     ]
 
 
+def block_mm():
+    return [
+        section("05", "멀티모달 RAG", "그래프 · 표 · 사진까지 검색하고 읽기"),
+        page("텍스트만 꺼내면 사라지는 것", sf7.text_loss()
+             + note("1교시 파싱", "붉은 칸 = 글자가 거의 안 나온 쪽 · 그 쪽의 그래프 · 표 · 사진은 텍스트 RAG가 <b>찾을 수도, 읽을 수도 없음</b>", "red"), kick="멀티모달 RAG"),
+        page("그림 · 표를 다루는 세 가지 방법", table(["방법", "어떻게", "좋은 점", "잃는 것"], [
+            ["<b>글로 바꾸기</b>", "OCR · 표 구조 추출 → 텍스트 청크", "기존 텍스트 RAG 그대로", "그래프 모양 · 사진 · 칸의 위치 관계"],
+            ["<b>설명문 붙이기</b>", "이미지를 읽는 모델이 그림마다 설명문 작성 → 텍스트로 검색", "검색은 텍스트로 · 근거 문장이 생김", "설명문에 안 쓴 내용 · 설명 작성 비용"],
+            ["<b>페이지를 이미지로</b> (7교시 B 트랙)", "페이지를 통째로 이미지 임베딩 → 이미지로 검색 → 이미지로 답", "그래프 · 표 · 사진을 그대로", "작은 글자 · 저장 용량 · 이미지 전송 비용"],
+        ]) + note("공통", "어느 방법이든 <b>검색 → 증강 → 생성</b> 흐름은 같음 · 바뀌는 것은 검색 단위와 모델", "red"), kick="멀티모달 RAG"),
+        page("글과 그림이 한 공간에", vizanim.mm_space(), kick="멀티모달 RAG"),
+        page("텍스트 RAG에서 바뀌는 세 곳", table(["", "텍스트 RAG (1~3교시)", "멀티모달 RAG"], [
+            ["<b>검색 단위</b>", "텍스트 청크", "<b>페이지 이미지</b> 한 장"],
+            ["<b>임베딩 모델</b>", "텍스트 전용 (OpenAI 임베딩)", "글 · 그림을 같은 공간에 (예: EmbeddingGemma 2)"],
+            ["<b>답변 모델</b>", "근거 텍스트를 읽는 LLM", "근거 <b>페이지 이미지</b>를 읽는 LLM"],
+        ]) + note("그대로인 것", "벡터 DB · 가까운 k개 · 근거와 출처 확인 · 2 ~ 3교시에서 다룬 개선 방법", "red"), kick="멀티모달 RAG"),
+    ]
+
+
 def closing():
     return [
         page("정리", steps([
             ("어디를 고칠지 먼저", "Pre-retrieval은 질문, Post-retrieval은 찾은 후보 · 원인이 있는 단계를 찾고 그 단계를 고침"),
             ("넉넉히 뽑고 다시 평가", "유사도 검색은 관계없는 질문에도 K개 · 후보를 넉넉히 뽑아 재정렬하고 기준 미만은 버림"),
             ("비용과 비교", "단계를 더할수록 호출 · 시간 증가 · 개선 폭이 비용만큼 가치 있는지 비교해서 고름"),
+            ("문서 밖으로 넓히기", "표 데이터는 Text-to-SQL · 관계는 GraphRAG · 그래프 · 표 · 사진은 멀티모달 RAG"),
         ]) + note("공통 기준", "재작성은 검색할 표현, 재정렬은 후보의 우선순위, 기준값은 남길 근거의 범위 · 결과가 원래 업무 요청에 필요한 Context로 이어지는지", "red")),
         section("다음", "4교시 · Tool Calling과 Context의 실행 흐름", "사람이 정한 순서의 검색에서 나아가, AI가 필요한 도구를 직접 골라 쓰는 구조"),
     ]
 
 
 def slides():
-    return opening() + block_where() + block_pre() + block_rerank() + block_lab2() + block_extra() + block_summary() + block_graph() + closing()
+    return opening() + block_where() + block_pre() + block_rerank() + block_lab2() + block_extra() + block_summary() + block_graph() + block_mm() + closing()
