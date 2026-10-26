@@ -2041,22 +2041,16 @@ claude</code></pre></div><div class="code prompt"><div class="bar"><span class="
 <rect x="1170" y="590" width="92" height="70" rx="4" fill="#DCDCE1" stroke="#26262B" stroke-width="4"/>
 <line x1="1180" y1="606" x2="1252" y2="606" stroke="#26262B" stroke-width="2"/><g transform="translate(1060,549.48) scale(0.76)"><use href="#legs"/><use href="#person"/><path d="M-54 -140 Q-90 -150 -186.8421052631579 -167.73684210526318" stroke="#26262B" stroke-width="22" fill="none" stroke-linecap="round"/><circle cx="-186.8421052631579" cy="-167.73684210526318" r="12" fill="#FFFFFF" stroke="#26262B" stroke-width="3"/><path d="M54 -140 Q110 -70 118.42105263157895 20.421052631578924" stroke="#26262B" stroke-width="22" fill="none" stroke-linecap="round"/><circle cx="118.42105263157895" cy="20.421052631578924" r="12" fill="#FFFFFF" stroke="#26262B" stroke-width="3"/></g><g transform="rotate(-14 1170 560)"><rect x="1120" y="530" width="86.4" height="57.6" rx="4" fill="#FFFFFF" stroke="#26262B" stroke-width="3"/><rect x="1128" y="538" width="27.648000000000003" height="41.6" rx="3" fill="#DCDCE1"/><line x1="1165.648" y1="549.5840000000001" x2="1196.4" y2="549.5840000000001" stroke="#DCDCE1" stroke-width="5" stroke-linecap="round"/><line x1="1165.648" y1="568.016" x2="1196.4" y2="568.016" stroke="#DCDCE1" stroke-width="5" stroke-linecap="round"/></g><rect x="810" y="382" width="96" height="64" rx="4" fill="#FFFFFF" stroke="#E8002D" stroke-width="5"/><rect x="818" y="390" width="30.72" height="48" rx="3" fill="#DCDCE1"/><line x1="858.72" y1="403.76" x2="896" y2="403.76" stroke="#DCDCE1" stroke-width="5" stroke-linecap="round"/><line x1="858.72" y1="424.24" x2="896" y2="424.24" stroke="#DCDCE1" stroke-width="5" stroke-linecap="round"/><circle cx="918" cy="422" r="10" fill="#FFFFFF" stroke="#26262B" stroke-width="3"/></svg><span class="coord icoord"><b>01</b> / <span class="tot"></span></span><div class="icap top"><h2>코드가 아닌 설명문을 보고 선택</h2><ul><li>LLM이 보는 것: 이름 · 설명문 · 인자 형식 + 질문 · 지침</li><li>구현 코드는 LLM에 보내지 않음</li></ul></div></section>
 
-<section class="slide" data-title="구현 코드와 도구 선언"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">도구 선택</div><h2 class="s-title">구현 코드와 도구 선언</h2><div class="rule"></div><div class="body"><div class="twocol w"><div><div class="code prompt sm"><div class="bar"><span class="plabel">선택 읽기 · lab 코드 예시</span></div><pre><code>def note_save(text=""):                  # ① 실행되는 함수 — 앱의 파이썬 코드
-    body = (text or "").strip()
-    if not body:
-        return {"오류": "저장할 내용이 비어 있습니다."}
-    notes = _load()                      #    메모 파일을 읽고
-    title = body.split("\n")[0][:30]
-    notes.append({"title": title, "body": body, "date": ""})
-    _save(notes)                         #    덧붙여 저장한다
-    return {"저장한 제목": title, "전체 건수": len(notes)}
-
-{                                        # ② AI 에게 보여지는 선언
-    "name": "memo_tool_2",
-    "description": "새 메모를 저장한다.",
-    "parameters": _TEXT_PARAM,           #    인자는 text 하나
-    "function": note_save,
-}</code></pre></div></div><div><ul class='ul'><li><b>①</b> 실제로 실행되는 함수 · 앱 안에 남음</li><li><b>②</b> LLM에 보낼 사용 정보 · 이름 · 설명 · 인자 형식</li><li><code>function</code> 연결은 앱이 실행할 때 쓰는 정보</li><li>설명문을 바꿔도 연결과 함수의 동작은 그대로</li></ul></div></div></div></section>
+<section class="slide" data-title="구현 코드와 도구 선언"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">도구 선택</div><h2 class="s-title">구현 코드와 도구 선언</h2><div class="rule"></div><div class="body"><div class="twocol w"><div><div class="code prompt sm"><div class="bar"><span class="plabel">① 함수 · 메모를 실제로 저장 · 앱 안</span></div><pre><code>def note_save(text):
+    notes = read_notes()
+    notes.append(text)
+    write_notes(notes)
+    return f"저장 완료 · 전체 {len(notes)}건"
+</code></pre></div><div class="code prompt sm"><div class="bar"><span class="plabel">② 선언 · LLM에게 보여 주는 설명</span></div><pre><code>{
+  "name": "memo_tool_2",
+  "description": "새 메모를 저장한다.",
+  "parameters": {"text": "저장할 내용"}
+}</code></pre></div><div class="code prompt sm"><div class="bar"><span class="plabel">③ 연결표 · 이름 → 함수 · 앱 안</span></div><pre><code>TOOLS = {"memo_tool_2": note_save}</code></pre></div></div><div><div class="biglist"><div class="li"><span class="num">1</span><div class="tx"><h4>LLM이 보는 것</h4><p>② 선언만 · 이름 · 설명 · 인자 · 코드는 못 봄</p></div></div><div class="li"><span class="num">2</span><div class="tx"><h4>LLM의 요청</h4><p><code>memo_tool_2(text="3시 회의 자료 준비")</code></p></div></div><div class="li"><span class="num">3</span><div class="tx"><h4>앱이 찾기</h4><p>③ 연결표에서 memo_tool_2 → note_save</p></div></div><div class="li"><span class="num">4</span><div class="tx"><h4>앱이 실행</h4><p>① note_save 실행 → 「저장 완료 · 전체 3건」을 LLM에게</p></div></div></div><div class="note red"><span class="nk">핵심</span><span class="nt">설명문(②)을 바꿔도 실제로 실행되는 것은 연결된 함수(①)</span></div></div></div></div></section>
 
 <section class="slide" data-title="설명문이 실제 동작과 다르면"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">도구 선택</div><h2 class="s-title">설명문이 실제 동작과 다르면</h2><div class="rule"></div><div class="body"><div class="bav"><div class="b"><div class="lab">LLM이 보는 것</div><div class="q">저장 함수에 연결된 도구<br>설명문: 「메모를 조회한다」<br><br>조회를 요청하면<br>LLM은 설명을 믿고 이 도구를 선택</div></div><div class="arr">→</div><div class="a"><div class="lab">앱이 실행하는 것</div><div class="q">실제로 실행되는 것은<br>여전히 note_save<br><br>→ 조회를 원했는데 메모가 저장됨</div></div></div><div class="note red"><span class="nk">사고로 이어지는 이유</span><span class="nt">LLM은 설명문을 따르고, 앱은 연결된 코드를 실행</span></div></div></section>
 

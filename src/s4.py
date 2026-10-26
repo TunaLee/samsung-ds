@@ -45,22 +45,20 @@ REQ2 = """"input": [
     "output": "{\\"찾은 메모\\": [ ... ], \\"찾은 건수\\": 3}" }
 ]"""
 
-CODE = """def note_save(text=""):                  # ① 실행되는 함수 — 앱의 파이썬 코드
-    body = (text or "").strip()
-    if not body:
-        return {"오류": "저장할 내용이 비어 있습니다."}
-    notes = _load()                      #    메모 파일을 읽고
-    title = body.split("\\n")[0][:30]
-    notes.append({"title": title, "body": body, "date": ""})
-    _save(notes)                         #    덧붙여 저장한다
-    return {"저장한 제목": title, "전체 건수": len(notes)}
+CODE_FN = """def note_save(text):
+    notes = read_notes()
+    notes.append(text)
+    write_notes(notes)
+    return f"저장 완료 · 전체 {len(notes)}건"
+"""
 
-{                                        # ② AI 에게 보여지는 선언
-    "name": "memo_tool_2",
-    "description": "새 메모를 저장한다.",
-    "parameters": _TEXT_PARAM,           #    인자는 text 하나
-    "function": note_save,
+CODE_DECL = """{
+  "name": "memo_tool_2",
+  "description": "새 메모를 저장한다.",
+  "parameters": {"text": "저장할 내용"}
 }"""
+
+CODE_MAP = """TOOLS = {"memo_tool_2": note_save}"""
 
 
 def opening():
@@ -172,9 +170,13 @@ def block_choose():
         section("04", "AI가 도구를 고르는 기준", "이름 · 설명문 · 인자 형식과 질문 · 지침"),
         ill("scenes_ch4", "menu_board", "top20", "코드가 아닌 설명문을 보고 선택", ["LLM이 보는 것: 이름 · 설명문 · 인자 형식 + 질문 · 지침", "구현 코드는 LLM에 보내지 않음"]),
         page("구현 코드와 도구 선언", two(
-            prompt(CODE, "선택 읽기 · lab 코드 예시", sm=True),
-            ul(["<b>①</b> 실제로 실행되는 함수 · 앱 안에 남음", "<b>②</b> LLM에 보낼 사용 정보 · 이름 · 설명 · 인자 형식", "<code>function</code> 연결은 앱이 실행할 때 쓰는 정보",
-                "설명문을 바꿔도 연결과 함수의 동작은 그대로"]), "w"), kick="도구 선택"),
+            prompt(CODE_FN, "① 함수 · 메모를 실제로 저장 · 앱 안", sm=True) + prompt(CODE_DECL, "② 선언 · LLM에게 보여 주는 설명", sm=True)
+            + prompt(CODE_MAP, "③ 연결표 · 이름 → 함수 · 앱 안", sm=True),
+            steps([("LLM이 보는 것", "② 선언만 · 이름 · 설명 · 인자 · 코드는 못 봄"),
+                   ("LLM의 요청", "<code>memo_tool_2(text=\"3시 회의 자료 준비\")</code>"),
+                   ("앱이 찾기", "③ 연결표에서 memo_tool_2 → note_save"),
+                   ("앱이 실행", "① note_save 실행 → 「저장 완료 · 전체 3건」을 LLM에게")])
+            + note("핵심", "설명문(②)을 바꿔도 실제로 실행되는 것은 연결된 함수(①)", "red"), "w"), kick="도구 선택"),
         page("설명문이 실제 동작과 다르면", ba(
             "저장 함수에 연결된 도구\n설명문: 「메모를 조회한다」\n\n조회를 요청하면\nLLM은 설명을 믿고 이 도구를 선택",
             "실제로 실행되는 것은\n여전히 note_save\n\n→ 조회를 원했는데 메모가 저장됨",
