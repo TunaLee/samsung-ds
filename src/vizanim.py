@@ -552,6 +552,82 @@ def always_k():
     return d.svg(1160, 480, s)
 
 
+def request_grow():
+    """도구 호출 한 번 · API 요청 1회차 → 함수 실행 → 2회차(전부 다시 + input 누적) → 답. 24초."""
+    d = _D("rg", 24)
+    P, OK = "#FFF0F3", "#2E7D4F"
+
+    def vis(a, b=97):
+        return d.a([(0, "opacity:0"), (a, "opacity:0"), (a + 1.5, "opacity:1"), (b, "opacity:1"), (b + 1.5, "opacity:0"), (100, "opacity:0")])
+
+    def flash(*ts):
+        st = [(0, f"fill:{W}")]
+        for t in ts:
+            st += [(t, f"fill:{W}"), (t + 1, f"fill:{P}"), (t + 6, f"fill:{P}"), (t + 7, f"fill:{W}")]
+        return d.a(st + [(100, f"fill:{W}")])
+
+    s = ""
+    # 왼쪽 · 대화창
+    s += _box(20, 20, 270, 440, "", fill="#FAFAFB", stroke=G, sw=2) + _t(40, 46, "대화창", "tn", "start")
+    s += (f'<g {vis(2)}><rect x="70" y="70" width="205" height="44" rx="12" fill="{N}"/>' + _t(172, 92, "회의 메모 찾아 줘", "tw") + "</g>")
+    s += (f'<g {vis(42, 84)}>' + _t(40, 140, "… 메모 도구 실행 중", "ts", "start") + "</g>")
+    s += (f'<g {vis(86)}><rect x="34" y="132" width="240" height="70" rx="12" fill="{W}" stroke="{N}" stroke-width="2"/>'
+          + _t(48, 154, "회의 관련 메모 2건입니다.", "tn", "start") + _t(48, 180, "3시 회의 자료 · 주간 회의록", "ts", "start") + "</g>")
+
+    # 가운데 · API 요청
+    X, Wd = 315, 545
+    s += _box(X, 20, Wd, 440, "", fill=W, stroke=N, sw=2.5)
+    s += f'<g {vis(4, 46)}>' + _t(X + 18, 46, "API 요청 · 1회차", "tn", "start") + "</g>"
+    s += f'<g {vis(48)}>' + _t(X + 18, 46, "API 요청 · 2회차", "to", "start") + _t(X + 160, 46, "앞의 내용을 전부 다시 보냄", "ts", "start", 'style="font-size:13px"') + "</g>"
+    # instructions
+    s += f'<g {vis(5)}>' + _t(X + 18, 76, "instructions", "tn", "start", 'style="font-size:13px"')
+    s += f'<rect x="{X + 130}" y="62" width="{Wd - 148}" height="30" rx="6" stroke="{G}" stroke-width="2" {flash(50)}/>'
+    s += _t(X + 142, 78, "너는 사용자의 일을 도구로 처리하는 비서다 …", "ts", "start", 'style="font-size:13px"') + "</g>"
+    # tools
+    s += f'<g {vis(8)}>' + _t(X + 18, 116, "tools", "tn", "start", 'style="font-size:13px"') + "</g>"
+    tools = [("memo_tool_1", "키워드에 해당하는 메모를 찾아 목록으로"), ("memo_tool_2", "새 메모를 저장한다"),
+             ("memo_tool_3", "키워드에 해당하는 메모를 삭제 · 되돌릴 수 없음")]
+    for i, (n, desc) in enumerate(tools):
+        y = 104 + i * 36
+        s += f'<g {vis(9 + i * 2)}><rect x="{X + 130}" y="{y}" width="{Wd - 148}" height="30" rx="6" stroke="{G}" stroke-width="2" {flash(52)}/>'
+        s += _t(X + 142, y + 16, n, "tn", "start", 'style="font-size:13px"') + _t(X + 250, y + 16, desc, "ts", "start", 'style="font-size:12.5px"') + "</g>"
+        if i == 0:
+            s += (f'<rect x="{X + 130}" y="{y}" width="{Wd - 148}" height="30" rx="6" fill="none" stroke="{O}" stroke-width="3" '
+                  + d.a([(0, "opacity:0"), (26, "opacity:0"), (27, "opacity:1"), (40, "opacity:1"), (41, "opacity:0"), (100, "opacity:0")]) + "/>")
+    s += f'<g {vis(14)}>' + _t(X + 142, 222, "LLM은 코드가 아니라 이 이름 · 설명 · 인자 형식만 봄", "to", "start", 'style="font-size:12.5px"') + "</g>"
+    # input
+    s += f'<g {vis(16)}>' + _t(X + 18, 256, "input", "tn", "start", 'style="font-size:13px"') + "</g>"
+    rows = [(17, "user", "회의 메모 찾아 줘", N), (54, "function_call", 'memo_tool_1 · {"text": "회의"}', O),
+            (60, "function_call_output", '{"찾은 건수": 2, "메모": [...]}', OK)]
+    for j, (t, k, v, col) in enumerate(rows):
+        y = 244 + j * 40
+        s += (f'<g {vis(t)}><rect x="{X + 130}" y="{y}" width="{Wd - 148}" height="32" rx="6" fill="{W}" stroke="{col}" stroke-width="2"/>'
+              + _t(X + 142, y + 17, k, "tn", "start", f'style="font-size:12.5px;fill:{col}"') + _t(X + 300, y + 17, v, "ts", "start", 'style="font-size:12.5px"') + "</g>")
+    s += f'<g {vis(62)}>' + _t(X + 142, 378, "질문 한 번에 요청 두 번 · input만 길어짐", "to", "start", 'style="font-size:12.5px"') + "</g>"
+    # 입력 토큰 막대
+    s += _t(X + 18, 420, "입력 토큰", "tn", "start", 'style="font-size:13px"')
+    s += f'<rect x="{X + 130}" y="408" width="{Wd - 148}" height="22" rx="5" fill="#F1F1F4"/>'
+    s += (f'<rect x="{X + 130}" y="408" height="22" rx="5" fill="{N}" '
+          + d.a([(0, "width:0px"), (4, "width:0px"), (20, "width:240px"), (50, "width:240px"), (64, "width:310px"), (97, "width:310px"), (100, "width:0px")]) + "/>")
+    s += f'<g {vis(20, 50)}>' + _t(X + 380, 420, "약 620", "tn", "start", 'style="font-size:13px"') + "</g>"
+    s += f'<g {vis(64)}>' + _t(X + 450, 420, "약 780", "to", "start", 'style="font-size:13px"') + "</g>"
+
+    # 오른쪽 · LLM과 앱
+    RX = 885
+    s += _box(RX, 60, 255, 120, "LLM", sub="", fill=W, stroke=N, sw=2.5)
+    s += (f'<g {vis(26, 46)}>' + _t(RX + 127, 140, "memo_tool_1 을 「회의」로 불러 줘", "to") + "</g>")
+    s += (f'<g {vis(78)}>' + _t(RX + 127, 140, "최종 답변 작성", "to") + "</g>")
+    s += _box(RX, 260, 255, 120, "앱", fill=W, stroke=N, sw=2.5)
+    s += (f'<g {vis(34, 46)}>' + _t(RX + 127, 340, "연결된 검색 함수 실행 → 2건", "tn") + "</g>")
+    s += (f'<g {vis(26, 46)}><path d="M{RX + 127} 184 V254" stroke="{O}" stroke-width="3" marker-end="url(#{d.id("aho")})"/>' + _t(RX + 135, 220, "호출 요청", "to", "start", 'style="font-size:12.5px"') + "</g>")
+    s += (f'<g {vis(40, 60)}><path d="M{RX - 8} 330 H{X + Wd + 6}" stroke="{OK}" stroke-width="3" marker-end="url(#{d.id("ah")})"/>' + _t(RX - 12, 352, "결과를 input에", "tn", "end", 'style="font-size:12.5px"') + "</g>")
+    s += (f'<g {vis(84)}><path d="M{RX + 60} 58 C {RX - 40} -30, 330 -30, 250 64" fill="none" stroke="{O}" stroke-width="3" marker-end="url(#{d.id("aho")})"/></g>')
+    # 이동 점 (요청 → LLM)
+    s += _move(d, [(0, X + Wd, 240, 0), (22, X + Wd, 240, 0), (23, X + Wd, 240, 1), (26, RX, 120, 1), (27, RX, 120, 0),
+                   (66, X + Wd, 240, 0), (67, X + Wd, 240, 1), (72, RX, 120, 1), (73, RX, 120, 0), (100, RX, 120, 0)])
+    return d.svg(1160, 480, s)
+
+
 # ── 지식 그래프 (3교시 GraphRAG) ─────────────────────────────────────
 # 설명용 예시: 소프트 에러 문서의 세 청크. 페이지 · 문장은 설명용.
 KG_NODES = {
