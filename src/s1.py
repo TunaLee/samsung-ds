@@ -170,6 +170,7 @@ def block_lab():
         section("06", "naive RAG 직접 실행", "PDF 한 편으로 파싱부터 생성까지"),
         page("인덱싱 타임과 쿼리 타임", vizanim.index_query()
              + note("순서", "임베딩을 먼저 배웠지만 실제로는 <b>청킹이 먼저</b> · 검색할 단위가 정해져야 벡터를 계산"), kick="naive RAG"),
+        page("벡터 공간에서 보는 두 시점", vizanim.vector_space(), kick="naive RAG"),
         lab("1", "naive RAG 직접 실행", "AN4750 문서 한 편으로 RAG의 다섯 단계를 화면에서 직접 확인",
             ["① PDF 업로드 · 파싱", "② 청킹 · 고정 길이", "③ 임베딩 · 적재", "④ 의미 검색 · 한국어 / 영어", "⑤ 답변 생성 · 근거 대조"],
             "단계별 숫자 기록 · 답변과 근거 대조"),

@@ -216,6 +216,95 @@ def index_query():
     return d.svg(1160, 400, s)
 
 
+def vector_space():
+    """naive RAG · 2차원 벡터 공간: 인덱싱 때 청크가 점으로 실리고, 쿼리 때 질문 점 근처 k=3개를 골라 AI에게 목록으로. 16초."""
+    d = _D("vs", 16)
+    P = "#FFF0F3"
+    chunks = [  # (번호, 내용, 점 x, y) · 소프트 에러 문서 설명용
+        ("C1", "알파 입자가 메모리 비트를 뒤집음", 430, 125), ("C2", "중성자 영향은 고도에 따라 다름", 485, 95),
+        ("C3", "1 FIT = 10억 시간에 고장 1건", 655, 335), ("C4", "SRAM 에러율 200~2000 FIT/Mbit", 715, 380),
+        ("C5", "ECC로 1비트 오류 정정", 552, 220), ("C6", "패리티는 검출만 가능", 630, 218),
+        ("C7", "스크러빙: 주기적으로 다시 읽기", 545, 294), ("C8", "PST 안에 검출 · 대응", 420, 390)]
+    top = {"C5": "0.82", "C6": "0.76", "C7": "0.71"}
+    qx, qy = 585, 250
+    X0, Y0, X1, Y1 = 345, 60, 800, 440
+    t_in = [2 + i * 4.5 for i in range(8)]  # 청크마다 실리는 시점 (%)
+
+    s = ""
+    # 단계 이름
+    s += f'<g {d.a([(0, "opacity:1"), (40, "opacity:1"), (42, "opacity:0"), (98, "opacity:0"), (100, "opacity:1")])} style="opacity:0">'
+    s += _t(X0, 30, "Indexing Time", "tt", "start") + _t(X0 + 150, 31, "청크마다 벡터 → 공간에 점", "ts", "start") + "</g>"
+    s += f'<g {d.a([(0, "opacity:0"), (41, "opacity:0"), (43, "opacity:1"), (97, "opacity:1"), (100, "opacity:0")])}>'
+    s += _t(X0, 30, "Query Time", "to", "start") + _t(X0 + 120, 31, "질문도 같은 방식으로 점 → 가까운 k개", "ts", "start") + "</g>"
+
+    # 왼쪽 청크 목록
+    s += _t(30, 30, "청크 목록", "tn", "start")
+    for i, (c, txt, x, y) in enumerate(chunks):
+        ry = 52 + i * 46
+        t = t_in[i]
+        s += (f'<rect x="30" y="{ry}" width="280" height="38" rx="8" fill="{W}" stroke="{G}" stroke-width="2" '
+              + d.a([(0, f"stroke:{G};fill:{W}"), (t, f"stroke:{G};fill:{W}"), (t + .5, f"stroke:{O};fill:{P}"),
+                     (t + 4, f"stroke:{O};fill:{P}"), (t + 4.5, f"stroke:{G};fill:{W}"), (100, f"stroke:{G};fill:{W}")]) + "/>")
+        s += _t(42, ry + 20, c, "tn", "start") + _t(78, ry + 20, txt, "ts", "start", 'style="font-size:13.5px"')
+
+    # 질문 카드
+    s += (f'<rect x="30" y="432" width="280" height="44" rx="10" fill="{N}" '
+          + d.a([(0, "opacity:.15"), (42, "opacity:.15"), (43, "opacity:1"), (97, "opacity:1"), (100, "opacity:.15")]) + "/>")
+    s += (f'<text x="170" y="455" text-anchor="middle" class="tw" '
+          + d.a([(0, "opacity:.3"), (42, "opacity:.3"), (43, "opacity:1"), (97, "opacity:1"), (100, "opacity:.3")])
+          + ">질문 · 소프트 에러를 바로잡는 방법은?</text>")
+
+    # 벡터 공간 (2차원 예시)
+    s += f'<rect x="{X0}" y="{Y0}" width="{X1 - X0}" height="{Y1 - Y0}" rx="12" fill="#FAFAFB" stroke="{G}" stroke-width="2"/>'
+    s += f'<line x1="{X0 + 20}" y1="{Y1 - 20}" x2="{X1 - 20}" y2="{Y1 - 20}" stroke="{G}" stroke-width="2" marker-end="url(#{d.id("ahg")})"/>'
+    s += f'<line x1="{X0 + 20}" y1="{Y1 - 20}" x2="{X0 + 20}" y2="{Y0 + 20}" stroke="{G}" stroke-width="2" marker-end="url(#{d.id("ahg")})"/>'
+    s += _t(X1 - 24, Y1 - 6, "특징 1", "ts", "end", 'style="font-size:13px"') + _t(X0 + 28, Y0 + 14, "특징 2", "ts", "start", 'style="font-size:13px"')
+    for lx, ly, lab in ((455, 75, "원인"), (585, 160, "대책"), (705, 300, "수치")):
+        s += _t(lx, ly, lab, "ts", "middle", 'style="font-size:13px;fill:#9A9AA3"')
+
+    # 근접 범위 · 연결선 (쿼리 단계)
+    s += (f'<circle cx="{qx}" cy="{qy}" r="68" fill="{O}" fill-opacity=".07" stroke="{O}" stroke-width="2" stroke-dasharray="6 5" '
+          + d.a([(0, "opacity:0"), (55, "opacity:0"), (58, "opacity:1"), (97, "opacity:1"), (100, "opacity:0")]) + "/>")
+    for c, txt, x, y in chunks:
+        if c in top:
+            s += (f'<line x1="{qx}" y1="{qy}" x2="{x}" y2="{y}" stroke="{O}" stroke-width="2.5" stroke-dasharray="5 4" '
+                  + d.a([(0, "opacity:0"), (58, "opacity:0"), (61, "opacity:1"), (97, "opacity:1"), (100, "opacity:0")]) + "/>")
+
+    # 청크 점 · 라벨
+    for i, (c, txt, x, y) in enumerate(chunks):
+        t = t_in[i]
+        s += (f'<g {d.a([(0, "opacity:0"), (t + 2.5, "opacity:0"), (t + 3, "opacity:1"), (98, "opacity:1"), (100, "opacity:0")])}>'
+              f'<circle cx="{x}" cy="{y}" r="9" fill="{N}"/>' + _t(x + 14, y - 12, c, "tn", "start", 'style="font-size:13px"') + "</g>")
+        if c in top:
+            s += (f'<circle cx="{x}" cy="{y}" r="11" fill="{O}" '
+                  + d.a([(0, "opacity:0"), (60, "opacity:0"), (62, "opacity:1"), (97, "opacity:1"), (100, "opacity:0")]) + "/>")
+        # 목록 → 점으로 이동
+        ry = 52 + i * 46 + 19
+        s += _move(d, [(0, 310, ry, 0), (t + .5, 310, ry, 0), (t + 1, 310, ry, 1), (t + 3, x, y, 1), (t + 3.2, x, y, 0), (100, x, y, 0)], color=O, r=7)
+
+    # 질문 점 (마름모)
+    dia = f'<path d="M0 -13 L13 0 L0 13 L-13 0 Z" fill="{O}" stroke="{W}" stroke-width="2"/>'
+    s += _move(d, [(0, 310, 454, 0), (44, 310, 454, 0), (45, 310, 454, 1), (52, qx, qy, 1), (97, qx, qy, 1), (100, qx, qy, 0)], shape=dia)
+
+    # 오른쪽 · AI에게 전달하는 목록
+    RX = 840
+    s += _box(RX, 60, 300, 270, "", fill=W, stroke=N, sw=2.5)
+    s += _t(RX + 20, 86, "AI에게 전달 · 가까운 k=3개", "tn", "start")
+    rows = [("C5", "ECC로 1비트 오류 정정", "0.82", 64), ("C6", "패리티는 검출만 가능", "0.76", 68), ("C7", "스크러빙: 주기적으로 다시 읽기", "0.71", 72)]
+    for j, (c, txt, sc, t) in enumerate(rows):
+        yy = 112 + j * 64
+        s += (f'<g {d.a([(0, "opacity:0"), (t, "opacity:0"), (t + 1.5, "opacity:1"), (97, "opacity:1"), (100, "opacity:0")])}>'
+              f'<rect x="{RX + 16}" y="{yy}" width="268" height="52" rx="8" fill="{P}" stroke="{O}" stroke-width="2"/>'
+              + _t(RX + 30, yy + 18, f"{j + 1}위 · {c}", "to", "start") + _t(RX + 270, yy + 18, sc, "tn", "end")
+              + _t(RX + 30, yy + 38, txt, "ts", "start", 'style="font-size:13.5px"') + "</g>")
+    s += (f'<g {d.a([(0, "opacity:0"), (78, "opacity:0"), (80, "opacity:1"), (97, "opacity:1"), (100, "opacity:0")])}>'
+          f'<path d="M{RX + 150} 334 V368" stroke="{N}" stroke-width="2.5" marker-end="url(#{d.id("ah")})"/>'
+          + _box(RX, 374, 300, 70, "LLM이 답변 작성", sub="질문 + 세 청크 원문 · 출처 C5 · C6 · C7", fill="#FAFAFB", stroke=N, sw=2.5) + "</g>")
+    s += _t(RX + 150, 462, "점수 = 질문 점과 가까운 정도", "ts")
+    s += _t(X0 + 228, Y1 + 22, "실제는 수백 ~ 수천 차원 · 2차원으로 줄여 표시", "ts", "middle", 'style="font-size:13px"')
+    return d.svg(1160, 490, s)
+
+
 # ── 지식 그래프 (3교시 GraphRAG) ─────────────────────────────────────
 # 설명용 예시: 소프트 에러 문서의 세 청크. 페이지 · 문장은 설명용.
 KG_NODES = {
