@@ -336,3 +336,10 @@
   .tl-h{font-weight:900; font-size:16px; margin-bottom:8px;}
   .tl-tx{border:2px dashed #C9C9D0; border-radius:12px; padding:14px 18px; font-family:var(--mono); font-size:14px; line-height:1.6;}
   .tl-tx p{margin:0 0 8px;} .tl-tx .lost{color:var(--violet); font-weight:700; font-family:inherit;} .tl-tx .mix{background:#FFF5F7;}
+
+  /* 실습 조건 카드 */
+  .spw{margin-top:6px;} .sph{font-size:15px; font-weight:900; color:var(--violet); margin-bottom:10px;}
+  .sps{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .spc{border:1.5px solid var(--line); border-left:6px solid var(--violet); border-radius:12px; padding:16px 20px; background:#fff;}
+  .spc > b{display:block; font-size:16px; color:var(--violet); margin-bottom:6px;}
+  .spc span{font-size:21px; font-weight:700; line-height:1.4; color:var(--ink);}

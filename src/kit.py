@@ -144,3 +144,9 @@ def ba(before, after, lb="이전", la="이후"):
     br = lambda s: _h.escape(s).replace("\n", "<br>")
     return (f'<div class="bav"><div class="b"><div class="lab">{lb}</div><div class="q">{br(before)}</div></div>'
             f'<div class="arr">→</div><div class="a"><div class="lab">{la}</div><div class="q">{br(after)}</div></div></div>')
+
+
+def spec(rows, title="만들 것 · 조건"):
+    """실습 조건 카드 · 최대 4칸 · 큰 글씨. rows: [(이름, 짧은 내용)]"""
+    cards = "".join(f'<div class="spc"><b>{k}</b><span>{v}</span></div>' for k, v in rows[:4])
+    return f'<div class="spw"><div class="sph">{title}</div><div class="sps">{cards}</div></div>'

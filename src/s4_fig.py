@@ -206,13 +206,13 @@ def guard():
 
 
 def guide(title, lines, keys, conds):
-    """Claude Code 요청문 작성 가이드: 가이드라인 · 키워드 · 실습 조건."""
+    """Claude Code 요청문 작성 가이드: 정할 것 · 키워드 → 조건 카드 (최대 4칸)."""
+    from kit import spec
     li = "".join(f"<li>{x}</li>" for x in lines)
     kw = "".join(f"<span>{k}</span>" for k in keys)
-    cd = "".join(f'<div class="pg-cd"><b>{k}</b><span>{v}</span></div>' for k, v in conds)
-    return (f'<div class="pg"><div class="pg-l"><div class="pg-tag">Claude Code · Prompt 직접 작성</div>'
-            f'<div class="pg-t">{title}</div><ul>{li}</ul><div class="pg-kh">키워드</div><div class="pg-kw">{kw}</div></div>'
-            f'<div class="pg-r"><div class="pg-rh">실습 조건 확인</div>{cd}</div></div>')
+    return (f'<div class="pg"><div class="pg-l" style="grid-column:1/-1"><div class="pg-tag">Claude Code · Prompt 직접 작성</div>'
+            f'<div class="pg-t">{title}</div><ul>{li}</ul><div class="pg-kh">키워드</div><div class="pg-kw">{kw}</div></div></div>'
+            + spec(conds))
 
 
 def blanks(items):

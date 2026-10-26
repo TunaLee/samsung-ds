@@ -1,7 +1,7 @@
 """6교시 · Multi-Agent · Decisions와 조사 Agent (원본: 노션 교안 6교시)."""
 import fig
 import s6_fig as sf
-from kit import (big, cards, cover, esc, flow, ill, lab, note, page, pane, prompt, section, steps, table, two, ul)
+from kit import (spec, big, cards, cover, esc, flow, ill, lab, note, page, pane, prompt, section, steps, table, two, ul)
 import vizanim
 
 TITLE = "Multi-Agent · Decisions와 조사 Agent"
@@ -309,24 +309,16 @@ def block_agent():
             ["가이드라인 · 키워드 읽기", "실습 조건 확인", "요청문 직접 작성 · 같은 창", "새로고침 후 [감시 시작]"],
             "이벤트 행 아래 조사 결과와 도구 호출 기록"),
         page("Prompt 작성 가이드라인", two(
-            pane("기준값과 조사 Agent 연결", ul([
-                "어떤 조건에서 조사하고, Agent에게 <b>어떤 Context와 도구</b>를 줄지",
-                "판정 입력을 조사로 이어 주는 흐름",
-                "조사 결과의 <b>근거 · 표시 방식</b>",
-                "같은 이벤트의 <b>반복 호출을 막을 조건</b>",
-                "탭 종료 · 감시 중지 후 조사도 새로 시작하지 않도록 <b>실행 수명</b> 연결"]), "good"),
+            pane("정할 것", ul(["어떤 조건에서 조사하고 어떤 Context · 도구를 줄지", "같은 이벤트의 반복 호출을 막는 방법"]), "good"),
             '<div class="lh" style="font-weight:800;color:var(--mut);font-size:14px">키워드</div><div class="kws">'
-            + "".join(f"<span>{k}</span>" for k in ["기준값 0.5", "판정 입력 그대로", "조회 도구", "근거 ID", "도구 기록", "중복 방지", "감시 run_id", "중지/만료"])
-            + "</div>" + note("작성 위치", "[Claude Code · Prompt 직접 작성] 같은 창", "red"), "w"), kick="5-1 · 요청 작성"),
-        page("실습 조건 확인", table(["항목", "조건"], [
-            ["<b>호출 조건</b>", "조사 필요 확률이 기준값 이상인 이벤트 · 기준값 입력칸 · 기본값 0.5"],
-            ["<b>전달 Context</b>", "해당 이벤트 + Decisions API에 보냈던 입력 전체를 그대로"],
-            ["<b>조사 실행</b>", "기존 Responses API 호출 코드 · 모델 재사용 · 감시 소유자 · run_id · 중지/만료 상태 공유"],
-            ["<b>도구 범위</b>", "모의 서버의 조회 API만 · Lot 이력 · 이벤트 · 정비 기록"],
-            ["<b>결과</b>", "원인 가설 · 근거(이벤트 seq, 정비 기록 ID) · 추가 확인 사항 · 짧은 한국어"],
-            ["<b>화면 · 중복</b>", "이벤트 행 아래 펼쳐 표시 · 호출 도구와 인자도 · 같은 이벤트 중복 조사 금지"],
-        ]) + note("실행 수명 확인 시점", "조사 시작 · 각 모델 / 도구 호출 · 재시도 직전 · 종료한 실행의 늦은 판정 결과로 조사 시작 X", "red"),
-             kick="5-1 · 실습 조건"),
+            + "".join(f"<span>{k}</span>" for k in ["기준값 0.5", "조회 도구", "근거 ID", "중복 방지"])
+            + "</div>", "w"), kick="5-1 · 요청 작성"),
+        page("실습 조건 확인", spec([
+            ("호출 조건", "조사 필요 확률 ≥ 기준값 (기본 0.5)"),
+            ("전달 Context", "그 이벤트 + Decisions에 보낸 입력 그대로"),
+            ("도구 범위", "모의 서버 조회 API만 · Lot 이력 · 이벤트 · 정비 기록"),
+            ("결과", "원인 가설 · 근거 ID · 추가 확인 · 이벤트 행 아래 표시"),
+        ]) + note("멈춤", "감시를 멈추면 조사도 새로 시작하지 않음 · 같은 이벤트 중복 조사 금지", "red"), kick="5-1 · 실습 조건"),
         page("조사 결과 확인", two(
             steps([("새로고침", "브라우저 새로고침 → <b>[감시 시작]</b> 다시"),
                    ("결과", "기준값 이상인 이벤트 → 그 행 아래 조사 결과"),

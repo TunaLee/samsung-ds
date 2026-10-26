@@ -100,12 +100,9 @@ def block_mcp():
                                       "다시 <b>[연결]</b> → 다음 실습",
                                       "내장 메모 도구 · 다른 서버 도구는 따로 구분"]), "good")), kick="MCP 실습"),
         page("MCP 클라이언트 코드 읽기", f5.guide(
-            ["MCP 연결 · 도구 목록 조회 · 도구 호출이 코드의 어디에 있는지 어떻게 질문할까요?",
-             "읽을 파일 · 찾을 동작 · 설명 수준 포함"],
-            ["initialize", "tools/list", "tools/call", "도구 선언 변환", "읽기 전용"],
-            [("대상", "<code>lab/mcp_client.py</code> · <code>lab/registry.py</code> · 코드 수정 없이 읽기"),
-             ("관찰", "initialize · tools/list · tools/call 및 도구 선언 변환 위치"),
-             ("설명 수준", "비개발자도 이해할 수 있는 설명")], "agent-sim 폴더"), kick="Claude Code"),
+            ["MCP 연결 · 목록 · 호출이 코드 어디에 있는지"],
+            ["initialize", "tools/list", "tools/call"],
+            [("읽을 파일", "lab/mcp_client.py · lab/registry.py"), ("범위", "코드 수정 없이 읽고 설명받기")], "agent-sim 폴더"), kick="Claude Code"),
     ]
 
 
@@ -129,27 +126,15 @@ def block_mcp_lab():
             ["rag_search Tool 만들기 (3-1)", "MCP 서버 · 관리 탭에서 On/off (3-2)", "agent-sim의 주소 등록 흐름 읽기 (3-3)", "rag-sim MCP 주소 등록 (3-4)", "반도체 질문 · PowerShell 질문 (3-5)"],
             "8790번 MCP 서버 · agent-sim 도구 목록의 rag_search"),
         page("rag_search Tool · 요청 작성", f5.guide(
-            ["rag-sim의 기존 검색을 어떻게 불러 쓸까요? 함수의 입력 · 호출 · 반환과 도구 선언을 구분",
-             "저장소의 문서 종류를 확인한 뒤, 어떤 질문에 이 도구를 쓰면 좋을지 설명문에"],
-            ["rag_search", "question", "top_k", "기존 검색 재사용", "도구 설명", "tools/list"],
-            [("범위", "rag_mcp 폴더 안 <code>rag_search(question, top_k)</code> 함수 · 이 단계에서 서버 생성 없음"),
-             ("호출 · 반환", "rag-sim의 기존 검색 코드 · 저장소 · 검색 설정을 그대로 호출 · 검색 알고리즘 · DB 복제 없음 · 청크 ID · 문서명 · 페이지 · 본문 · 점수 반환 · 저장소가 비면 호출 실패로"),
-             ("도구 선언", "이름 rag_search · question 문자열 · 필수 · top_k 정수 · 선택 · 기본 5"),
-             ("설명문", "어떤 자료에서 무엇을 찾는 도구인지"),
-             ("확인용 출력", "이름 · 설명문 · 인자 형식을 tools/list 응답 형식 JSON으로")], "rag-sim 폴더"), kick="3-1 · Tool"),
+            ["rag-sim 기존 검색을 어떻게 불러 쓸지", "어떤 질문에 쓰는 도구인지 설명문에"],
+            ["rag_search", "question · top_k", "tools/list"],
+            [("만들 것", "rag_mcp 폴더의 rag_search(question, top_k)"), ("호출", "기존 검색 그대로 · 청크 · 문서 · 쪽 반환"),
+             ("설명문", "어떤 자료에서 무엇을 찾는 도구인지"), ("확인", "tools/list 형식으로 출력")], "rag-sim 폴더"), kick="3-1 · Tool"),
         page("로컬 MCP 서버 · 요청 작성", f5.guide(
-            ["agent-sim의 MCP 요청을 받아 Tool을 실행하려면? 클라이언트 코드 확인 · initialize · tools/list · tools/call 흐름",
-             "관리 탭에서 MCP 서버를 어떻게 켜고 끌까요? 실제 상태 · 중복 기동 방지 · 입력 · 결과 · 오류 확인 방법"],
-            ["HTTP MCP", "initialize", "tools/list", "tools/call", "8790", "MCP 관리 탭", "MCP On/off", "호출 로그"],
-            [("대상 · 주소", "rag_search를 제공하는 로컬 HTTP 서버 · <code>http://127.0.0.1:8790/mcp</code>"),
-             ("호환 기준", "<code>C:\\samsung_ds_YYYYMMDD\\agent-sim\\lab\\mcp_client.py</code>의 요청 · 기대 응답 형식"),
-             ("호출 처리", "tools/call → rag_search가 기존 검색 실행 · 검색 실패면 가짜 결과 대신 <b>도구 오류</b> · 연결 상태와 검색 가능 상태 구분")], "rag-sim 폴더"), kick="3-2 · MCP 서버"),
-        page("로컬 MCP 서버 · 조건 계속", f5.cond([
-            ("실행 · 종료", "[MCP 서버 On]/[MCP 서버 Off]로 실제 8790 기동 · 종료 · 별도 MCP 콘솔 수동 실행 없음 · 시작/종료 중 중복 요청 차단 · 실제 상태 · 주소 · 포트 충돌 표시"),
-            ("유지 · 정리", "기존 run.bat · rag-sim 기능 유지 · rag-sim 프로세스 종료 시 앱이 시작한 서버 정리 · 관리 탭만 닫는 것과 구분 · 서버 코드 역할 세 줄 설명"),
-            ("관리 탭", "새 [MCP 관리] 탭 · On/off · 상태 · 주소 · 로그 · 초기 Off · MCP를 꺼도 기존 검색 화면 유지"),
-            ("MCP 호출 로그", "tools/call마다 시각 · 도구 이름 · 입력 인자 · 성공/실패 · 처리 시간 · 결과 요약 또는 오류 · initialize · tools/list는 실행 횟수와 구분 · 최근 200건 · 비밀값 · 전체 본문 제외"),
-        ], "실습 조건 (계속)"), kick="3-2 · MCP 서버"),
+            ["agent-sim의 MCP 요청을 받아 rag_search 실행"],
+            ["HTTP MCP", "tools/call", "8790"],
+            [("주소", "http://127.0.0.1:8790/mcp"), ("기준", "agent-sim lab/mcp_client.py 형식"),
+             ("호출", "rag_search 실행 · 실패면 도구 오류"), ("관리 탭", "[MCP 관리] On/off · 상태 · 호출 로그")], "rag-sim 폴더"), kick="3-2 · MCP 서버"),
         page("MCP 서버 켜기", two(
             prompt("cd C:\\samsung_ds_YYYYMMDD\\rag-sim\n.\\run.bat", "[PowerShell] rag-sim을 다시 실행하는 경우"),
             ul(["rag-sim 다시 시작 → <b>[MCP 관리]</b> 탭",
@@ -158,24 +143,18 @@ def block_mcp_lab():
                 "rag-sim을 실행한 PowerShell 창은 실습 동안 유지"]))
              + note("브라우저로 확인하지 않기", "MCP 주소는 웹페이지용 요청을 받지 않아 오류가 날 수 있음 → Claude Code에 확인 요청", "red"), kick="3-2 · MCP 서버"),
         page("MCP 서버 응답 확인 · 요청 작성", f5.guide(
-            ["서버 코드를 바꾸지 않고 연결 · 목록 · 호출을 어떻게 검증할까요? 원본 응답과 MCP 호출 로그 · API 호출 로그를 함께"],
-            ["initialize", "tools/list", "tools/call", "원본 응답", "MCP 로그 · 기존 검색 대조", "코드 유지"],
-            [("대상", "<code>http://127.0.0.1:8790/mcp</code> · initialize와 tools/list 응답 원문"),
-             ("호출", "rag_search · 질문 「AEC-Q100의 기계적 충격 시험은 몇 개의 샘플로 수행하나요?」 · tools/call 반환 · MCP 로그의 도구 이름 · 인자 · 상태 · 기존 검색 화면의 같은 질문 결과"),
-             ("범위", "서버 코드 수정 없음")], "rag-sim 폴더"), kick="3-2 · MCP 서버"),
+            ["서버 코드를 바꾸지 않고 연결 · 목록 · 호출 확인"],
+            ["initialize", "tools/list", "tools/call"],
+            [("대상", "8790/mcp 응답 원문"), ("호출", "AEC-Q100 샘플 수 질문 · 기존 검색 결과와 대조")], "rag-sim 폴더"), kick="3-2 · MCP 서버"),
         page("MCP 서버를 껐다 켜며 대조", table(["상태", "기대 결과"], [
             ["<b>On</b>", "도구 목록의 rag_search · tools/call 반환 청크 = 기존 검색 화면의 같은 질문 결과 · 관리 탭에 MCP 호출 기록"],
             ["<b>Off</b>", "MCP 호출 실패 · 기존 검색 화면은 그대로 동작"],
             ["<b>마무리</b>", "MCP 서버 On"]])
              + note("실행 창 하나", "화면(8765)에서 MCP 서버(8790)를 관리"), kick="3-2 · MCP 서버"),
         page("agent-sim의 주소 등록 흐름 읽기", f5.guide(
-            ["주소를 입력한 뒤 서버 목록과 도구 목록이 바뀌기까지 어떤 파일과 요청이 연결될까요?",
-             "성공 · 실패 처리와 같은 주소 재등록 처리를 찾아 설명받을 질문"],
-            ["MCP 서버 주소", "추가하고 연결", "/api/mcp/add", "initialize", "tools/list", "상태와 오류"],
-            [("위치 · 범위", "[MCP] 탭에 이미 있는 주소 칸 · [추가하고 연결] · 새 입력 칸 · 버튼 없음"),
-             ("읽을 경로", "<code>static/app.js</code>의 mcpAddForm → <code>app.py</code>의 <code>/api/mcp/add</code> → <code>lab/mcp_client.py</code>"),
-             ("확인", "http/https 검사 · 같은 주소 재사용 · 상태 · 도구 이름 · 실패 원인 · <b>저장 성공 ≠ 연결 성공</b>"),
-             ("유지", "코드 · 기존 서버 설정 · 메모 데이터 · .env 실제 키 값 읽기 · 출력 없음")], "agent-sim 폴더"), kick="3-3 · 쓰는 쪽"),
+            ["주소 입력 후 도구 목록이 바뀌기까지 이어지는 파일"],
+            ["/api/mcp/add", "initialize", "tools/list"],
+            [("읽을 경로", "app.js → app.py → mcp_client.py"), ("확인", "저장 성공 ≠ 연결 성공"), ("범위", "코드 수정 없이 읽기")], "agent-sim 폴더"), kick="3-3 · 쓰는 쪽"),
         page("rag-sim의 MCP 주소 등록", two(
             prompt("http://127.0.0.1:8790/mcp", "[MCP] 탭 · MCP 서버 주소") + SP
             + ul(["<b>[추가하고 연결]</b> · 2절과 같은 입력 칸", "연결 상태 + 도구 목록에 <b>rag_search</b>"]),

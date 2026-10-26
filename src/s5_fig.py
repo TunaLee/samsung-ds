@@ -7,14 +7,15 @@ R, K, G, M = "#E8002D", "#26262B", "#DCDCE1", "#6B6B73"
 # ── 요청문 작성 가이드 ─────────────────────────────────────────
 
 def guide(qs, keys, conds=None, where=""):
-    """왼쪽: 가이드라인 질문 + 키워드 · 오른쪽: 실습 조건."""
+    """위: 정할 것 + 키워드 · 아래: 조건 카드 (최대 4칸)."""
+    from kit import spec
     w = f'<div class="g5-where">{ic("chat")}<span>Claude Code · 직접 작성{" · " + where if where else ""}</span></div>'
     q = "".join(f"<li>{x}</li>" for x in qs)
     k = "".join(f"<span>{x}</span>" for x in keys)
-    left = f'{w}<div class="g5-h">작성 가이드라인</div><ul class="g5-q">{q}</ul><div class="g5-h">키워드</div><div class="g5-kw">{k}</div>'
+    left = f'{w}<div class="g5-h">정할 것</div><ul class="g5-q">{q}</ul><div class="g5-h">키워드</div><div class="g5-kw">{k}</div>'
     if conds is None:
         return f'<div class="g5 one">{left}</div>'
-    return f'<div class="g5"><div class="g5-l">{left}</div><div class="g5-r">{cond(conds)}</div></div>'
+    return f'<div class="g5 one">{left}</div>' + spec(conds)
 
 
 def cond(rows, title="실습 조건"):
