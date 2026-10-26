@@ -628,6 +628,69 @@ def request_grow():
     return d.svg(1160, 480, s)
 
 
+def mm_space():
+    """멀티모달 RAG · 페이지 이미지가 벡터 공간에 점으로 → 텍스트 질문이 그래프 페이지 옆에 → 페이지 이미지 + 질문 → 이미지를 읽는 LLM. 20초."""
+    d = _D("mm", 20)
+    OK = "#2E7D4F"
+
+    def vis(a, b=97):
+        return d.a([(0, "opacity:0"), (a, "opacity:0"), (a + 1.5, "opacity:1"), (b, "opacity:1"), (b + 1.5, "opacity:0"), (100, "opacity:0")])
+
+    def thumb(kind, x, y, w=54, h=68, col=N):
+        s = f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="4" fill="{W}" stroke="{col}" stroke-width="2"/>'
+        if kind == "graph":
+            s += "".join(f'<rect x="{x + 8 + i * 9}" y="{y + h - 14 - hh}" width="6" height="{hh}" fill="{O if i == 3 else N}"/>' for i, hh in enumerate((20, 28, 24, 10, 18)))
+        elif kind == "table":
+            s += "".join(f'<line x1="{x + 6}" y1="{y + 14 + r * 12}" x2="{x + w - 6}" y2="{y + 14 + r * 12}" stroke="{N}"/>' for r in range(4))
+            s += f'<line x1="{x + w / 2}" y1="{y + 14}" x2="{x + w / 2}" y2="{y + 50}" stroke="{N}"/>'
+        elif kind == "sono":
+            s += f'<rect x="{x + 8}" y="{y + 12}" width="{w - 16}" height="{h - 26}" fill="#55555C"/>' + "".join(
+                f'<circle cx="{x + 16 + i * 9}" cy="{y + 24 + (i % 2) * 14}" r="3" fill="{W}"/>' for i in range(4))
+        elif kind == "chart":
+            s += f'<polyline points="{x + 6},{y + 40} {x + 16},{y + 30} {x + 26},{y + 36} {x + 36},{y + 22} {x + 48},{y + 28}" fill="none" stroke="{N}" stroke-width="2"/>'
+            s += f'<line x1="{x + 6}" y1="{y + 18}" x2="{x + 48}" y2="{y + 18}" stroke="{O}" stroke-dasharray="3 2"/>'
+        else:
+            s += "".join(f'<rect x="{x + 8}" y="{y + 12 + i * 9}" width="{w - 16 - (i % 2) * 10}" height="4" fill="{G}"/>' for i in range(5))
+        return s
+    pages = [("text", "p.1 배경 · 본문", 520, 120), ("graph", "p.3 리플로 조건별 보이드율", 690, 260), ("sono", "p.4 초음파 영상", 600, 330),
+             ("chart", "p.5 관리도", 450, 330), ("table", "p.6 공정 조건 표", 760, 140)]
+    s = ""
+    # 왼쪽 · PDF 페이지들
+    s += _t(30, 30, "PDF 7쪽 → 페이지마다 이미지", "tn", "start")
+    for i, (k, lab, x, y) in enumerate(pages):
+        lx, ly = 30 + (i % 3) * 78, 50 + (i // 3) * 100
+        s += thumb(k, lx, ly)
+    # 가운데 · 공간
+    X0, Y0, X1, Y1 = 290, 50, 880, 450
+    s += f'<rect x="{X0}" y="{Y0}" width="{X1 - X0}" height="{Y1 - Y0}" rx="12" fill="#FAFAFB" stroke="{G}" stroke-width="2"/>'
+    s += _t(X0 + 14, Y0 + 20, "멀티모달 임베딩 공간 · 글과 그림이 같은 공간에", "tn", "start", 'style="font-size:13px"')
+    s += _t(X1 - 12, Y1 - 12, "2차원으로 줄여 표시 · 위치는 설명용", "ts", "end", 'style="font-size:12px"')
+    for i, (k, lab, x, y) in enumerate(pages):
+        t = 4 + i * 5
+        s += f'<g {vis(t)}>' + thumb(k, x - 22, y - 28, 44, 56) + _t(x, y + 42, lab, "ts", "middle", 'style="font-size:12px"') + "</g>"
+        lx, ly = 30 + (i % 3) * 78 + 27, 50 + (i // 3) * 100 + 34
+        s += _move(d, [(0, lx, ly, 0), (t - 3, lx, ly, 0), (t - 2.5, lx, ly, 1), (t, x, y, 1), (t + .3, x, y, 0), (100, x, y, 0)], r=8)
+    # 질문 (텍스트)
+    s += (f'<g {vis(32)}><rect x="30" y="270" width="230" height="64" rx="10" fill="{N}"/>'
+          + _t(145, 292, "텍스트 질문", "tw") + _t(145, 316, "보이드율이 가장 높은 리플로 조건은?", "tw", "middle", 'style="font-size:12.5px;font-weight:400"') + "</g>")
+    qx, qy = 640, 240
+    dia = f'<path d="M0 -14 L14 0 L0 14 L-14 0 Z" fill="{O}" stroke="{W}" stroke-width="2.5"/>'
+    s += _move(d, [(0, 260, 300, 0), (35, 260, 300, 0), (36, 260, 300, 1), (44, qx, qy, 1), (97, qx, qy, 1), (100, qx, qy, 0)], shape=dia)
+    s += f'<line x1="{qx}" y1="{qy}" x2="690" y2="260" stroke="{O}" stroke-width="3" stroke-dasharray="6 4" {vis(46)}/>'
+    s += f'<rect x="666" y="230" width="48" height="60" rx="6" fill="none" stroke="{O}" stroke-width="3" {vis(46)}/>'
+    s += f'<g {vis(46)}>' + _t(qx - 10, qy - 26, "가장 가까운 페이지 = 그래프", "to", "end", 'style="font-size:13px"') + "</g>"
+    # 오른쪽 · 이미지를 읽는 LLM
+    RX = 905
+    s += f'<g {vis(56)}>' + _t(RX, 70, "LLM에게 보내는 것", "tn", "start") + "</g>"
+    s += f'<g {vis(58)}><g transform="translate({RX},86) scale(2)">' + thumb("graph", 0, 0, 54, 68, O) + "</g>" + _t(RX + 54, 238, "p.3 페이지 이미지", "ts") + "</g>"
+    s += f'<g {vis(60)}><rect x="{RX + 120}" y="120" width="115" height="60" rx="8" fill="{N}"/>' + _t(RX + 177, 150, "+ 질문", "tw") + "</g>"
+    s += f'<g {vis(68)}><path d="M{RX + 117} 250 V284" stroke="{N}" stroke-width="2.5" marker-end="url(#{d.id("ah")})"/>' + _box(RX, 290, 235, 60, "이미지를 읽는 LLM", fill=W, stroke=N, sw=2.5) + "</g>"
+    s += (f'<g {vis(76)}><rect x="{RX}" y="366" width="235" height="78" rx="10" fill="{OK}"/>'
+          + _t(RX + 117, 392, "그래프의 빨간 막대 조건", "tw", "middle", 'style="font-size:14px"')
+          + _t(RX + 117, 418, "근거: p.3 그래프", "tw", "middle", 'style="font-size:13px;font-weight:400"') + "</g>")
+    return d.svg(1160, 470, s)
+
+
 # ── 지식 그래프 (3교시 GraphRAG) ─────────────────────────────────────
 # 설명용 예시: 소프트 에러 문서의 세 청크. 페이지 · 문장은 설명용.
 KG_NODES = {

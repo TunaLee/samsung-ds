@@ -329,3 +329,10 @@
   .bgp{border:2px solid var(--line); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:8px; min-height:150px; color:var(--mut);}
   .bgp b{font-size:24px; color:var(--mut);} .bgp span{font-size:16px; line-height:1.5;}
   .bgp.on{border-color:var(--violet); background:#FFF5F7; color:var(--ink);} .bgp.on b{color:var(--violet);}
+
+  /* 7교시 · 텍스트만 꺼내면 사라지는 것 */
+  .tl-w{display:grid; grid-template-columns:230px 50px 1fr; gap:10px; align-items:start;}
+  .tl-pg{width:100%; height:auto;} .tl-arr{font-size:40px; font-weight:900; color:var(--violet); align-self:center; text-align:center;}
+  .tl-h{font-weight:900; font-size:16px; margin-bottom:8px;}
+  .tl-tx{border:2px dashed #C9C9D0; border-radius:12px; padding:14px 18px; font-family:var(--mono); font-size:14px; line-height:1.6;}
+  .tl-tx p{margin:0 0 8px;} .tl-tx .lost{color:var(--violet); font-weight:700; font-family:inherit;} .tl-tx .mix{background:#FFF5F7;}

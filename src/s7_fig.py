@@ -110,3 +110,24 @@ def keywords(words):
 
 def checks(items):
     return '<div class="chk">' + "".join(f"<div>{x}</div>" for x in items) + "</div>"
+
+
+def text_loss():
+    """같은 페이지 · 원본(본문 + 표 + 그래프) vs 텍스트 추출 결과. 설명용."""
+    R, K, G = "#E8002D", "#26262B", "#DCDCE1"
+    bars = "".join(f'<rect x="{40 + i * 34}" y="{150 - h}" width="22" height="{h}" fill="{K if i != 3 else R}"/>' for i, h in enumerate((58, 74, 66, 30, 52)))
+    page = (f'<svg viewBox="0 0 260 330" class="tl-pg"><rect x="1" y="1" width="258" height="328" rx="8" fill="#fff" stroke="{K}" stroke-width="2"/>'
+            f'<rect x="20" y="18" width="150" height="10" rx="3" fill="{K}"/>'
+            + "".join(f'<rect x="20" y="{40 + i * 12}" width="{220 - (i % 2) * 40}" height="6" rx="3" fill="{G}"/>' for i in range(3))
+            + f'<line x1="30" y1="150" x2="230" y2="150" stroke="{K}"/>{bars}'
+            + '<text x="130" y="168" text-anchor="middle" font-size="11" fill="#666">리플로 조건별 보이드율 그래프</text>'
+            + "".join(f'<rect x="20" y="{185 + r * 22}" width="220" height="22" fill="none" stroke="{K}" stroke-width="1"/>' for r in range(4))
+            + "".join(f'<line x1="{20 + c * 73}" y1="185" x2="{20 + c * 73}" y2="273" stroke="{K}" stroke-width="1"/>' for c in (1, 2))
+            + '<text x="130" y="292" text-anchor="middle" font-size="11" fill="#666">공정 조건 표</text>'
+            + "".join(f'<rect x="20" y="{302 + i * 10}" width="{200 - i * 50}" height="6" rx="3" fill="{G}"/>' for i in range(2)) + "</svg>")
+    txt = ('<div class="tl-tx"><div class="tl-h">텍스트 추출 결과</div>'
+           '<p>Maintaining Low Voiding Solder Die Attach …</p><p>The reflow profile was adjusted to …</p>'
+           '<p class="lost">[그래프 → 사라짐 · 막대 높이 · 빨간 막대의 의미 없음]</p>'
+           '<p class="mix">Peak 245 30 60 Profile A 1.2 B …</p><p class="lost">[표 → 숫자만 한 줄로 · 어느 칸의 값인지 모름]</p>'
+           '<p>Results show that …</p></div>')
+    return f'<div class="tl-w"><div><div class="tl-h">원본 페이지</div>{page}</div><div class="tl-arr">→</div>{txt}</div>'
