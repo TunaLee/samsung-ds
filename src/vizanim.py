@@ -306,88 +306,106 @@ def vector_space():
 
 
 def cut_space():
-    """의미 기반 청킹 · 어디서 자르면 벡터가 또렷이 나뉘나. 고정 길이(3문장씩) → 의미 기반(거리 > 0.5). 18초."""
-    d = _D("cs", 18)
+    """의미 기반 청킹 · 자르기 전(벡터 하나) → 고정 길이로 자르기 → 의미 기반으로 거리를 훑으며 자르기. 24초."""
+    d = _D("cs", 24)
     B = "#6B6B74"
     sents = [("소프트 에러 = 저장값이 뒤집히는 현상", 545, 128), ("원인: 알파 입자 · 우주선 중성자", 602, 150),
              ("다시 쓰면 정상 · 영구 손상 아님", 556, 192), ("FIT = 10억 시간당 고장 횟수", 780, 322),
              ("1 FIT ≈ 11만 년에 한 번", 846, 352), ("시험: 가속 시험 · 실시간 시험", 990, 142),
              ("가속 시험은 강한 방사선원 사용", 1052, 178)]
     gaps = [.18, .24, .71, .15, .68, .20]
-    RY = [56 + i * 58 for i in range(7)]  # 문장 행 y
-    t_pt = [1 + i * 1.6 for i in range(7)]  # 점이 찍히는 시점
+    RY = [56 + i * 58 for i in range(7)]
+    GY = [RY[i] + 47 for i in range(6)]
+    t_pt = [1 + i * 1.3 for i in range(7)]
+    P = [(x, y) for _, x, y in sents]
+    W0, F0, F1, S0 = 12, 26, 48, 52           # 자르기 전 · 고정 길이 · 의미 기반 시작
+    scan = [58 + i * 4.5 for i in range(6)]   # 화살표가 각 거리에 도착하는 시점
+    C1, C2 = scan[2] + 1, scan[4] + 1          # 의미 기반 절단 시점
 
-    A0, A1, B0 = 16, 50, 54  # 고정 길이 장면 · 의미 기반 장면 시작
-    def show(a, b=97):
-        return d.a([(0, "opacity:0"), (a, "opacity:0"), (a + 2, "opacity:1"), (b, "opacity:1"), (b + 2, "opacity:0"), (100, "opacity:0")])
+    def vis(a, b=97):
+        return d.a([(0, "opacity:0"), (a, "opacity:0"), (a + 1.5, "opacity:1"), (b, "opacity:1"), (b + 1.5, "opacity:0"), (100, "opacity:0")])
+
+    def grow(a, b=97):
+        return d.a([(0, "opacity:0;transform:scale(.3)"), (a, "opacity:0;transform:scale(.3)"), (a + 3, "opacity:1;transform:scale(1)"),
+                    (b, "opacity:1;transform:scale(1)"), (b + 1.5, "opacity:0;transform:scale(1)"), (100, "opacity:0;transform:scale(.3)")],
+                   extra="transform-box:fill-box;transform-origin:center")
 
     s = ""
     # 장면 이름
-    s += f'<g {show(A0, A1)} style="opacity:0">' + _t(430, 22, "고정 길이 · 3문장씩 자름", "tn", "start") + "</g>"
-    s += f'<g {show(B0)}>' + _t(430, 22, "의미 기반 · 이웃 문장 거리 &gt; 0.5 에서 자름", "to", "start") + "</g>"
+    for a, b, txt, cls in ((W0, F0, "자르기 전 · 문서 전체가 벡터 하나", "tn"), (F0, F1, "고정 길이 · 3문장마다 자름", "tn"),
+                           (S0, 97, "의미 기반 · 이웃 거리 &gt; 0.5 인 곳을 찾아 자름", "to")):
+        s += f'<g {vis(a, b)}>' + _t(430, 22, txt, cls, "start") + "</g>"
 
-    # 왼쪽 문장 목록 · 거리
+    # 왼쪽 문장 목록
     for i, (txt, x, y) in enumerate(sents):
         s += (f'<rect x="40" y="{RY[i]}" width="330" height="36" rx="8" fill="{W}" stroke="{G}" stroke-width="2" '
-              + d.a([(0, f"stroke:{G}"), (t_pt[i], f"stroke:{G}"), (t_pt[i] + .3, f"stroke:{O}"), (t_pt[i] + 1.6, f"stroke:{O}"), (t_pt[i] + 1.9, f"stroke:{G}"), (100, f"stroke:{G}")]) + "/>")
+              + d.a([(0, f"stroke:{G}"), (t_pt[i], f"stroke:{G}"), (t_pt[i] + .3, f"stroke:{O}"), (t_pt[i] + 1.3, f"stroke:{O}"), (t_pt[i] + 1.6, f"stroke:{G}"), (100, f"stroke:{G}")]) + "/>")
         s += _t(54, RY[i] + 19, str(i + 1), "tn", "start") + _t(74, RY[i] + 19, txt, "ts", "start", 'style="font-size:13.5px"')
-        if i < 6:
-            g = gaps[i]
-            big = g > .5
-            gy = RY[i] + 47
-            s += _t(360, gy, f"{g:.2f}", "to" if big else "ts", "end", 'style="font-size:13px"')
-            if big:
-                s += (f'<g {show(B0 + 2)}><line x1="34" y1="{gy}" x2="300" y2="{gy}" stroke="{O}" stroke-width="2.5" stroke-dasharray="6 4"/>'
-                      + _t(306, gy, "자름", "to", "start", 'style="font-size:13px"') + "</g>")
-    # 왼쪽 묶음 막대
-    def bar(rows, col, scene):
-        y0, y1 = RY[rows[0]], RY[rows[-1]] + 36
+    for i, g in enumerate(gaps):
+        big = g > .5
+        s += f'<g {vis(t_pt[i + 1])}>' + _t(366, GY[i], f"{g:.2f}", "ts", "end", 'style="font-size:13px"') + "</g>"
+        if big:  # 의미 기반에서 기준을 넘는 순간 빨갛게
+            s += f'<g {vis(scan[i])}>' + _t(366, GY[i], f"{g:.2f}", "to", "end", 'style="font-size:13px"') + "</g>"
+
+    def cutline(y, col, scene, label):
+        return (f'<g {scene}><line x1="34" y1="{y}" x2="300" y2="{y}" stroke="{col}" stroke-width="2.5" stroke-dasharray="6 4"/>'
+                + _t(306, y, label, "to" if col == O else "tn", "start", 'style="font-size:13px"') + "</g>")
+    s += cutline(GY[2], N, vis(F0 + 1, F1), "자름") + cutline(GY[5], N, vis(F0 + 1, F1), "자름")
+    s += cutline(GY[2], O, vis(C1), "자름") + cutline(GY[4], O, vis(C2), "자름")
+
+    def bar(r0, r1, col, scene):
+        y0, y1 = RY[r0], RY[r1] + 36
         return f'<rect x="24" y="{y0}" width="8" height="{y1 - y0}" rx="4" fill="{col}" {scene}/>'
-    for rows, col in (([0, 1, 2], N), ([3, 4, 5], B), ([6], N)):
-        s += bar(rows, col, show(A0, A1))
-    for rows, col in (([0, 1, 2], N), ([3, 4], O), ([5, 6], B)):
-        s += bar(rows, col, show(B0 + 2))
+    s += bar(0, 6, G, vis(W0, F0)) + bar(0, 6, G, vis(S0, C1))
+    s += bar(0, 2, N, vis(F0 + 2, F1)) + bar(3, 5, B, vis(F0 + 2, F1)) + bar(6, 6, N, vis(F0 + 2, F1))
+    s += bar(0, 2, N, vis(C1)) + bar(3, 6, G, vis(C1, C2)) + bar(3, 4, O, vis(C2)) + bar(5, 6, B, vis(C2))
+
+    # 거리를 훑는 화살표
+    tri = f'<path d="M0 0 L-14 -8 L-14 8 Z" fill="{O}"/>'
+    pts = [(0, 386, GY[0], 0), (S0 + 4, 386, GY[0], 0), (S0 + 5, 386, GY[0], 1)]
+    for i, t in enumerate(scan):
+        pts += [(t, 386, GY[i], 1), (t + 2.5, 386, GY[i], 1)]
+    pts += [(scan[-1] + 3.5, 386, GY[5], 0), (100, 386, GY[5], 0)]
+    s += _move(d, [(t, x + 14, y, v) for t, x, y, v in pts], shape=tri)
 
     # 벡터 공간
     X0, Y0, X1, Y1 = 420, 40, 1140, 440
     s += f'<rect x="{X0}" y="{Y0}" width="{X1 - X0}" height="{Y1 - Y0}" rx="12" fill="#FAFAFB" stroke="{G}" stroke-width="2"/>'
     s += _t(X1 - 14, Y1 - 14, "2차원으로 줄여 표시", "ts", "end", 'style="font-size:12.5px"')
     for i in range(6):
-        (_, x1, y1), (_, x2, y2) = sents[i], sents[i + 1]
-        big = gaps[i] > .5
-        st = d.a([(0, "opacity:0"), (t_pt[i + 1], "opacity:0"), (t_pt[i + 1] + .5, "opacity:1"), (97, "opacity:1"), (100, "opacity:0")])
-        s += f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{G}" stroke-width="2.5" {st}/>'
-        if big:
-            s += f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{O}" stroke-width="3" stroke-dasharray="7 5" {show(B0 + 2)}/>'
-        mx, my = (x1 + x2) / 2, (y1 + y2) / 2
-        s += f'<g {st}>' + _t(mx + 8, my - 10, f"{gaps[i]:.2f}", "to" if big else "ts", "start", 'style="font-size:12.5px"') + "</g>"
+        (x1, y1), (x2, y2) = P[i], P[i + 1]
+        s += f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{G}" stroke-width="2.5" {vis(t_pt[i + 1])}/>'
+        if gaps[i] > .5:
+            s += f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{O}" stroke-width="3" stroke-dasharray="7 5" {vis(C1 if i == 2 else C2)}/>'
 
-    def hull(pts, col, scene, label, lx, ly):
-        xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    def hull(pts, col, scene, label="", lx=0, ly=0):
+        xs, ys = [q[0] for q in pts], [q[1] for q in pts]
         cx, cy = sum(xs) / len(xs), sum(ys) / len(ys)
         rx = max(46, (max(xs) - min(xs)) / 2 + 40)
         ry = max(40, (max(ys) - min(ys)) / 2 + 36)
-        star = f'<path d="M{cx} {cy - 13} L{cx + 13} {cy} L{cx} {cy + 13} L{cx - 13} {cy} Z" fill="{col}" stroke="{W}" stroke-width="2"/>'
+        dia = f'<path d="M{cx:.0f} {cy - 13:.0f} L{cx + 13:.0f} {cy:.0f} L{cx:.0f} {cy + 13:.0f} L{cx - 13:.0f} {cy:.0f} Z" fill="{col}" stroke="{W}" stroke-width="2"/>'
+        lab = _t(lx, ly, label, "tn", "middle", f'style="font-size:13px;fill:{col}"') if label else ""
         return (f'<g {scene}><ellipse cx="{cx:.0f}" cy="{cy:.0f}" rx="{rx:.0f}" ry="{ry:.0f}" fill="{col}" fill-opacity=".07" '
-                f'stroke="{col}" stroke-width="2" stroke-dasharray="6 5"/>{star}' + _t(lx, ly, label, "tn", "middle", f'style="font-size:13px;fill:{col}"') + "</g>")
-    P = [(x, y) for _, x, y in sents]
-    # 고정 길이: 4~6 이 한 청크 → 평균이 두 주제 사이
-    s += hull(P[0:3], N, show(A0 + 4, A1), "청크 1", 570, 248)
-    s += hull(P[3:6], B, show(A0 + 4, A1), "청크 2 · 평균이 두 주제 사이", 885, 405)
-    s += hull(P[6:7], N, show(A0 + 4, A1), "청크 3", 1052, 236)
-    s += f'<g {show(A0 + 8, A1)}>' + _t(872, 300, "흐려진 청크 벡터", "to", "middle") + "</g>"
-    # 의미 기반: 주제마다
-    s += hull(P[0:3], N, show(B0 + 4), "청크 1 · 소프트 에러란", 570, 248)
-    s += hull(P[3:5], O, show(B0 + 4), "청크 2 · FIT 단위", 812, 408)
-    s += hull(P[5:7], B, show(B0 + 4), "청크 3 · 시험 방법", 1020, 236)
+                f'stroke="{col}" stroke-width="2" stroke-dasharray="6 5"/>{dia}{lab}</g>')
+    # 자르기 전 (두 번: 처음 · 의미 기반 시작)
+    s += hull(P, B, grow(W0, F0), "청크 하나 · 모든 주제가 섞인 벡터", 800, 432)
+    s += hull(P, B, grow(S0, C1))
+    # 고정 길이
+    s += hull(P[0:3], N, grow(F0 + 2, F1), "청크 1", 570, 248)
+    s += hull(P[3:6], B, grow(F0 + 2, F1), "청크 2 · 평균이 두 주제 사이", 885, 432)
+    s += hull(P[6:7], N, grow(F0 + 2, F1), "청크 3", 1052, 236)
+    s += f'<g {vis(F0 + 6, F1)}>' + _t(872, 300, "흐려진 청크 벡터", "to", "middle") + "</g>"
+    # 의미 기반 · 두 번에 걸쳐 갈라짐
+    s += hull(P[0:3], N, grow(C1), "청크 1 · 소프트 에러란", 570, 248)
+    s += hull(P[3:7], G, grow(C1, C2))
+    s += hull(P[3:5], O, grow(C2), "청크 2 · FIT 단위", 812, 408)
+    s += hull(P[5:7], B, grow(C2), "청크 3 · 시험 방법", 1020, 236)
 
     # 문장 점
-    for i, (txt, x, y) in enumerate(sents):
-        s += (f'<g {d.a([(0, "opacity:0"), (t_pt[i], "opacity:0"), (t_pt[i] + .5, "opacity:1"), (97, "opacity:1"), (100, "opacity:0")])}>'
-              f'<circle cx="{x}" cy="{y}" r="10" fill="{W}" stroke="{N}" stroke-width="2.5"/>'
+    for i, (x, y) in enumerate(P):
+        s += (f'<g {vis(t_pt[i])}><circle cx="{x}" cy="{y}" r="10" fill="{W}" stroke="{N}" stroke-width="2.5"/>'
               + _t(x, y + 1, str(i + 1), "tn", "middle", 'style="font-size:12px"') + "</g>")
     return d.svg(1160, 460, s)
-
 
 # ── 지식 그래프 (3교시 GraphRAG) ─────────────────────────────────────
 # 설명용 예시: 소프트 에러 문서의 세 청크. 페이지 · 문장은 설명용.
