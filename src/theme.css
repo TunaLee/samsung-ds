@@ -299,3 +299,33 @@
   .cm.on{border:2px solid var(--violet); background:#FFF5F7;} .cm.on b{color:var(--violet);}
   code{font-family:var(--mono); font-size:.92em; background:var(--wash); padding:1px 5px; border-radius:4px;}
   .code pre code{background:none; padding:0; border-radius:0; font-size:inherit;} .code.prompt code{font-size:16.5px;}
+
+  /* ===== 1교시 도입 · AI 에이전트란 (koreanre-ai 에서 가져옴) =====
+  /* 대화형 → 위임형 */
+  .mds{display:grid; grid-template-columns:1fr 34px 1fr; gap:10px; align-items:stretch;}
+  .md-a{display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:900; color:var(--mut);}
+  .md{border:2px solid var(--line); border-radius:14px; padding:14px 18px; display:flex; flex-direction:column; gap:6px;} .md.on{border-color:var(--violet);}
+  .md-h{display:flex; justify-content:space-between; align-items:baseline;} .md-h b{font-size:22px;} .md-h span{font-size:14px; color:var(--mut); font-weight:700;}
+  .md-q{background:#26262B; color:#fff; border-radius:10px; padding:9px 12px; font-size:15px;}
+  .md-k{font-size:12px; font-weight:900; color:var(--violet); margin-top:4px;} .md ul{margin:0; padding-left:18px; font-size:15px; line-height:1.55;} .md p{margin:0; font-size:15px;}
+  .md-r{margin-top:auto; border-top:1px solid var(--line); padding-top:6px; font-size:16px; font-weight:900;}
+  /* 도구 사용 루프 */
+  .tu-l{display:flex; align-items:stretch; gap:6px; margin-top:14px;} .tu-l>i{display:flex; align-items:center; font-style:normal; font-weight:900; color:var(--mut);}
+  .tu-s{flex:1; border:1px solid var(--line); border-top:3px solid var(--ink); border-radius:10px; padding:8px 10px;} .tu-s.on{border-top-color:var(--violet); background:#FFF5F7;}
+  .tu-s b{display:block; font-size:15px;} .tu-s span{font-size:13px; color:var(--mut);}
+  .tu-ts{display:flex; gap:10px; margin-top:10px;} .tu-t{flex:1; display:flex; align-items:center; gap:8px; border:1px dashed var(--line); border-radius:10px; padding:6px 10px; font-size:14px; font-weight:700;}
+  .tu-t svg{width:20px; height:20px; flex:none;}
+  /* 정적 vs 동적 애니메이션 (10초 반복 · 기본값은 바뀐 뒤 장면) */
+  /* METR 작업 길이 그래프 (posco-dx) */
+  .mtwrap{display:grid; grid-template-columns:1fr 290px; gap:18px; align-items:center;}
+  .mtchart{width:100%; height:auto;} .mtchart .mtline{stroke-dasharray:2000; animation:mtdraw 1.8s ease-out both;}
+  @keyframes mtdraw{from{stroke-dashoffset:2000} to{stroke-dashoffset:0}} @media print{.mtchart .mtline{animation:none}}
+  .mtcards{display:grid; gap:10px;}
+  .mtc{background:#fff; border:1px solid var(--line); border-top:5px solid var(--ink); border-radius:14px; padding:12px 16px;}
+  .mtc b{display:block; font-size:32px; line-height:1.05; font-weight:900; color:var(--ink);} .mtc.hl{border-top-color:var(--violet);} .mtc.hl b{color:var(--violet);}
+  .mtc b small{font-size:16px; font-weight:800; margin-left:2px;} .mtc span{display:block; margin-top:6px; font-size:14px; color:var(--mut); font-weight:600;}
+  /* 오늘 다루는 것 */
+  .bgps{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+  .bgp{border:2px solid var(--line); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:8px; min-height:150px; color:var(--mut);}
+  .bgp b{font-size:24px; color:var(--mut);} .bgp span{font-size:16px; line-height:1.5;}
+  .bgp.on{border-color:var(--violet); background:#FFF5F7; color:var(--ink);} .bgp.on b{color:var(--violet);}

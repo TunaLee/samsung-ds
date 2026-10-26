@@ -3,6 +3,7 @@ import agentfig as af
 import embedfig as ef
 import vizanim
 import fig
+import bg
 from kit import (ba, big, cards, cover, flow, ill, img, lab, note, page, pane, prompt, section, steps, table, two, ul)
 
 TITLE = "AI Agent란? · Agent 구조와 Context Window"
@@ -27,7 +28,7 @@ def opening():
 
 def block_agent():
     return [
-        section("01", "AI Agent의 구조", "요청을 받은 뒤 다음 행동을 정하는 프로그램"),
+        section("02", "AI Agent의 구조", "요청을 받은 뒤 다음 행동을 정하는 프로그램"),
         page("요청 하나를 처리하는 과정", fig.agent_loop(
             "「시험 조건과 근거 페이지를 정리해 줘」", "조건 · 출처가 달린 답변",
             [("판단", "어떤 문서가 필요한가"), ("검색 실행", "앱이 문서 검색"), ("결과 확인", "원문 · 출처"), ("추가 검색", "부족하면 다시")])
@@ -43,7 +44,7 @@ def block_agent():
 
 def block_context():
     return [
-        section("02", "Context Window", "필요한 정보를 유지하면서 입력의 범위를 정하고 답변 공간을 남기기"),
+        section("03", "Context Window", "필요한 정보를 유지하면서 입력의 범위를 정하고 답변 공간을 남기기"),
         page("Context Window와 토큰", cards([
             ("Context Window", "한 번의 요청에서 처리할 수 있는 정보량의 한도", "1"),
             ("Token", "길이를 세는 단위 · 한 글자나 한 단어와 항상 같지 않음", "2"),
@@ -61,7 +62,7 @@ def block_context():
 
 def block_setup():
     return [
-        section("03", "실습 준비", "Claude Code 설치 · 기본 명령 · API Key 보안 · rag-sim 실행"),
+        section("04", "실습 준비", "Claude Code 설치 · 기본 명령 · API Key 보안 · rag-sim 실행"),
         page("PowerShell 기본", two(
             table(["명령", "하는 일"], [
                 ["<code>pwd</code>", "현재 폴더 경로"], ["<code>ls</code>", "파일 · 하위 폴더 목록"],
@@ -130,7 +131,7 @@ def block_security():
 
 def block_rag():
     return [
-        section("04", "AI에게 문서를 전달하는 방법", "RAG가 고른 구조와 임베딩"),
+        section("05", "AI에게 문서를 전달하는 방법", "RAG가 고른 구조와 임베딩"),
         page("세 가지 방법 비교", table(["방법", "어떻게", "비용", "문서가 바뀌면"], [
             ["<b>추가 학습</b>", "예시 데이터로 응답 방식 조정", "데이터 준비 · 학습 · 추론", "재학습 또는 외부 검색 검토"],
             ["<b>전체를 매번 입력</b>", "질문마다 모든 문서 전달", "질문마다 전체 자료의 입력 비용", "다음 요청에 바로 반영"],
@@ -166,7 +167,7 @@ def block_rag():
 
 def block_lab():
     return [
-        section("05", "naive RAG 직접 실행", "PDF 한 편으로 파싱부터 생성까지"),
+        section("06", "naive RAG 직접 실행", "PDF 한 편으로 파싱부터 생성까지"),
         page("인덱싱 타임과 쿼리 타임", vizanim.index_query()
              + note("순서", "임베딩을 먼저 배웠지만 실제로는 <b>청킹이 먼저</b> · 검색할 단위가 정해져야 벡터를 계산"), kick="naive RAG"),
         lab("1", "naive RAG 직접 실행", "AN4750 문서 한 편으로 RAG의 다섯 단계를 화면에서 직접 확인",
@@ -206,4 +207,4 @@ def closing():
 
 
 def slides():
-    return opening() + block_agent() + block_context() + block_setup() + block_security() + block_rag() + block_lab() + closing()
+    return opening() + bg.intro() + block_agent() + block_context() + block_setup() + block_security() + block_rag() + block_lab() + closing()
