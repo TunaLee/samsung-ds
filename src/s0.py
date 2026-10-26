@@ -83,7 +83,7 @@ def block_project():
         page("시간표", table(["시간", "교시", "핵심 내용"], [
             ["08:30 ~ 09:30", "<b>1교시</b> · Claude Code와 RAG 시작", "실습 준비 · 보안, PDF 한 편으로 RAG 구조 관찰"],
             ["09:40 ~ 10:40", "<b>2교시</b> · naive RAG 완성", "임베딩 활용, 청킹 · BM25 · 하이브리드 검색 선택"],
-            ["10:50 ~ 11:50", "<b>3교시</b> · Advanced RAG", "질의 재작성 · 재정렬 · 기준값, Text-to-SQL · GraphRAG 소개"],
+            ["10:50 ~ 11:50", "<b>3교시</b> · Advanced RAG", "Pre · Post-retrieval 개념 · GraphRAG · 멀티모달 RAG 실습"],
             ["11:50 ~ 13:00", "점심시간", ""],
             ["13:00 ~ 13:50", "<b>4교시</b> · Tool Calling", "API 요청 확인, 도구 추가, Agent와 가드레일"],
             ["14:00 ~ 14:50", "<b>5교시</b> · MCP", "rag-sim 검색 → Tool → MCP 서버 → agent-sim 연결"],
