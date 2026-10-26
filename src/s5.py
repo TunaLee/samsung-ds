@@ -12,7 +12,7 @@ SPS = '<div class="sp5 s"></div>'
 def opening():
     return [
         cover(["MCP로 <em>RAG</em>와", "외부 도구 연결"],
-              "rag-sim의 검색을 API · Tool · MCP 서버로 내놓고, agent-sim이 도구로 골라 쓰는 흐름을 확인합니다",
+              "rag-sim의 검색을 Tool · MCP 서버로 내놓고, agent-sim이 도구로 골라 쓰는 흐름을 확인합니다",
               [("교시", "5교시"), ("실습", "rag-sim · agent-sim · Claude Code"), ("연결", "Microsoft Learn MCP · rag_search MCP")], "5교시"),
     ]
 
@@ -109,102 +109,65 @@ def block_mcp():
     ]
 
 
-def block_api_lab():
+def block_mcp_lab():
     return [
-        section("03", "실습 1 · rag-sim 검색을 API로 내놓기", "질문을 보내면 근거 청크를 JSON으로 돌려주는 GET API"),
+        section("03", "실습 1 · rag-sim 검색을 MCP 서버로", "rag-sim 검색을 부르는 Tool → MCP 서버 → agent-sim"),
         page("오늘 만들 전체 구성", f5.arch()
-             + note("관리 탭", "rag-sim에 <b>[API · MCP 관리]</b> 탭 하나 · 두 서버의 On/off와 외부 호출 로그를 같은 화면에서"), kick="실습 1"),
+             + note("관리 탭", "rag-sim에 <b>[MCP 관리]</b> 탭 하나 · MCP 서버 On/off와 호출 로그를 같은 화면에서"), kick="실습 1"),
         page("주소와 포트", two(
             ul(["<code>127.0.0.1</code> = 내 컴퓨터 자신 · <code>localhost</code>와 같은 뜻",
                 "이 주소로 보낸 요청은 밖으로 나가지 않고 내 PC 안에서 처리",
                 "<code>:8765</code> 같은 숫자 = <b>포트</b> · 한 컴퓨터의 여러 서버를 번호로 구분"]),
             table(["포트", "서버"], [
                 ["<b>8765</b>", "rag-sim 관리 화면 (유지)"], ["<b>8770</b>", "agent-sim (유지)"],
-                ["<b class='hl'>8780</b>", "새 외부 검색 API 서버"], ["<b class='hl'>8790</b>", "새 MCP 서버"]]))
-             + note("분리 이유", "검색 API 서버를 꺼도 관리 화면에서 다시 켤 수 있도록 화면 서버와 포트 분리", "red"), kick="로컬 서버"),
+                ["<b class='hl'>8790</b>", "새 MCP 서버"]]))
+             + note("분리 이유", "MCP 서버를 꺼도 관리 화면에서 다시 켤 수 있도록 화면 서버와 포트 분리", "red"), kick="로컬 서버"),
         page("내 PC에서만 접근하는 서버", two(
             pane("127.0.0.1 바인딩", ul(["내 PC에서 접근", "로컬 실행 여부 ≠ 외부 접근 허용 · 서로 다른 설정", "옆자리에서 같은 주소를 넣으면 <b>자기 PC</b>를 가리킴", "사내 문서를 다루는 기능의 통제에 유리"]), "good"),
             pane("외부에서 접근하게 하려면", ul(["방화벽 · 공개 설정을 따로", "그때부터 <b>누가 접근할 수 있는지</b>가 설계 결정"]), "bad")), kick="로컬 서버"),
-        lab("1", "rag-sim 검색을 API로 내놓기", "질문을 HTTP GET으로 보내면 근거 청크를 JSON으로 돌려주는 검색 API 서버 · 관리 탭에서 On/off와 호출 로그 확인",
-            ["Claude Code에 요청 작성 · GET 검색 API와 관리 탭", "rag-sim 다시 시작 → [API 서버 On]", "브라우저로 검색 요청", "기존 검색 화면 결과와 대조", "Off · On 동작과 API 로그 확인"],
-            "8780번 GET 검색 API · [API · MCP 관리] 탭의 API 영역"),
-        page("GET 검색 API와 관리 탭 · 요청 작성", f5.guide(
-            ["다른 프로그램에 어떤 검색 입력과 결과를 제공할까요? HTTP GET 주소 · 인자 · 반환 항목과 관리 화면을 함께",
-             "기존 검색을 재사용하면서 API 서버만 껐다 켜려면 무엇을 분리할까요? 기존 화면 유지 조건 · 성공 · 실패 로그 항목 포함"],
-            ["HTTP GET", "query", "top_k", "기존 검색 재사용", "API · MCP 관리 탭", "On/off", "외부 호출 로그"],
-            [("대상 · 주소", "rag-sim 폴더 안 외부 검색 API 서버 · <code>127.0.0.1:8780</code> · <code>GET /api/search</code> · query(질문) · top_k(청크 수, 기본 5)"),
-             ("처리", "기존 검색 코드 · 저장소 · 검색 설정 재사용 · 알고리즘 중복 구현 · DB 복제 없음 · 기존 UI의 검색 API 보존"),
-             ("JSON 반환", "청크마다 청크 ID · 문서명 · 페이지 · 본문 · 점수 · 사용한 검색 방식"),
-             ("응답 · 유지", "JSON · UTF-8 · 화면 서버(8765)와 기존 기능 유지 · On/off는 8780에만")], "rag-sim 폴더"), kick="실습 1"),
-        page("GET 검색 API와 관리 탭 · 조건 계속", f5.cond([
-            ("관리 화면", "새 [API · MCP 관리] 탭 하나에 API 영역 + MCP 영역 · 3절은 API 완성, MCP는 4절 · API 서버 On/off · 실행 상태 · 접속 주소 · 초기 상태 Off"),
-            ("서버 제어", "On: 8780 요청 수신 시작 · Off: 새 요청 수신 중단 · 포트 해제 · 처리 중인 1건은 완료 가능 · On/off는 POST 등 변경용 요청 · 검색만 GET"),
-            ("API 호출 로그", "시각 · HTTP 메서드 · 경로 · query · top_k · 성공/실패 · HTTP 상태 · 처리 시간 · 반환 청크 수 · 오류 요약 · 관리 화면 상태 조회는 제외"),
-            ("로그 보존", "최근 200건 시간순 · API 키 · Authorization 헤더 · 전체 문서 본문 기록 안 함 · 연속 클릭 시 중복 기동 방지"),
-        ], "실습 조건 (계속)"), kick="실습 1"),
-        page("검색 API 동작 확인", prompt("http://127.0.0.1:8780/api/search?query=SRAM 소프트 에러율은 얼마인가요?", "[브라우저] [API 서버 On] 뒤 별도 탭") + SP
-             + ul(["청크 ID · 문서명 · 페이지 · 본문이 JSON으로 · API 로그에 같은 질문과 <b>성공</b>",
-                   "기존 검색 화면에서 같은 질문 · 검색 방식 · 청크 수 → <b>같은 근거 청크</b>",
-                   "질문을 두세 번 바꿔 요청 · <b>[API 서버 Off]</b> 뒤엔 결과 없음 · 관리 화면은 계속 열림 · 다시 On이면 호출 가능"])
-             + note("Frankfurter와 같은 GET API", "차이는 인터넷 저편이 아니라 <b>내 PC</b>에서 돈다는 것뿐", "red"), kick="실습 1"),
-        page("막히면 · 검색 API", table(["증상", "확인"], [
-            ["<b>연결되지 않음</b>", "API 서버 On 여부 · 화면용 8765가 아닌 <b>8780</b> · 경로 <code>/api/search</code> · 실행 실패 · 포트 충돌은 관리 탭 상태와 오류"],
-            ["<b>결과가 비어 있음</b>", "저장소에 문서가 적재되어 있는지 rag-sim 화면에서"],
-            ["<b>한글이 깨짐</b>", "응답을 UTF-8로 보내도록 Claude Code에 수정 요청"]]), kick="실습 1"),
-    ]
-
-
-def block_mcp_lab():
-    return [
-        section("04", "실습 2 · MCP 서버를 만들어 agent-sim에 연결", "검색 API를 부르는 Tool → MCP 서버 → agent-sim"),
-        lab("2", "MCP 서버를 만들어 agent-sim에 연결", "검색 API를 부르는 rag_search Tool을 MCP 규격으로 제공하고, agent-sim이 도구로 골라 쓰는지 확인",
-            ["rag_search Tool 만들기 (4-1)", "MCP 서버 · 같은 관리 탭에서 On/off (4-2)", "agent-sim의 주소 등록 흐름 읽기 (4-3)", "rag-sim MCP 주소 등록 (4-4)", "반도체 질문 · PowerShell 질문 (4-5)"],
+        lab("1", "MCP 서버를 만들어 agent-sim에 연결", "rag-sim 검색을 부르는 rag_search Tool을 MCP 규격으로 제공하고, agent-sim이 도구로 골라 쓰는지 확인",
+            ["rag_search Tool 만들기 (3-1)", "MCP 서버 · 관리 탭에서 On/off (3-2)", "agent-sim의 주소 등록 흐름 읽기 (3-3)", "rag-sim MCP 주소 등록 (3-4)", "반도체 질문 · PowerShell 질문 (3-5)"],
             "8790번 MCP 서버 · agent-sim 도구 목록의 rag_search"),
-        page("API의 query와 Tool의 question", f5.mapping()
-             + note("확인", "함수가 호출될 때 rag-sim 관리 탭에도 <b>API 요청 기록</b>이 쌓이는지")
-             + note("설명문", "tools/list 출력 = Microsoft Learn 서버가 돌려주던 것과 같은 모양 · LLM은 <b>설명문을 보고</b> 도구를 고를지 정함 → 직접 다듬기", "red"), kick="4-1 · Tool"),
-        page("검색 API를 부르는 Tool · 요청 작성", f5.guide(
-            ["API의 query와 Tool의 question을 어떻게 연결할까요? 함수의 입력 · 호출 · 반환과 도구 선언을 구분",
+        page("rag_search Tool · 요청 작성", f5.guide(
+            ["rag-sim의 기존 검색을 어떻게 불러 쓸까요? 함수의 입력 · 호출 · 반환과 도구 선언을 구분",
              "저장소의 문서 종류를 확인한 뒤, 어떤 질문에 이 도구를 쓰면 좋을지 설명문에"],
-            ["rag_search", "question→query", "top_k", "URL 인코딩", "도구 설명", "tools/list"],
+            ["rag_search", "question", "top_k", "기존 검색 재사용", "도구 설명", "tools/list"],
             [("범위", "rag_mcp 폴더 안 <code>rag_search(question, top_k)</code> 함수 · 이 단계에서 서버 생성 없음"),
-             ("호출 · 반환", "8780 <code>/api/search</code>에 HTTP GET · 받은 JSON 반환 · Off · 시간 초과 · HTTP 오류는 호출 실패로"),
-             ("문자 처리", "한글 · 공백 · 특수문자 질문의 쿼리 인자 URL 인코딩"),
+             ("호출 · 반환", "rag-sim의 기존 검색 코드 · 저장소 · 검색 설정을 그대로 호출 · 검색 알고리즘 · DB 복제 없음 · 청크 ID · 문서명 · 페이지 · 본문 · 점수 반환 · 저장소가 비면 호출 실패로"),
              ("도구 선언", "이름 rag_search · question 문자열 · 필수 · top_k 정수 · 선택 · 기본 5"),
              ("설명문", "어떤 자료에서 무엇을 찾는 도구인지"),
-             ("확인용 출력", "이름 · 설명문 · 인자 형식을 tools/list 응답 형식 JSON으로")], "rag-sim 폴더"), kick="4-1 · Tool"),
+             ("확인용 출력", "이름 · 설명문 · 인자 형식을 tools/list 응답 형식 JSON으로")], "rag-sim 폴더"), kick="3-1 · Tool"),
         page("로컬 MCP 서버 · 요청 작성", f5.guide(
             ["agent-sim의 MCP 요청을 받아 Tool을 실행하려면? 클라이언트 코드 확인 · initialize · tools/list · tools/call 흐름",
-             "같은 관리 탭에서 두 서버를 각각 어떻게 켜고 끌까요? 실제 상태 · 중복 기동 방지 · 입력 · 결과 · 오류 확인 방법"],
-            ["HTTP MCP", "initialize", "tools/list", "tools/call", "8790", "같은 관리 탭", "MCP On/off", "호출 로그"],
+             "관리 탭에서 MCP 서버를 어떻게 켜고 끌까요? 실제 상태 · 중복 기동 방지 · 입력 · 결과 · 오류 확인 방법"],
+            ["HTTP MCP", "initialize", "tools/list", "tools/call", "8790", "MCP 관리 탭", "MCP On/off", "호출 로그"],
             [("대상 · 주소", "rag_search를 제공하는 로컬 HTTP 서버 · <code>http://127.0.0.1:8790/mcp</code>"),
              ("호환 기준", "<code>C:\\samsung_ds_YYYYMMDD\\agent-sim\\lab\\mcp_client.py</code>의 요청 · 기대 응답 형식"),
-             ("호출 처리", "tools/call → rag_search가 8780 GET API 호출 · API Off면 가짜 결과 대신 <b>도구 오류</b> · 연결 상태와 검색 가능 상태 구분")], "rag-sim 폴더"), kick="4-2 · MCP 서버"),
+             ("호출 처리", "tools/call → rag_search가 기존 검색 실행 · 검색 실패면 가짜 결과 대신 <b>도구 오류</b> · 연결 상태와 검색 가능 상태 구분")], "rag-sim 폴더"), kick="3-2 · MCP 서버"),
         page("로컬 MCP 서버 · 조건 계속", f5.cond([
             ("실행 · 종료", "[MCP 서버 On]/[MCP 서버 Off]로 실제 8790 기동 · 종료 · 별도 MCP 콘솔 수동 실행 없음 · 시작/종료 중 중복 요청 차단 · 실제 상태 · 주소 · 포트 충돌 표시"),
             ("유지 · 정리", "기존 run.bat · rag-sim 기능 유지 · rag-sim 프로세스 종료 시 앱이 시작한 서버 정리 · 관리 탭만 닫는 것과 구분 · 서버 코드 역할 세 줄 설명"),
-            ("같은 탭", "API · MCP 각각 독립된 On/off · 상태 · 주소 · 로그 · MCP 초기 Off · MCP를 꺼도 API 서버와 기존 검색 화면 유지"),
+            ("관리 탭", "새 [MCP 관리] 탭 · On/off · 상태 · 주소 · 로그 · 초기 Off · MCP를 꺼도 기존 검색 화면 유지"),
             ("MCP 호출 로그", "tools/call마다 시각 · 도구 이름 · 입력 인자 · 성공/실패 · 처리 시간 · 결과 요약 또는 오류 · initialize · tools/list는 실행 횟수와 구분 · 최근 200건 · 비밀값 · 전체 본문 제외"),
-        ], "실습 조건 (계속)"), kick="4-2 · MCP 서버"),
-        page("두 서버 켜기", two(
+        ], "실습 조건 (계속)"), kick="3-2 · MCP 서버"),
+        page("MCP 서버 켜기", two(
             prompt("cd C:\\samsung_ds_YYYYMMDD\\rag-sim\n.\\run.bat", "[PowerShell] rag-sim을 다시 실행하는 경우"),
-            ul(["rag-sim 다시 시작 → <b>[API · MCP 관리]</b> 탭",
-                "<b>[API 서버 On] → [MCP 서버 On]</b> 순서",
-                "각 실행 상태 확인",
+            ul(["rag-sim 다시 시작 → <b>[MCP 관리]</b> 탭",
+                "<b>[MCP 서버 On]</b>",
+                "실행 상태 · 주소 확인",
                 "rag-sim을 실행한 PowerShell 창은 실습 동안 유지"]))
-             + note("브라우저로 확인하지 않기", "MCP 주소는 웹페이지용 요청을 받지 않아 오류가 날 수 있음 → Claude Code에 확인 요청", "red"), kick="4-2 · MCP 서버"),
+             + note("브라우저로 확인하지 않기", "MCP 주소는 웹페이지용 요청을 받지 않아 오류가 날 수 있음 → Claude Code에 확인 요청", "red"), kick="3-2 · MCP 서버"),
         page("MCP 서버 응답 확인 · 요청 작성", f5.guide(
             ["서버 코드를 바꾸지 않고 연결 · 목록 · 호출을 어떻게 검증할까요? 원본 응답과 MCP 호출 로그 · API 호출 로그를 함께"],
-            ["initialize", "tools/list", "tools/call", "원본 응답", "MCP/API 로그 대조", "코드 유지"],
+            ["initialize", "tools/list", "tools/call", "원본 응답", "MCP 로그 · 기존 검색 대조", "코드 유지"],
             [("대상", "<code>http://127.0.0.1:8790/mcp</code> · initialize와 tools/list 응답 원문"),
-             ("호출", "rag_search · 질문 「AEC-Q100의 기계적 충격 시험은 몇 개의 샘플로 수행하나요?」 · tools/call 반환 · MCP 로그의 도구 이름 · 인자 · 상태 · API 로그의 같은 질문"),
-             ("범위", "서버 코드 수정 없음")], "rag-sim 폴더"), kick="4-2 · MCP 서버"),
-        page("두 서버를 껐다 켜며 대조", table(["상태", "기대 결과"], [
-            ["<b>둘 다 On</b>", "도구 목록의 rag_search · tools/call 반환 청크 = 3-2 GET API 직접 결과 · 관리 탭에 MCP 호출과 그 안의 API 호출"],
-            ["<b>MCP Off</b>", "MCP 호출 실패 · API 직접 호출은 계속 됨"],
-            ["<b>MCP On · API Off</b>", "rag_search 호출 시 MCP 로그에 <b>검색 API 연결 오류</b>"],
-            ["<b>마무리</b>", "두 서버 모두 On"]])
-             + note("실행 창 하나", "화면(8765)에서 검색 API(8780)와 MCP(8790)를 관리"), kick="4-2 · MCP 서버"),
+             ("호출", "rag_search · 질문 「AEC-Q100의 기계적 충격 시험은 몇 개의 샘플로 수행하나요?」 · tools/call 반환 · MCP 로그의 도구 이름 · 인자 · 상태 · 기존 검색 화면의 같은 질문 결과"),
+             ("범위", "서버 코드 수정 없음")], "rag-sim 폴더"), kick="3-2 · MCP 서버"),
+        page("MCP 서버를 껐다 켜며 대조", table(["상태", "기대 결과"], [
+            ["<b>On</b>", "도구 목록의 rag_search · tools/call 반환 청크 = 기존 검색 화면의 같은 질문 결과 · 관리 탭에 MCP 호출 기록"],
+            ["<b>Off</b>", "MCP 호출 실패 · 기존 검색 화면은 그대로 동작"],
+            ["<b>마무리</b>", "MCP 서버 On"]])
+             + note("실행 창 하나", "화면(8765)에서 MCP 서버(8790)를 관리"), kick="3-2 · MCP 서버"),
         page("agent-sim의 주소 등록 흐름 읽기", f5.guide(
             ["주소를 입력한 뒤 서버 목록과 도구 목록이 바뀌기까지 어떤 파일과 요청이 연결될까요?",
              "성공 · 실패 처리와 같은 주소 재등록 처리를 찾아 설명받을 질문"],
@@ -212,28 +175,28 @@ def block_mcp_lab():
             [("위치 · 범위", "[MCP] 탭에 이미 있는 주소 칸 · [추가하고 연결] · 새 입력 칸 · 버튼 없음"),
              ("읽을 경로", "<code>static/app.js</code>의 mcpAddForm → <code>app.py</code>의 <code>/api/mcp/add</code> → <code>lab/mcp_client.py</code>"),
              ("확인", "http/https 검사 · 같은 주소 재사용 · 상태 · 도구 이름 · 실패 원인 · <b>저장 성공 ≠ 연결 성공</b>"),
-             ("유지", "코드 · 기존 서버 설정 · 메모 데이터 · .env 실제 키 값 읽기 · 출력 없음")], "agent-sim 폴더"), kick="4-3 · 쓰는 쪽"),
+             ("유지", "코드 · 기존 서버 설정 · 메모 데이터 · .env 실제 키 값 읽기 · 출력 없음")], "agent-sim 폴더"), kick="3-3 · 쓰는 쪽"),
         page("rag-sim의 MCP 주소 등록", two(
             prompt("http://127.0.0.1:8790/mcp", "[MCP] 탭 · MCP 서버 주소") + SP
             + ul(["<b>[추가하고 연결]</b> · 2절과 같은 입력 칸", "연결 상태 + 도구 목록에 <b>rag_search</b>"]),
-            pane("시작 전", ul(["4-3은 코드 수정 없음 · agent-sim 그대로", "rag-sim 관리 탭에서 API 서버 · MCP 서버 <b>On</b> 확인"]), "good"), "w"), kick="4-4 · 등록"),
+            pane("시작 전", ul(["3-3은 코드 수정 없음 · agent-sim 그대로", "rag-sim 관리 탭에서 MCP 서버 <b>On</b> 확인"]), "good"), "w"), kick="3-4 · 등록"),
         page("두 질문으로 도구 호출 확인", prompt("AEC-Q100의 기계적 충격 시험은 몇 개의 샘플로 수행하나요? 근거 문서와 페이지도 알려 줘.", "[앱 질문 입력칸] 질문 1") + SPS
              + prompt("PowerShell에서 현재 폴더를 확인하는 명령은 무엇인가요?", "[앱 질문 입력칸] 질문 2") + SP
              + ul(["질문마다 rag_search 호출 여부 · agent-sim 호출 기록 vs rag-sim MCP 로그의 도구 이름 · 인자",
-                   "API 로그에도 같은 검색 질문 · 같은 질문 · top_k로 GET API 직접 호출 결과와 대조",
-                   "안 불렸다면 설명문 vs 질문 비교 → 4-1에서 수정 → MCP Off → On → agent-sim 재연결"]), kick="4-5 · 호출 확인"),
+                   "기존 검색 화면에서 같은 질문 · top_k 결과와 대조",
+                   "안 불렸다면 설명문 vs 질문 비교 → 3-1에서 수정 → MCP Off → On → agent-sim 재연결"]), kick="3-5 · 호출 확인"),
         page("막히면 · MCP 연결", table(["증상", "확인"], [
             ["<b>MCP 연결 실패</b>", "MCP 서버 On · 포트 8790 · 주소가 <code>/mcp</code>로 끝나는지 · 호출 시도와 오류는 같은 탭"],
-            ["<b>도구는 불렸는데 검색 오류</b>", "API 서버(8780) On · API 호출 로그 · rag_search는 이 GET API 사용"],
-            ["<b>연결됐는데 도구 없음</b>", "4-2의 tools/list 확인 다시 · 서버가 알려 주지 못하면 앱 목록에도 없음"],
+            ["<b>도구는 불렸는데 검색 오류</b>", "rag-sim 저장소에 문서가 적재되어 있는지 · MCP 로그의 오류 요약"],
+            ["<b>연결됐는데 도구 없음</b>", "3-2의 tools/list 확인 다시 · 서버가 알려 주지 못하면 앱 목록에도 없음"],
             ["<b>한글 결과가 깨짐</b>", "서버 응답을 UTF-8로 보내도록 Claude Code에 수정 요청"],
-            ["<b>포트가 이미 사용 중</b>", "관리 탭의 실행 오류 · 해당 포트 · 내가 이전에 실행한 서버만 종료 후 On · 다른 프로그램은 임의로 종료하지 않기"]]), kick="4-5 · 호출 확인"),
+            ["<b>포트가 이미 사용 중</b>", "관리 탭의 실행 오류 · 해당 포트 · 내가 이전에 실행한 서버만 종료 후 On · 다른 프로그램은 임의로 종료하지 않기"]]), kick="3-5 · 호출 확인"),
     ]
 
 
 def block_design():
     return [
-        section("05", "설계 관점에서 다시 보기", "검색 시점 · 연결 방식 · 입력 크기"),
+        section("04", "설계 관점에서 다시 보기", "검색 시점 · 연결 방식 · 입력 크기"),
         page("검색 여부를 정하는 주체", table(["", "rag-sim 화면", "agent-sim + rag_search"], [
             ["<b>구조</b>", "파이프라인형 RAG", "에이전트형 RAG"],
             ["<b>검색 시점</b>", "질문이 오면 <b>항상</b> 검색", "LLM이 <b>필요하다고 판단할 때</b> 검색"],
@@ -248,7 +211,7 @@ def block_design():
             pane("한 앱에서만 쓴다면", ul(["앱 안의 <b>함수</b>가 단순", "서버를 띄우고 관리할 필요 없음"]), "bad"),
             pane("여러 AI 앱이 같은 기능을 쓴다면", ul(["<b>MCP 서버</b>가 유리", "규격이 같아 한 번 만든 서버를 여러 앱에 연결"]), "good"))
              + note("새 결정 사항", "서버로 내면 <b>누가 이 서버에 접근할 수 있는가</b>", "red"), kick="설계 질문"),
-        page("더 해보기 · 같은 서버를 Claude Code에", prompt("claude mcp add --transport http rag-search http://127.0.0.1:8790/mcp", "[PowerShell] 새 창 · 두 서버 On 유지") + SP
+        page("더 해보기 · 같은 서버를 Claude Code에", prompt("claude mcp add --transport http rag-search http://127.0.0.1:8790/mcp", "[PowerShell] 새 창 · MCP 서버 On 유지") + SP
              + ul(["Claude Code 실행 → <code>/mcp</code>로 연결 상태 → 반도체 질문",
                    "서버 코드를 한 줄도 바꾸지 않고 다른 AI 앱에 도구가 붙음 = <b>「규격」의 의미</b>",
                    "agent-sim 클라이언트에 맞춰 만든 서버라 연결이 안 될 수도 있음 → 오류 메시지를 Claude Code에 보여 주고 규격에 맞게 수정 요청"]), kick="더 해보기"),
@@ -261,7 +224,7 @@ def block_design():
                 ["<b>Agent 처리 흐름</b>", "언제 호출해 어떻게 사용할지"]]))
              + note("오류도 설계", "검색이 정상적으로 끝나 근거가 없는 경우 ≠ 서버에 연결되지 않은 경우 · 이후 판단에 필요한 정보가 다름", "red"), kick="Context"),
         page("정리", steps([
-            ("API를 감싼 Tool → MCP", "API는 코드가, Tool은 AI가 부름 · API를 감싼 Tool을 MCP 규격으로 제공"),
+            ("검색을 감싼 Tool → MCP", "API는 코드가, Tool은 AI가 부름 · rag-sim 검색을 감싼 Tool을 MCP 규격으로 제공"),
             ("다른 앱의 도구가 된 RAG", "규격이 같아 이 서버는 agent-sim 전용이 아님"),
             ("업무에 옮길 때의 결정", "어떤 문서까지 검색 · 서버를 누구에게 · 읽기만 허용할지 → <b>도구 제작 = 권한 결정</b>"),
         ]), kick="정리"),
@@ -270,7 +233,7 @@ def block_design():
 
 def block_more():
     return [
-        section("06", "다양한 MCP 서버 둘러보기", "7 · 8교시 캡스톤에서 쓸 만한 서버"),
+        section("05", "다양한 MCP 서버 둘러보기", "7 · 8교시 캡스톤에서 쓸 만한 서버"),
         page("한국 MCP 모음 · Awesome MCP Korea", table(["분야", "서버", "쓰임"], [
             ["<b>국가통계</b>", "korea-stats-mcp", "KOSIS 국가통계 자연어 검색 · 분석 · 반도체 수출입 · 생산 통계"],
             ["<b>기업 공시</b>", "DART-mcp-server", "상장기업 공시 · 기업 개황 · 재무 정보 · 고객사 · 공급사 공시"],
@@ -302,4 +265,4 @@ def block_more():
 
 
 def slides():
-    return opening() + block_api() + block_mcp() + block_api_lab() + block_mcp_lab() + block_design() + block_more()
+    return opening() + block_api() + block_mcp() + block_mcp_lab() + block_design() + block_more()

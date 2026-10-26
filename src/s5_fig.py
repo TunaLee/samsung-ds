@@ -45,21 +45,19 @@ def chain(items, back=""):
 
 
 def arch(tags=None):
-    """agent-sim → MCP(8790) → 검색 API(8780) → 기존 검색, 가운데 두 서버는 rag-sim 관리 탭에서 On/off."""
-    t = tags or ["", "", "", ""]
+    """agent-sim → MCP(8790) → rag-sim 기존 검색, MCP 서버는 rag-sim 관리 탭에서 On/off."""
+    t = tags or ["", "", ""]
     tg = lambda i: f'<em>{t[i]}</em>' if t[i] else ""
     return ('<div class="r5">'
             '<div class="r5-row">'
             f'<div class="r5-n">{tg(0)}{ic("model")}<b>agent-sim</b><span>127.0.0.1:8770</span><span>LLM이 도구 선택</span></div>'
             '<div class="r5-a">tools/call<i>→</i></div>'
             f'<div class="r5-n on">{tg(1)}{ic("plug")}<b>MCP 서버</b><span>127.0.0.1:8790/mcp</span><span>rag_search Tool</span></div>'
-            '<div class="r5-a">HTTP GET<i>→</i></div>'
-            f'<div class="r5-n on">{tg(2)}{ic("search")}<b>검색 API 서버</b><span>127.0.0.1:8780</span><span>/api/search?query=…</span></div>'
-            '<div class="r5-a">재사용<i>→</i></div>'
-            f'<div class="r5-n">{tg(3)}{ic("folder")}<b>rag-sim 기존 검색</b><span>저장소 · 검색 설정</span><span>원문 · 출처</span></div>'
+            '<div class="r5-a">함수 호출<i>→</i></div>'
+            f'<div class="r5-n">{tg(2)}{ic("folder")}<b>rag-sim 기존 검색</b><span>저장소 · 검색 설정</span><span>원문 · 출처</span></div>'
             '</div>'
-            '<div class="r5-tab"><b>rag-sim 화면 · 127.0.0.1:8765 · [API · MCP 관리] 탭</b>'
-            '<span>두 서버 각각 On/off · 실행 상태 · 접속 주소 · 호출 로그</span></div>'
+            '<div class="r5-tab"><b>rag-sim 화면 · 127.0.0.1:8765 · [MCP 관리] 탭</b>'
+            '<span>MCP 서버 On/off · 실행 상태 · 접속 주소 · 호출 로그</span></div>'
             '</div>')
 
 
