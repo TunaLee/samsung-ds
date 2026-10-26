@@ -14,25 +14,6 @@ def opening():
         cover(["MCP로 <em>RAG</em>와", "외부 도구 연결"],
               "rag-sim의 검색을 API · Tool · MCP 서버로 내놓고, agent-sim이 도구로 골라 쓰는 흐름을 확인합니다",
               [("교시", "5교시"), ("실습", "rag-sim · agent-sim · Claude Code"), ("연결", "Microsoft Learn MCP · rag_search MCP")], "5교시"),
-        page("학습 목표", cards([
-            ("역할 구분", "검색 API · Tool · MCP가 같은 실행 흐름에서 맡는 역할", "01"),
-            ("경로 확인", "rag_search 실습에서 질문이 검색 결과로 돌아오는 경로", "02"),
-            ("Context 관계", "도구 정의와 반환된 근거가 Agent의 Context에 포함되는 관계", "03"),
-            ("구조 비교", "고정 검색 흐름 vs Agent의 도구 선택 · 업무 조건에 따라", "04"),
-        ], 4)),
-        page("검색 기능을 Agent의 도구로", f5.chain([
-            ("search", "2~3교시 · RAG", "문서에서 근거를 찾는 방법 개선", False),
-            ("tool", "4교시 · Tool Calling", "모델이 도구 선택 · 결과로 다음 판단", False),
-            ("link", "5교시 · 연결", "Agent가 rag-sim 검색을 도구로 사용", True),
-        ]) + note("정할 것", "검색에 보낼 <b>질문</b>의 형식 · 반환할 <b>원문</b>의 형식")
-             + note("API · Tool · MCP", "다른 프로그램이 요청하는 접점 · Agent가 고르는 기능 · 목록 · 호출 · 결과를 주고받는 공통 규격", "red"), kick="도입"),
-        page("실습 안내", two(
-            ul(["4교시 <b>agent-sim</b> + 오전 <b>rag-sim</b> 함께 사용",
-                "Claude Code 요청: 가이드라인 · 키워드 · 실습 조건 → <b>내 문장</b>으로",
-                "실행 결과 확인 → 부족한 조건 보완"]),
-            table(["표시", "입력 위치"], [
-                ["<b>[PowerShell]</b>", "명령"], ["<b>[브라우저]</b>", "주소창에 주소"],
-                ["<b>[앱 질문 입력칸]</b>", "공통 비교 질문"], ["<b>[Claude Code]</b>", "직접 작성한 요청"]])), kick="실습 안내"),
     ]
 
 

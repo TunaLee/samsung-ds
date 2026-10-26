@@ -174,18 +174,6 @@ def opening():
         cover(["Multi-Agent", "<em>Decisions</em>와 조사 Agent"],
               "자주 하는 판정과 비용이 큰 조사를 나누고, 판단과 실행을 잇는 기본 흐름을 만듭니다",
               [("교시", "6교시"), ("실습", "line-sim · agent-sim [decisions] 탭"), ("API", "OpenAI Decisions · Responses")], "6교시"),
-        page("학습 목표", cards([
-            ("연결 방식", "순차 · 병렬과 집계 · 계층형", "01"),
-            ("운영 방식", "도구 공유 · 사람 개입", "02"),
-            ("Decisions API", "predicate 판정 · 확률 · 기준값", "03"),
-            ("판정 → 조사", "기준값을 넘은 이벤트만 조사 Agent로", "04"),
-        ], 4)),
-        page("오늘의 실습 구성", two(
-            steps([("모의 생산라인 켜기", "line-sim 서버 · 고정된 합성 데이터"),
-                   ("[decisions] 탭 만들기", "완성형 Prompt 그대로 복사 · 감시 · 판정 화면"),
-                   ("조사 Agent 연결", "가이드라인에 따라 요청 직접 작성")]),
-            ul(["입력 위치 구분: <b>[Claude Code]</b> · <b>[PowerShell]</b> · <b>[브라우저]</b> · <b>[앱 화면]</b>",
-                "rag-sim · MCP 서버는 이번 실습에서 사용하지 않음 · 꺼도 됨"]), "w"), kick="실습 안내"),
     ]
 
 
