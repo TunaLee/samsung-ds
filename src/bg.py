@@ -89,7 +89,7 @@ def tool_use():
     return page("위임이 가능해진 이유: 스스로 도구 사용", two(
         pane("도구 없는 AI", ul(["다음 글자를 확률로 이어 쓰기만", "계산 · 최신 정보 · 사내 문서 · 실행 불가", "결과를 사람이 옮겨서 실행"]), "bad"),
         pane("도구를 쓰는 AI", ul(["필요할 때 도구를 <b>스스로</b> 골라 호출", "도구 결과를 읽고 다음 행동 결정", "여러 단계를 이어서 끝까지"]), "good"))
-        + loop + f'<div class="tu-ts">{chips}</div>', kick="AI 에이전트란")
+        + f'<div class="tu-ts">{chips}</div>', kick="AI 에이전트란")
 
 
 def horizon():

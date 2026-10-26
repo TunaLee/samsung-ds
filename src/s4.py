@@ -99,18 +99,7 @@ def block_search():
 
 def block_agent():
     return [
-        section("02", "AI Agent: LLM + 도구 + 자율성", "다음 행동을 누가 정하고, 실행 결과가 어디로 돌아가는지"),
-        page("AI Agent의 정의", '<div class="parts">'
-             + fig._tile("book", "지침 · 도구 정의", "모델에 전달")
-             + '<div class="plus">→</div>'
-             + fig._tile("model", "LLM", "호출 요청<br>다음 행동 선택", "core")
-             + '<div class="plus">→</div>'
-             + fig._tile("plug", "앱", "허용된 도구 실행")
-             + '<div class="plus">→</div>'
-             + fig._tile("folder", "도구 결과", "다음 판단의 Context")
-             + "</div>"
-             + note("AI Agent", "다음 행동까지 LLM이 고르고, 실행 결과를 보고 이어서 판단하는 프로그램", "red")
-             + note("역할", "LLM은 판단 · 프로그램은 허용된 도구 실행"), kick="Agent"),
+        section("02", "자율성: 다음 행동을 누가 정하나", "정해진 순서와 LLM의 선택 사이 · 실행 횟수 · 권한 · 멈출 조건"),
         page("다음 단계를 정하는 주체", f4.autonomy()
              + note("자율성", "켜고 끄는 스위치가 아닌 여러 단계로 설계하는 조절 장치", "red"), kick="Agent"),
         page("구조를 고르는 기준", '<div class="quote">정해진 순서로 충분한가,<br>상황에 따라 다음 행동을 고르게 해야 하는가</div>'
@@ -171,8 +160,7 @@ def block_flow():
         page("LLM에 가는 것, 앱에 남는 것", f4.decl_split()
              + note("이름이 달라도", "도구 이름과 함수 이름은 같을 수도, 다를 수도 · 등록된 연결 관계가 맞으면 실행"), kick="함수와 도구"),
         page("입력 컨텍스트와 API 요청 항목", f4.api_map()
-             + note("입력 컨텍스트", "이번 판단에 쓰도록 전달한 지시문 · 질문 · 이전 대화 · 도구 정보")
-             + note("컨텍스트 윈도", "한 번에 처리할 수 있는 분량의 한도 · 도구 선언도 포함", "red"), kick="컨텍스트"),
+             + note("입력 컨텍스트", "이번 판단에 쓰도록 전달한 지시문 · 질문 · 이전 대화 · 도구 정보 · 1교시의 Context Window 안에 모두 들어감", "red"), kick="컨텍스트"),
         page("대화가 진행될 때 AI가 받는 요청", vizanim.request_grow(), kick="컨텍스트",
              sub="호출마다 도구 결과가 input에 쌓임 → 실행 횟수 · 종료 조건을 정하는 이유"),
         page("장기 기억과 한 질문 안의 누적", two(

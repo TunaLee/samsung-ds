@@ -19,7 +19,7 @@ def opening():
 
 def block_api():
     return [
-        section("01", "Tool과 API", "코드가 호출하는 접점과 모델이 고르는 기능"),
+        section("01", "API", "도구가 바깥 서비스에 요청하는 약속 · 주소 · 조건 · 응답"),
         page("API: 약속된 방식으로 소통하는 접점", f5.api_fig()
              + note("API", "Application Programming Interface · 요청할 기능 · 보낼 값 · 결과 형식을 정해 둠", "red")
              + note("웹 API", "주소로 요청 → JSON 같은 데이터 형식으로 결과 · 안의 구현은 몰라도 형식만 맞추면 됨"), kick="API"),
@@ -37,13 +37,13 @@ def block_api():
                  ["<code>date</code>", "환율 고시일"],
                  ["갱신", "유럽중앙은행 고시 환율 · 하루 한 번 · 주말엔 새 값 없음"]])
              + note("응답", "사람이 보는 화면이 아니라 <b>프로그램이 읽고 처리하는 데이터</b>"), kick="API"),
-        page("Tool 안에서 API 호출", f5.chain([
+        page("도구 실행 중에 API를 부를 때", f5.chain([
             ("model", "LLM", "「환율 조회 도구를<br>USD로 불러 줘」", False),
             ("window", "앱", "환율 조회<br>함수 실행", False),
             ("globe", "Frankfurter API", "함수 안에서 호출<br>→ 결과", True),
             ("window", "앱", "결과를<br>LLM에 전달", False),
             ("chat", "LLM", "답변 작성", False),
-        ]) + note("API 없는 Tool", "4교시의 메모 도구처럼 외부 API를 쓰지 않는 Tool도 있음"), kick="Tool"),
+        ]) + note("API 없는 Tool", "4교시의 메모 도구처럼 외부 API를 쓰지 않는 Tool도 있음"), kick="API"),
     ]
 
 
@@ -65,6 +65,12 @@ def block_mcp():
              + '<div class="plus">⇄</div>'
              + fig._tile("window", "MCP 클라이언트", "그 도구를 가져다 <b>쓰는</b><br>AI 앱 쪽 기능")
              + "</div>" + note("오늘 순서", "이미 만들어진 서버 연결 → 직접 서버 만들기"), kick="MCP"),
+        page("MCP 서버가 하는 두 가지 일", '<div class="parts">'
+             + fig._tile("rule", "도구 목록 보내기", "앱이 물으면 도구의<br>이름 · 설명문 · 입력 형식<br><code>tools/list</code>")
+             + fig._tile("bolt", "도구 호출 처리하기", "「이 도구를 이 인자로 실행해 줘」<br>→ 실제 실행 · 결과 반환<br><code>tools/call</code>", "core")
+             + "</div>" + note("주소", "문서를 읽는 웹페이지 주소 ≠ MCP 요청을 받는 주소 <code>https://learn.microsoft.com/api/mcp</code>"), kick="MCP"),
+        page("등록부터 실제 호출까지", f5.mcp_seq()
+             + note("통신 주체", "MCP 서버와 통신하는 것은 <b>앱의 MCP 클라이언트</b> · 서버 구현 코드는 서버에 남음", "red"), kick="MCP"),
         page("Microsoft Learn 서버 연결", two(
             prompt("https://learn.microsoft.com/api/mcp", "[MCP] 탭 · MCP 서버 주소") + SP
             + ul(["agent-sim 실행 → <b>[MCP]</b> 탭 · 처음엔 서버 목록이 비어 있음",
@@ -93,12 +99,6 @@ def block_mcp():
                                       "해당 서버의 도구는 오른쪽 목록에서 빠지는지",
                                       "다시 <b>[연결]</b> → 다음 실습",
                                       "내장 메모 도구 · 다른 서버 도구는 따로 구분"]), "good")), kick="MCP 실습"),
-        page("MCP 서버가 하는 두 가지 일", '<div class="parts">'
-             + fig._tile("rule", "도구 목록 보내기", "앱이 물으면 도구의<br>이름 · 설명문 · 입력 형식<br><code>tools/list</code>")
-             + fig._tile("bolt", "도구 호출 처리하기", "「이 도구를 이 인자로 실행해 줘」<br>→ 실제 실행 · 결과 반환<br><code>tools/call</code>", "core")
-             + "</div>" + note("주소", "문서를 읽는 웹페이지 주소 ≠ MCP 요청을 받는 주소 <code>https://learn.microsoft.com/api/mcp</code>"), kick="MCP"),
-        page("등록부터 실제 호출까지", f5.mcp_seq()
-             + note("통신 주체", "MCP 서버와 통신하는 것은 <b>앱의 MCP 클라이언트</b> · 서버 구현 코드는 서버에 남음", "red"), kick="MCP"),
         page("MCP 클라이언트 코드 읽기", f5.guide(
             ["MCP 연결 · 도구 목록 조회 · 도구 호출이 코드의 어디에 있는지 어떻게 질문할까요?",
              "읽을 파일 · 찾을 동작 · 설명 수준 포함"],
@@ -106,11 +106,6 @@ def block_mcp():
             [("대상", "<code>lab/mcp_client.py</code> · <code>lab/registry.py</code> · 코드 수정 없이 읽기"),
              ("관찰", "initialize · tools/list · tools/call 및 도구 선언 변환 위치"),
              ("설명 수준", "비개발자도 이해할 수 있는 설명")], "agent-sim 폴더"), kick="Claude Code"),
-        page("API · Tool · MCP 구분", table(["구분", "무엇인가", "이 수업의 예"], [
-            ["<b>API</b>", "프로그램이 다른 기능을 요청하는 접점과 약속", "환율을 요청하는 Frankfurter 웹 API"],
-            ["<b>Tool</b>", "LLM이 선택하도록 선언하고 실행 코드에 연결한 기능", "메모 저장 · 환율 조회 · 문서 검색"],
-            ["<b>MCP</b>", "앱과 도구 제공 서버가 목록 · 호출 · 결과를 주고받는 공통 규격", "Microsoft Learn MCP에 문서 검색 요청"]])
-             + note("한 흐름", "매장 정보 API를 호출하는 함수 → 매장 검색 <b>도구로 선언</b> → <b>MCP 서버</b>로 제공", "red"), kick="정리"),
     ]
 
 
