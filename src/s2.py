@@ -1,9 +1,10 @@
-"""2교시 · naive RAG 완성 — 청크 크기와 검색 방식 (원본: 노션 교안 2교시)."""
+"""2교시 · naive RAG 완성 — 청킹 기준과 검색 방식 (원본: 노션 교안 2교시)."""
+import vizanim
 import s2_fig as f2
 import fig
 from kit import (ba, cards, cover, flow, ill, img, lab, note, page, pane, prompt, section, steps, table, two, ul)
 
-TITLE = "naive RAG 완성 — 청크 크기와 검색 방식"
+TITLE = "naive RAG 완성 — 청킹 기준과 검색 방식"
 IMG = "img/s2/"
 
 
@@ -26,7 +27,7 @@ RESTART = note("재시작", "코드가 바뀌면 run.bat 터미널에서 <b>Ctrl
 
 def opening():
     return [
-        cover(["naive RAG 완성", "<em>청크 크기</em>와 검색 방식"],
+        cover(["naive RAG 완성", "<em>청킹 기준</em>과 검색 방식"],
               "근거가 될 원문의 단위와 검색 방법을 직접 고르고, 비교 결과로 판단합니다",
               [("교시", "2교시"), ("실습", "rag-sim · Claude Code"), ("문서", "AN4750 · Samsung 품질 핸드북 · TI MSL")], "2교시"),
     ]
@@ -79,8 +80,8 @@ def block_embed():
             "1교시 · 고정 길이", "의미 기반 청킹 Semantic Chunking"), kick="의미 기반 청킹"),
         page("절단점을 정하는 기준", f2.breakpoints()
              + note("절단점 breakpoint", "문서 유형에 따라 문장 간 거리의 모양이 다름 · 기준값을 어디에 둘지가 설계 포인트", "red"), kick="의미 기반 청킹"),
-        page("문장으로 보는 절단점", f2.cut_example()
-             + note("거리 = 1 − 유사도", "같은 주제 안에서는 작고 주제가 바뀌는 곳에서 커짐 · 기준값을 낮추면 더 잘게, 높이면 더 크게 나뉨", "red"), kick="의미 기반 청킹"),
+        page("문장으로 보는 절단점", vizanim.cut_space(), kick="의미 기반 청킹",
+             sub="거리 = 1 − 유사도 · 거리가 큰 곳에서 자르면 청크 벡터(◆)가 주제마다 또렷"),
         lab("2", "의미 기반 청킹", "② 청킹 탭에 의미 기반(Semantic) 기준을 추가하고 네 기준의 조각을 비교",
             ["가이드라인 · 키워드로 요청문 작성", "실습 조건 확인 후 Claude Code에 요청", "앱 재시작", "02_st_an4750 선택 · 네 기준 차례로 미리보기", "청크 개수 · 길이 · 끊긴 조각 비교"],
             "기준별 청크 수 · 가장 긴 · 짧은 조각 · 끊긴 조각이 가장 적은 기준"),
@@ -107,23 +108,9 @@ def block_embed():
     ]
 
 
-def block_size():
-    return [
-        section("03", "청크 크기 비교", "검색 정확도와 함께 모델에 전달할 근거의 범위를 정하는 값"),
-        page("큰 청크와 작은 청크", f2.size_compare()
-             + note("정답 없음", "두 방향 모두 장점 · 작은 조각으로 찾고 넓은 맥락으로 답하는 구성이 유리한 질문도 있음", "red"), kick="청크 크기"),
-        page("Parent-Child 구조", f2.parent_child()
-             + note("Parent-Child", "큰 조각(부모)을 다시 작은 조각(자식)으로 · <b>검색은 자식</b>, <b>전달은 부모</b>", "red"), kick="Parent-Child"),
-        page("더 해보기 · Parent-Child 검색", guide(
-            ["검색할 단위와 답변에 전달할 단위를 다르게 정한다면 어떻게 연결할지", "부모 · 자식 청크의 관계와 각 단계의 역할"],
-            ["부모 청크", "자식 청크", "자식 검색", "부모 원문", "기존 검색 유지"], "선택 실습 · Parent-Child 검색")
-             + cond([("적재", "절 단위 부모 청크와 문장 단위 자식 청크"), ("검색 · 전달", "자식 청크로 검색하고 해당 부모 원문을 답변 근거로 전달 · 기존 검색 기능 유지")]), kick="선택 실습"),
-    ]
-
-
 def block_retrieval():
     return [
-        section("04", "Retrieval · 검색 방식", "같은 자료에서 어떤 원문을 고를지 · 식별자와 표현을 함께 다루기"),
+        section("03", "Retrieval · 검색 방식", "같은 자료에서 어떤 원문을 고를지 · 식별자와 표현을 함께 다루기"),
         page("글자 하나 차이의 식별자", f2.id_vectors(), kick="Retrieval"),
         page("엉뚱한 장비를 가져온 검색", f2.id_chat()
              + note("점수만 보면 1위가 가장 그럴듯", "근거 본문의 ID가 질문과 같은지 확인해야 · 의미 검색은 「정확히 같은 글자」를 보장하지 않음 · 설명용 예시", "red"), kick="Retrieval"),
@@ -198,7 +185,6 @@ def closing():
     return [
         page("정리", steps([
             ("임베딩의 다른 쓰임", "문장 단위로 적용 → 핵심 문장 강조 · 의미 기반 청킹 · 대신 임베딩 계산 증가"),
-            ("청크 크기", "검색 결과와 답변에 필요한 맥락이 달라짐 · Parent-Child는 검색 단위와 전달 단위를 분리"),
             ("검색 방식", "식별자 · 약어는 키워드 검색 · 표현이 다른 질문은 의미 검색 · 사용자가 묻는 방식에 맞춰 선택"),
         ])),
         page("현재 rag-sim 구성", prompt(
@@ -210,4 +196,4 @@ def closing():
 
 
 def slides():
-    return opening() + block_score() + block_embed() + block_size() + block_retrieval() + closing()
+    return opening() + block_score() + block_embed() + block_retrieval() + closing()
