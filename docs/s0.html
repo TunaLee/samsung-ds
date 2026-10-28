@@ -732,7 +732,8 @@
   .s0-tree li{display:flex; align-items:center; gap:10px; font:700 18px var(--mono);}
   .s0-tree li .ico{color:var(--ink);}
 
-  .s0-link{display:flex; align-items:center; gap:18px; border:2px solid var(--ink); border-radius:14px; padding:22px 26px; background:#fff;}
+  .s0-link{display:flex; align-items:center; gap:18px; border:2px solid var(--ink); border-radius:14px; padding:22px 26px; background:#fff; color:inherit; text-decoration:none; cursor:pointer;}
+  .s0-link:hover{border-color:var(--violet); box-shadow:0 6px 18px rgba(0,0,0,.08);}
   .s0-li{width:56px; height:56px; border-radius:12px; background:#FFF5F7; color:var(--violet); display:flex; align-items:center; justify-content:center; flex:none;}
   .s0-li .ico{width:30px; height:30px;}
   .s0-lt{display:flex; flex-direction:column; gap:6px; min-width:0;}
@@ -1631,7 +1632,7 @@ $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
 
 <section class="slide" data-title="마지막 · 버전 확인"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">Troubleshooting · Windows</div><h2 class="s-title">마지막 · 버전 확인</h2><div class="rule"></div><div class="body"><div class="twocol "><div><div class="biglist"><div class="li"><span class="num">1</span><div class="tx"><h4>확인</h4><p>버전 번호가 나오면 정상</p></div></div><div class="li"><span class="num">2</span><div class="tx"><h4>새 창에서도</h4><p>PowerShell을 새로 열어 한 번 더</p></div></div></div></div><div><div class="code prompt"><div class="bar"><span class="plabel">PowerShell · 확인</span></div><pre><code>claude --version</code></pre></div></div></div><div class="note red"><span class="nk">방법 B 주의</span><span class="nt">등록한 경로에 <code>2.1.247</code> 같은 버전 숫자 포함 · 업데이트로 폴더명이 바뀌면 B-1 · B-2 다시</span></div></div></section>
 
-<section class="slide" data-title="교육 만족도 조사"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">마무리</div><h2 class="s-title">교육 만족도 조사</h2><div class="rule"></div><div class="body"><div class="s0-link"><div class="s0-li"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></div><div class="s0-lt"><b>교육 만족도 조사</b><code>https://teamsparta-survey.vercel.app/s/course/0d0a599c-f836-45ab-8ef0-113b1f9ad433</code></div></div></div></section>
+<section class="slide" data-title="교육 만족도 조사"><div class="topbar"><span>B Track · AI Agent 아키텍트 과정</span><span class="coord"><b>01</b> / <span class="tot"></span></span></div><div class="kick">마무리</div><h2 class="s-title">교육 만족도 조사</h2><div class="rule"></div><div class="body"><a class="s0-link" href="https://teamsparta-survey.vercel.app/s/course/0d0a599c-f836-45ab-8ef0-113b1f9ad433" target="_blank" rel="noopener"><div class="s0-li"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></div><div class="s0-lt"><b>교육 만족도 조사</b><code>https://teamsparta-survey.vercel.app/s/course/0d0a599c-f836-45ab-8ef0-113b1f9ad433</code></div></a></div></section>
 
 <section class="slide section" data-title="다음. 1교시 · Agent 구조와 Context Window"><div class="ghost">다음</div><div class="sno">다음</div><h2>1교시 · Agent 구조와 Context Window</h2><p>판단과 실행 · 입력 구성 · 첫 RAG</p></section>
 

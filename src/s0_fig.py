@@ -65,5 +65,5 @@ def tree(root, items):
 
 def link(label, url, desc=""):
     d = f'<span class="s0-ld">{desc}</span>' if desc else ""
-    return (f'<div class="s0-link"><div class="s0-li">{ic("link")}</div><div class="s0-lt"><b>{label}</b>'
-            f'<code>{url}</code>{d}</div></div>')
+    return (f'<a class="s0-link" href="{url}" target="_blank" rel="noopener"><div class="s0-li">{ic("link")}</div><div class="s0-lt"><b>{label}</b>'
+            f'<code>{url}</code>{d}</div></a>')
