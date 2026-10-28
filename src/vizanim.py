@@ -1029,3 +1029,43 @@ def rag_why():
     s += f'<g {vis(86)}><rect x="{x + 30}" y="290" width="310" height="64" rx="12" fill="#EEF7F1" stroke="{OK}" stroke-width="2"/>' + _t(x + 185, 310, "「10억 소자 · 시간당 고장 1건」", "tn") + _t(x + 185, 334, "신뢰성 문서의 근거 문장 · 출처", "ts", extra=f'style="fill:{OK};font-weight:700"') + "</g>"
     s += f'<g {vis(90)}>' + _t(x + 185, 392, "필요한 것만 · 적은 비용", "to") + _t(x + 185, 420, "문서가 바뀌면 그 조각만 다시", "ts") + "</g>"
     return d.svg(1160, 480, s)
+
+
+def rag_scene(n):
+    """RAG가 등장한 이유를 장면 하나씩 (1 LLM만 · 2 통째로 · 3 조각만). 10초 · 장면 안에서만 움직임."""
+    d = _D(f"rs{n}", 10)
+    OK, P = "#2E7D4F", "#FFF0F3"
+    Q = "1 FIT이 뭐야?"
+
+    def vis(a, b=96):
+        return d.a([(0, "opacity:0"), (a, "opacity:0"), (a + 4, "opacity:1"), (b, "opacity:1"), (b + 3, "opacity:0"), (100, "opacity:0")])
+
+    s = ""
+    if n == 1:
+        s += f'<g {vis(2)}><rect x="90" y="20" width="240" height="46" rx="12" fill="{N}"/>' + _t(210, 43, Q, "tw", extra='style="font-size:17px"') + "</g>"
+        s += f'<g {vis(14)}>' + _box(80, 110, 260, 110, "LLM", sub="학습한 공개 자료 · 학습 시점까지") + "</g>"
+        s += f'<g {vis(14)}><path d="M210 70 V104" stroke="{N}" stroke-width="3" marker-end="url(#{d.id("ah")})"/></g>'
+        s += f'<g {vis(32)}><path d="M210 224 V262" stroke="{O}" stroke-width="3" marker-end="url(#{d.id("aho")})"/>'
+        s += f'<rect x="40" y="268" width="340" height="80" rx="14" fill="{P}" stroke="{O}" stroke-width="2.5"/>' + _t(210, 296, "「1 ft는 30.48cm입니다」", "tn", extra='style="font-size:18px"') + _t(210, 324, "자신 있게 엉뚱한 뜻", "to") + "</g>"
+    elif n == 2:
+        for i in range(7):
+            s += f'<g {vis(2 + i * 2)}><rect x="{30 + i * 10}" y="{30 + i * 7}" width="120" height="150" rx="6" fill="{W}" stroke="{N}" stroke-width="2"/></g>'
+        s += f'<g {vis(18)}>' + _t(120, 236, "PDF 6개 · 수백 쪽", "tn") + "</g>"
+        s += f'<g {vis(22)}>' + _box(240, 60, 150, 100, "LLM", sub="한 번에 읽을 양") + "</g>"
+        s += _t(30, 290, "컨텍스트", "tn", "start", 'style="font-size:15px"')
+        s += f'<rect x="30" y="304" width="360" height="30" rx="7" fill="#F1F1F4"/>'
+        s += f'<line x1="290" y1="294" x2="290" y2="344" stroke="{N}" stroke-width="2" stroke-dasharray="4 3"/>' + _t(290, 358, "한도", "ts", extra='style="font-size:13px"')
+        s += (f'<rect x="30" y="304" height="30" rx="7" fill="{O}" ' + d.a([(0, "width:0px"), (26, "width:0px"), (60, "width:360px"), (96, "width:360px"), (100, "width:0px")]) + "/>")
+    else:
+        s += _t(110, 22, "미리 조각내 둔 문서", "ts", extra='style="font-size:14px"')
+        hot = {(1, 2), (2, 0), (3, 3)}
+        for r in range(5):
+            for c in range(4):
+                on = (r, c) in hot
+                st = vis(2 + r * 2) if not on else d.a([(0, "opacity:0;fill:#FFFFFF"), (2 + r * 2, "opacity:0;fill:#FFFFFF"), (6 + r * 2, "opacity:1;fill:#FFFFFF"), (34, "opacity:1;fill:#FFFFFF"), (38, f"opacity:1;fill:{O}"), (96, f"opacity:1;fill:{O}"), (99, "opacity:0;fill:#FFFFFF"), (100, "opacity:0;fill:#FFFFFF")])
+                s += f'<rect x="{20 + c * 46}" y="{40 + r * 36}" width="38" height="26" rx="5" fill="{W}" stroke="{O if on else N}" stroke-width="{2.5 if on else 1.5}" {st}/>'
+        s += f'<g {vis(20)}><rect x="225" y="40" width="170" height="42" rx="12" fill="{N}"/>' + _t(310, 61, Q, "tw") + "</g>"
+        s += f'<g {vis(30)}>' + _t(310, 104, "비슷한 조각 3개", "to") + "</g>"
+        s += f'<g {vis(46)}>' + _box(225, 124, 170, 96, "LLM", sub="질문 + 조각 3개") + f'<path d="M206 140 L220 160" stroke="{O}" stroke-width="3" marker-end="url(#{d.id("aho")})"/></g>'
+        s += f'<g {vis(62)}><rect x="20" y="250" width="375" height="80" rx="14" fill="#EEF7F1" stroke="{OK}" stroke-width="2.5"/>' + _t(207, 278, "「10억 소자 · 시간당 고장 1건」", "tn", extra='style="font-size:18px"') + _t(207, 306, "신뢰성 문서의 근거 · 출처", "ts", extra=f'style="fill:{OK};font-weight:700"') + "</g>"
+    return d.svg(420, 370 if n == 2 else 410, s)
