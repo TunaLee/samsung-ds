@@ -995,13 +995,13 @@ def rag_why():
     cols = [(20, "① LLM만", 2), (400, "② 문서를 통째로", 33), (780, "③ 필요한 조각만 · RAG", 65)]
     for x, h, t in cols:
         s += f'<g {vis(t)}>' + _box(x, 20, 360, 440, "", fill="#FAFAFB", stroke=G, sw=2) + _t(x + 20, 48, h, "tn", "start", 'style="font-size:17px"') + "</g>"
-    Q = "우리 규격의 박리 기준은?"
+    Q = "1 FIT이 뭐야?"
     # ① LLM만
     x = 20
     s += f'<g {vis(4)}><rect x="{x + 70}" y="76" width="220" height="40" rx="12" fill="{N}"/>' + _t(x + 180, 96, Q, "tw") + "</g>"
     s += f'<g {vis(8)}>' + _box(x + 70, 150, 220, 90, "LLM", sub="학습한 공개 자료 · 학습 시점까지") + "</g>"
-    s += f'<g {vis(12)}><rect x="{x + 40}" y="280" width="280" height="64" rx="12" fill="{P}" stroke="{O}" stroke-width="2"/>' + _t(x + 180, 300, "「일반적인 업계 기준은 …」", "tn") + _t(x + 180, 324, "그럴듯하지만 근거 없음", "to") + "</g>"
-    s += f'<g {vis(18)}>' + _t(x + 180, 380, "사내 규격 · 최신 문서는 본 적 없음", "ts") + _t(x + 180, 408, "→ 지어냄 (환각)", "to") + "</g>"
+    s += f'<g {vis(12)}><rect x="{x + 40}" y="280" width="280" height="64" rx="12" fill="{P}" stroke="{O}" stroke-width="2"/>' + _t(x + 180, 300, "「1 ft는 30.48cm입니다」", "tn") + _t(x + 180, 324, "자신 있게 엉뚱한 뜻", "to") + "</g>"
+    s += f'<g {vis(18)}>' + _t(x + 180, 380, "우리 문서의 맥락(신뢰성)을 모름", "ts") + _t(x + 180, 408, "→ 흔한 뜻으로 지어냄", "to") + "</g>"
     # ② 통째로
     x = 400
     for i in range(7):
@@ -1026,6 +1026,6 @@ def rag_why():
     s += f'<g {vis(72)}><rect x="{x + 200}" y="96" width="140" height="36" rx="10" fill="{N}"/>' + _t(x + 270, 114, Q, "tw", extra='style="font-size:13px"') + "</g>"
     s += f'<g {vis(76)}>' + _t(x + 270, 152, "비슷한 조각 3개 검색", "to", extra='style="font-size:13px"') + "</g>"
     s += f'<g {vis(80)}>' + _box(x + 200, 176, 140, 80, "LLM", sub="질문 + 조각 3개") + f'<path d="M{x + 186} 168 L{x + 198} 200" stroke="{O}" stroke-width="3" marker-end="url(#{d.id("aho")})"/></g>'
-    s += f'<g {vis(86)}><rect x="{x + 30}" y="290" width="310" height="64" rx="12" fill="#EEF7F1" stroke="{OK}" stroke-width="2"/>' + _t(x + 185, 310, "「사내 규격 문서에 따르면 …」", "tn") + _t(x + 185, 334, "근거 문장 · 출처 쪽 번호가 붙은 답", "ts", extra=f'style="fill:{OK};font-weight:700"') + "</g>"
+    s += f'<g {vis(86)}><rect x="{x + 30}" y="290" width="310" height="64" rx="12" fill="#EEF7F1" stroke="{OK}" stroke-width="2"/>' + _t(x + 185, 310, "「10억 소자 · 시간당 고장 1건」", "tn") + _t(x + 185, 334, "신뢰성 문서의 근거 문장 · 출처", "ts", extra=f'style="fill:{OK};font-weight:700"') + "</g>"
     s += f'<g {vis(90)}>' + _t(x + 185, 392, "필요한 것만 · 적은 비용", "to") + _t(x + 185, 420, "문서가 바뀌면 그 조각만 다시", "ts") + "</g>"
     return d.svg(1160, 480, s)
