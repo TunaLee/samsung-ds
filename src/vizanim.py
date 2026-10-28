@@ -1001,7 +1001,7 @@ def rag_why():
     x = 20
     s += f'<g {vis(4)}><rect x="{x + 70}" y="76" width="220" height="40" rx="12" fill="{N}"/>' + _t(x + 180, 96, Q, "tw") + "</g>"
     s += f'<g {vis(8)}>' + _box(x + 70, 150, 220, 90, "LLM", sub="학습한 공개 자료 · 학습 시점까지") + "</g>"
-    s += f'<g {vis(12)}><rect x="{x + 40}" y="280" width="280" height="64" rx="12" fill="{P}" stroke="{O}" stroke-width="2"/>' + _t(x + 180, 300, "「1 ft는 30.48cm입니다」", "tn") + _t(x + 180, 324, "자신 있게 엉뚱한 뜻", "to") + "</g>"
+    s += f'<g {vis(12)}><rect x="{x + 40}" y="280" width="280" height="64" rx="12" fill="{P}" stroke="{O}" stroke-width="2"/>' + _t(x + 180, 300, "「1 ft는 30.48cm입니다」", "tn") + _t(x + 180, 324, "다른 뜻으로 답함", "to") + "</g>"
     s += f'<g {vis(18)}>' + _t(x + 180, 380, "우리 문서의 맥락(신뢰성)을 모름", "ts") + _t(x + 180, 408, "→ 흔한 뜻으로 지어냄", "to") + "</g>"
     # ② 통째로
     x = 400
@@ -1047,7 +1047,7 @@ def rag_scene(n):
         s += f'<g {vis(14)}>' + _box(80, 110, 260, 110, "LLM", sub="학습한 공개 자료 · 학습 시점까지") + "</g>"
         s += f'<g {vis(14)}><path d="M210 70 V104" stroke="{N}" stroke-width="3" marker-end="url(#{d.id("ah")})"/></g>'
         s += f'<g {vis(32)}><path d="M210 224 V262" stroke="{O}" stroke-width="3" marker-end="url(#{d.id("aho")})"/>'
-        s += f'<rect x="40" y="268" width="340" height="80" rx="14" fill="{P}" stroke="{O}" stroke-width="2.5"/>' + _t(210, 296, "「1 ft는 30.48cm입니다」", "tn", extra='style="font-size:18px"') + _t(210, 324, "자신 있게 엉뚱한 뜻", "to") + "</g>"
+        s += f'<rect x="40" y="268" width="340" height="80" rx="14" fill="{P}" stroke="{O}" stroke-width="2.5"/>' + _t(210, 296, "「1 ft는 30.48cm입니다」", "tn", extra='style="font-size:18px"') + _t(210, 324, "다른 뜻으로 답함", "to") + "</g>"
     elif n == 2:
         for i in range(7):
             s += f'<g {vis(2 + i * 2)}><rect x="{30 + i * 10}" y="{30 + i * 7}" width="120" height="150" rx="6" fill="{W}" stroke="{N}" stroke-width="2"/></g>'
