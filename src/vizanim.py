@@ -981,3 +981,51 @@ def decide_investigate():
               + _t(X + 24, 372, "추가 확인", "to", "start")
               + _t(X + 24, 396, "CH2 시험 가동 데이터 · 가장자리 두께 분포", "tx", "start"))
     return d.svg(1160, 424, s, "& .tk{font-size:13px;font-weight:700;fill:#55555C}& .tx{font-size:14px;fill:#26262B}")
+
+
+def rag_why():
+    """RAG가 등장한 이유 · ① LLM만 → 환각 ② 문서를 통째로 → 한도 · 비용 ③ 필요한 조각만 → 근거. 24초 · 세 장면이 차례로 켜지고 남음."""
+    d = _D("rw", 24)
+    OK, P = "#2E7D4F", "#FFF0F3"
+
+    def vis(a, b=97):
+        return d.a([(0, "opacity:0"), (a, "opacity:0"), (a + 2, "opacity:1"), (b, "opacity:1"), (b + 2, "opacity:0"), (100, "opacity:0")])
+
+    s = ""
+    cols = [(20, "① LLM만", 2), (400, "② 문서를 통째로", 33), (780, "③ 필요한 조각만 · RAG", 65)]
+    for x, h, t in cols:
+        s += f'<g {vis(t)}>' + _box(x, 20, 360, 440, "", fill="#FAFAFB", stroke=G, sw=2) + _t(x + 20, 48, h, "tn", "start", 'style="font-size:17px"') + "</g>"
+    Q = "우리 규격의 박리 기준은?"
+    # ① LLM만
+    x = 20
+    s += f'<g {vis(4)}><rect x="{x + 70}" y="76" width="220" height="40" rx="12" fill="{N}"/>' + _t(x + 180, 96, Q, "tw") + "</g>"
+    s += f'<g {vis(8)}>' + _box(x + 70, 150, 220, 90, "LLM", sub="학습한 공개 자료 · 학습 시점까지") + "</g>"
+    s += f'<g {vis(12)}><rect x="{x + 40}" y="280" width="280" height="64" rx="12" fill="{P}" stroke="{O}" stroke-width="2"/>' + _t(x + 180, 300, "「일반적인 업계 기준은 …」", "tn") + _t(x + 180, 324, "그럴듯하지만 근거 없음", "to") + "</g>"
+    s += f'<g {vis(18)}>' + _t(x + 180, 380, "사내 규격 · 최신 문서는 본 적 없음", "ts") + _t(x + 180, 408, "→ 지어냄 (환각)", "to") + "</g>"
+    # ② 통째로
+    x = 400
+    for i in range(7):
+        s += f'<g {vis(35 + i)}><rect x="{x + 30 + i * 10}" y="{80 + i * 6}" width="110" height="140" rx="6" fill="{W}" stroke="{N}" stroke-width="2"/></g>'
+    s += f'<g {vis(42)}>' + _t(x + 110, 272, "PDF 6개 · 수백 쪽", "tn") + "</g>"
+    s += f'<g {vis(44)}>' + _box(x + 200, 90, 140, 90, "LLM", sub="한 번에 읽을 양 한도") + "</g>"
+    s += _t(x + 30, 302, "컨텍스트", "tn", "start", 'style="font-size:14px"')
+    s += f'<rect x="{x + 30}" y="312" width="300" height="26" rx="6" fill="#F1F1F4"/>'
+    s += f'<line x1="{x + 250}" y1="304" x2="{x + 250}" y2="346" stroke="{N}" stroke-width="2" stroke-dasharray="4 3"/>' + _t(x + 250, 358, "한도", "ts", extra='style="font-size:12px"')
+    s += (f'<rect x="{x + 30}" y="312" height="26" rx="6" fill="{O}" '
+          + d.a([(0, "width:0px"), (46, "width:0px"), (58, "width:300px"), (97, "width:300px"), (100, "width:0px")]) + "/>")
+    s += f'<g {vis(56)}>' + _t(x + 180, 392, "한도 초과 · 질문마다 전체 비용", "to") + _t(x + 180, 420, "길수록 가운데 내용을 놓침", "ts") + "</g>"
+    # ③ RAG
+    x = 780
+    s += f'<g {vis(67)}>' + _t(x + 90, 80, "미리 조각내 둔 문서", "ts", extra='style="font-size:13px"') + "</g>"
+    hot = {(1, 2), (2, 0), (3, 3)}
+    for r in range(5):
+        for c in range(4):
+            on = (r, c) in hot
+            st = vis(67 + r) if not on else d.a([(0, "opacity:0;fill:#FFFFFF"), (67 + r, "opacity:0;fill:#FFFFFF"), (69 + r, "opacity:1;fill:#FFFFFF"), (76, "opacity:1;fill:#FFFFFF"), (78, f"opacity:1;fill:{O}"), (97, f"opacity:1;fill:{O}"), (99, "opacity:0;fill:#FFFFFF"), (100, "opacity:0;fill:#FFFFFF")])
+            s += f'<rect x="{x + 30 + c * 38}" y="{96 + r * 30}" width="32" height="22" rx="4" fill="{W}" stroke="{O if on else N}" stroke-width="{2 if on else 1.5}" {st}/>'
+    s += f'<g {vis(72)}><rect x="{x + 200}" y="96" width="140" height="36" rx="10" fill="{N}"/>' + _t(x + 270, 114, Q, "tw", extra='style="font-size:13px"') + "</g>"
+    s += f'<g {vis(76)}>' + _t(x + 270, 152, "비슷한 조각 3개 검색", "to", extra='style="font-size:13px"') + "</g>"
+    s += f'<g {vis(80)}>' + _box(x + 200, 176, 140, 80, "LLM", sub="질문 + 조각 3개") + f'<path d="M{x + 186} 168 L{x + 198} 200" stroke="{O}" stroke-width="3" marker-end="url(#{d.id("aho")})"/></g>'
+    s += f'<g {vis(86)}><rect x="{x + 30}" y="290" width="310" height="64" rx="12" fill="#EEF7F1" stroke="{OK}" stroke-width="2"/>' + _t(x + 185, 310, "「사내 규격 문서에 따르면 …」", "tn") + _t(x + 185, 334, "근거 문장 · 출처 쪽 번호가 붙은 답", "ts", extra=f'style="fill:{OK};font-weight:700"') + "</g>"
+    s += f'<g {vis(90)}>' + _t(x + 185, 392, "필요한 것만 · 적은 비용", "to") + _t(x + 185, 420, "문서가 바뀌면 그 조각만 다시", "ts") + "</g>"
+    return d.svg(1160, 480, s)
