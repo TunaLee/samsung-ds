@@ -14,8 +14,9 @@ S = "#55555C"  # 보조 글자 (덱 .bs 와 같은 색)
 class _D:
     """도해 하나: 접두어 · 반복 길이 · keyframes 모음."""
 
-    def __init__(self, p, dur):
+    def __init__(self, p, dur, once=False):
         self.p, self.dur, self.kfs, self.n = p, dur, [], 0
+        self.rep = "1 both" if once else "infinite both"    # once: 한 번 돌고 마지막 장면에 멈춤
 
     def a(self, stops, ease="linear", extra=""):
         """stops: [(퍼센트, 'css 선언'), ...] → style 속성 문자열."""
@@ -23,7 +24,7 @@ class _D:
         name = f"hx{self.p}{self.n}"
         body = "".join(f"{p:g}%{{{d}}}" for p, d in stops)
         self.kfs.append(f"@keyframes {name}{{{body}}}")
-        return f'style="animation:{name} {self.dur}s {ease} infinite both;{extra}"'
+        return f'style="animation:{name} {self.dur}s {ease} {self.rep};{extra}"'
 
     def id(self, s):
         return f"hx{self.p}{s}"
@@ -1033,12 +1034,12 @@ def rag_why():
 
 def rag_scene(n):
     """RAG가 등장한 이유를 장면 하나씩 (1 LLM만 · 2 통째로 · 3 조각만). 10초 · 장면 안에서만 움직임."""
-    d = _D(f"rs{n}", 10)
+    d = _D(f"rs{n}", 8, once=True)
     OK, P = "#2E7D4F", "#FFF0F3"
     Q = "1 FIT이 뭐야?"
 
-    def vis(a, b=96):
-        return d.a([(0, "opacity:0"), (a, "opacity:0"), (a + 4, "opacity:1"), (b, "opacity:1"), (b + 3, "opacity:0"), (100, "opacity:0")])
+    def vis(a, b=None):
+        return d.a([(0, "opacity:0"), (a, "opacity:0"), (a + 4, "opacity:1"), (100, "opacity:1")])
 
     s = ""
     if n == 1:
@@ -1055,14 +1056,14 @@ def rag_scene(n):
         s += _t(30, 290, "컨텍스트", "tn", "start", 'style="font-size:15px"')
         s += f'<rect x="30" y="304" width="360" height="30" rx="7" fill="#F1F1F4"/>'
         s += f'<line x1="290" y1="294" x2="290" y2="344" stroke="{N}" stroke-width="2" stroke-dasharray="4 3"/>' + _t(290, 358, "한도", "ts", extra='style="font-size:13px"')
-        s += (f'<rect x="30" y="304" height="30" rx="7" fill="{O}" ' + d.a([(0, "width:0px"), (26, "width:0px"), (60, "width:360px"), (96, "width:360px"), (100, "width:0px")]) + "/>")
+        s += (f'<rect x="30" y="304" height="30" rx="7" fill="{O}" ' + d.a([(0, "width:0px"), (26, "width:0px"), (60, "width:360px"), (100, "width:360px")]) + "/>")
     else:
         s += _t(110, 22, "미리 조각내 둔 문서", "ts", extra='style="font-size:14px"')
         hot = {(1, 2), (2, 0), (3, 3)}
         for r in range(5):
             for c in range(4):
                 on = (r, c) in hot
-                st = vis(2 + r * 2) if not on else d.a([(0, "opacity:0;fill:#FFFFFF"), (2 + r * 2, "opacity:0;fill:#FFFFFF"), (6 + r * 2, "opacity:1;fill:#FFFFFF"), (34, "opacity:1;fill:#FFFFFF"), (38, f"opacity:1;fill:{O}"), (96, f"opacity:1;fill:{O}"), (99, "opacity:0;fill:#FFFFFF"), (100, "opacity:0;fill:#FFFFFF")])
+                st = vis(2 + r * 2) if not on else d.a([(0, "opacity:0;fill:#FFFFFF"), (2 + r * 2, "opacity:0;fill:#FFFFFF"), (6 + r * 2, "opacity:1;fill:#FFFFFF"), (34, "opacity:1;fill:#FFFFFF"), (38, f"opacity:1;fill:{O}"), (100, f"opacity:1;fill:{O}")])
                 s += f'<rect x="{20 + c * 46}" y="{40 + r * 36}" width="38" height="26" rx="5" fill="{W}" stroke="{O if on else N}" stroke-width="{2.5 if on else 1.5}" {st}/>'
         s += f'<g {vis(20)}><rect x="225" y="40" width="170" height="42" rx="12" fill="{N}"/>' + _t(310, 61, Q, "tw") + "</g>"
         s += f'<g {vis(30)}>' + _t(310, 104, "비슷한 조각 3개", "to") + "</g>"
